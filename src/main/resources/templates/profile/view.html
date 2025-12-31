@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content">
+    <h2>Trang cá nhân</h2>
+    <div>
+      <label>Họ và tên:</label>
+      <span th:text="${nhanVien.hoTen}">HoTen</span>
+    </div>
+    <div>
+      <label>Chức vụ:</label>
+      <span th:text="${nhanVien.chucVu != null ? nhanVien.chucVu.tenChucVu : 'N/A'}">ChucVu</span>
+    </div>
+    <div>
+      <label>Địa chỉ:</label>
+      <span th:text="${nhanVien.diaChi}">DiaChi</span>
+    </div>
+    <div>
+      <label>Số điện thoại:</label>
+      <span th:text="${nhanVien.soDienThoai}">SoDienThoai</span>
+    </div>
+    <div>
+      <label>Lương:</label>
+      <span th:text="${nhanVien.luong != null ? nhanVien.luong : (nhanVien.chucVu != null ? nhanVien.chucVu.luong : 'N/A')}">Luong</span>
+    </div>
+    <div>
+      <label>Tên đăng nhập:</label>
+      <span th:text="${taiKhoan.tenDangNhap}">username</span>
+    </div>
+    <div>
+      <label>Ảnh:</label>
+      <div th:if="${taiKhoan.anh != null}">
+        <img th:src="${taiKhoan.anh}" alt="avatar" style="max-width:150px"/>
+      </div>
+    </div>
+    <div>
+      <a th:href="@{/profile/edit}">Chỉnh sửa</a>
+      <form th:action="@{/logout}" method="post" style="display:inline">
+        <button type="submit">Đăng xuất</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
+
+

@@ -1,0 +1,25 @@
+<div th:fragment="content">
+  <div style="background:#fff;padding:16px;max-width:520px;">
+    <h3 th:text="'Đặt bàn ' + ${banId}">Đặt bàn</h3>
+    <form id="reserveForm">
+      <div>
+        <label>Tên khách</label><br/>
+        <input type="text" name="tenKhach" id="tenKhach" />
+      </div>
+      <div>
+        <label>SĐT</label><br/>
+        <input type="text" name="sdt" id="sdt" />
+      </div>
+      <div>
+        <label>Ngày giờ (ISO local, e.g. 2025-12-31T10:30)</label><br/>
+        <input type="text" name="ngayGio" id="ngayGio" />
+      </div>
+      <div style="margin-top:8px;">
+        <button type="button" onclick="submitReserve()">Đặt bàn</button>
+        <button type="button" onclick="closeModal()">Đóng</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+

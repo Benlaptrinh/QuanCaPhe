@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content">
+    <h2>Chỉnh sửa thông tin cá nhân</h2>
+    <form th:action="@{/profile/edit}" method="post">
+      <div>
+        <label>Họ và tên</label>
+        <input type="text" name="hoTen" th:value="${nhanVien.hoTen}" />
+      </div>
+      <div>
+        <label>Địa chỉ</label>
+        <input type="text" name="diaChi" th:value="${nhanVien.diaChi}" />
+      </div>
+      <div>
+        <label>Số điện thoại</label>
+        <input type="text" name="soDienThoai" th:value="${nhanVien.soDienThoai}" />
+      </div>
+      <div>
+        <label>Ảnh (URL)</label>
+        <input type="text" name="anh" th:value="${taiKhoan.anh}" />
+      </div>
+      <div>
+        <button type="submit">Lưu</button>
+        <a th:href="@{/profile}">Hủy</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
+
+

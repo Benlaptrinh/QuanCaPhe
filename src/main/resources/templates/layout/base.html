@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<header th:replace="fragments/header :: header"></header>
+
+<main>
+  <div style="display:flex; height:100vh; box-sizing:border-box">
+
+    <!-- SIDEBAR -->
+    <div style="width:250px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box">
+      <div th:replace="~{${sidebarFragment} :: sidebar}"></div>
+    </div>
+
+    <!-- CONTENT -->
+    <div style="flex:1; padding:20px; box-sizing:border-box">
+      <div th:replace="~{${contentFragment} :: content}"></div>
+    </div>
+
+  </div>
+</main>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>
+
+

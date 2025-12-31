@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout/base :: content(~{::body})">
+<body>
+<h2>Create User</h2>
+<div th:if="${error}" style="color:red;margin-bottom:8px" th:text="${error}"></div>
+<form th:action="@{/admin/users/create}" th:object="${taiKhoan}" method="post">
+    <div>
+        <label>Username</label>
+        <input type="text" th:field="*{tenDangNhap}" />
+    </div>
+    <div>
+        <label>Password</label>
+        <input type="password" th:field="*{matKhau}" />
+    </div>
+    <div>
+        <label>Role</label>
+        <select th:field="*{quyenHan}">
+            <option th:value="ADMIN">ADMIN</option>
+            <option th:value="NHANVIEN">NHANVIEN</option>
+        </select>
+    </div>
+
+    <h3>Employee info</h3>
+    <div>
+        <label>Ho Ten</label>
+        <input type="text" th:field="${nhanVien.hoTen}" name="hoTen"/>
+    </div>
+    <div>
+        <label>So Dien Thoai</label>
+        <input type="text" th:field="${nhanVien.soDienThoai}" name="soDienThoai"/>
+    </div>
+    <div>
+        <label>Dia Chi</label>
+        <input type="text" th:field="${nhanVien.diaChi}" name="diaChi"/>
+    </div>
+    <div>
+        <label>Chuc Vu</label>
+        <select name="chucVuId">
+            <option th:each="c : ${chucVus}" th:value="${c.maChucVu}" th:text="${c.tenChucVu}">CV</option>
+        </select>
+    </div>
+
+    <div>
+        <button type="submit">Create</button>
+    </div>
+</form>
+</body>
+</html>
+</body>
+</html>
+
+

@@ -1,0 +1,212 @@
+package com.example.demo.controller;
+
+import com.example.demo.service.SalesService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/sales")
+public class SalesController {
+
+    private final SalesService salesService;
+
+    public SalesController(SalesService salesService) {
+        this.salesService = salesService;
+    }
+
+    @GetMapping
+    public String index(Model model) {
+        model.addAttribute("tables", salesService.findAllTables());
+        return "sales/index";
+    }
+
+    @GetMapping("/ban/{id}")
+    public String viewBan(@PathVariable Long id, Model model) {
+        model.addAttribute("hoaDon", salesService.findUnpaidInvoiceByTable(id).orElse(null));
+        model.addAttribute("tableId", id);
+        return "sales/view-ban";
+    }
+
+    @GetMapping("/{banId}/menu")
+    public String selectMenuForm(@PathVariable Long banId, Model model) {
+        model.addAttribute("menu", salesService.findMenuItems());
+        model.addAttribute("tableId", banId);
+        java.util.Optional<com.example.demo.entity.HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
+        model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
+        java.util.Map<Long, Integer> qtyMap = new java.util.HashMap<>();
+        hoaDonOpt.ifPresent(hd -> {
+            if (hd.getChiTietHoaDons() != null) {
+                for (com.example.demo.entity.ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
+                    if (ct.getThucDon() != null && ct.getSoLuong() != null) {
+                        qtyMap.put(ct.getThucDon().getMaThucDon(), ct.getSoLuong());
+                    }
+                }
+            }
+        });
+        model.addAttribute("qtyMap", qtyMap);
+        return "sales/fragments/select-menu :: content";
+    }
+
+    @GetMapping("/{banId}/menu/modal")
+    public String selectMenuModal(@PathVariable Long banId, Model model) {
+        // same as selectMenuForm but separate path to avoid ambiguity
+        model.addAttribute("menu", salesService.findMenuItems());
+        model.addAttribute("tableId", banId);
+        java.util.Optional<com.example.demo.entity.HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
+        model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
+        java.util.Map<Long, Integer> qtyMap = new java.util.HashMap<>();
+        hoaDonOpt.ifPresent(hd -> {
+            if (hd.getChiTietHoaDons() != null) {
+                for (com.example.demo.entity.ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
+                    if (ct.getThucDon() != null && ct.getSoLuong() != null) {
+                        qtyMap.put(ct.getThucDon().getMaThucDon(), ct.getSoLuong());
+                    }
+                }
+            }
+        });
+        model.addAttribute("qtyMap", qtyMap);
+        return "sales/fragments/select-menu :: content";
+    }
+
+    @GetMapping("/menu")
+    public String menuRedirect(@RequestParam("banId") Long banId) {
+        return "redirect:/sales/" + banId + "/menu";
+    }
+
+    @PostMapping("/{banId}/menu")
+    public String selectMenuSubmit(@PathVariable Long banId,
+                                   @RequestParam java.util.Map<String,String> params) {
+        salesService.saveSelectedMenu(banId, params);
+        return "redirect:/admin/sales";
+    }
+
+    @GetMapping("/{banId}/payment")
+    public String paymentForm(@PathVariable Long banId, Model model) {
+        model.addAttribute("hoaDon", salesService.findUnpaidInvoiceByTable(banId).orElse(null));
+        model.addAttribute("tableId", banId);
+        return "sales/payment";
+    }
+
+    @GetMapping("/payment")
+    public String paymentRedirect(@RequestParam("banId") Long banId) {
+        return "redirect:/sales/" + banId + "/payment";
+    }
+
+    @PostMapping("/thanh-toan/{banId}")
+    public String thanhToan(@PathVariable Long banId,
+                            @RequestParam("tienKhach") String tienKhach,
+                            @RequestParam(value = "print", required = false) boolean print) {
+        java.math.BigDecimal money;
+        try {
+            money = new java.math.BigDecimal(tienKhach.replaceAll("[^0-9.]", ""));
+        } catch (Exception ex) {
+            money = java.math.BigDecimal.ZERO;
+        }
+        // determine release: default to true when full payment
+        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
+        boolean release = false;
+        if (hdOpt.isPresent()) {
+            com.example.demo.entity.HoaDon hd = hdOpt.get();
+            java.math.BigDecimal total = hd.getTongTien() == null ? java.math.BigDecimal.ZERO : hd.getTongTien();
+            if (money.compareTo(total) >= 0) release = true;
+        }
+        salesService.payInvoice(banId, money, release);
+        return "redirect:/admin/sales";
+    }
+
+    @GetMapping("/{banId}/payment/modal")
+    public String paymentModal(@PathVariable Long banId, Model model) {
+        model.addAttribute("tableId", banId);
+        model.addAttribute("hoaDon", salesService.findUnpaidInvoiceByTable(banId).orElse(null));
+        return "sales/fragments/payment :: content";
+    }
+
+    @PostMapping("/{banId}/payment")
+    @ResponseBody
+    public String paymentSubmit(@PathVariable Long banId,
+                                @RequestParam("tienKhach") String tienKhach,
+                                @RequestParam(value = "print", required = false) boolean print) {
+        java.math.BigDecimal money;
+        try {
+            money = new java.math.BigDecimal(tienKhach.replaceAll("[^0-9.]", ""));
+        } catch (Exception ex) {
+            money = java.math.BigDecimal.ZERO;
+        }
+        try {
+            java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
+            if (hdOpt.isEmpty()) {
+                return "ERROR:Không tìm thấy hóa đơn để thanh toán";
+            }
+            com.example.demo.entity.HoaDon hd = hdOpt.get();
+            java.math.BigDecimal total = hd.getTongTien() == null ? java.math.BigDecimal.ZERO : hd.getTongTien();
+            boolean release = money.compareTo(total) >= 0;
+            salesService.payInvoice(banId, money, release);
+            if (print) {
+                // return indicator for client to open print page; use the paid invoice id
+                Long id = hd.getMaHoaDon();
+                return "OK:PRINT:" + id;
+            }
+            return "OK";
+        } catch (Exception ex) {
+            return "ERROR:" + ex.getMessage();
+        }
+    }
+
+    @PostMapping("/{banId}/cancel")
+    public String cancelInvoice(@PathVariable Long banId, RedirectAttributes ra) {
+        salesService.cancelInvoice(banId);
+        ra.addFlashAttribute("success", "Hủy hóa đơn thành công");
+        return "redirect:/admin/sales";
+    }
+
+    @GetMapping("/view")
+    public String viewRedirect(@RequestParam("banId") Long banId, Model model) {
+        return viewBan(banId, model);
+    }
+
+    @GetMapping("/ban/{id}/view")
+    public String viewBanFragment(@PathVariable("id") Long id, Model model) {
+        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
+        model.addAttribute("banId", id);
+        if (hdOpt.isEmpty()) {
+            model.addAttribute("empty", true);
+        } else {
+            model.addAttribute("empty", false);
+            com.example.demo.entity.HoaDon hd = hdOpt.get();
+            model.addAttribute("hoaDon", hd);
+            model.addAttribute("details", hd.getChiTietHoaDons());
+        }
+        return "sales/fragments/view-ban :: content";
+    }
+
+    @GetMapping("/ban/{id}/reserve")
+    public String reserveBanFragment(@PathVariable("id") Long id, Model model) {
+        model.addAttribute("banId", id);
+        return "sales/fragments/reserve :: content";
+    }
+
+    @PostMapping("/ban/{id}/reserve")
+    @ResponseBody
+    public String reserveBanSubmit(@PathVariable("id") Long id,
+                                   @RequestParam("tenKhach") String tenKhach,
+                                   @RequestParam("sdt") String sdt,
+                                   @RequestParam("ngayGio") String ngayGio) {
+        java.time.LocalDateTime dt;
+        try {
+            dt = java.time.LocalDateTime.parse(ngayGio);
+        } catch (Exception ex) {
+            // try parse as date + time separated
+            dt = java.time.LocalDateTime.now();
+        }
+        try {
+            salesService.reserveTable(id, tenKhach, sdt, dt);
+            return "OK";
+        } catch (Exception e) {
+            return "ERROR:" + e.getMessage();
+        }
+    }
+}
+
+

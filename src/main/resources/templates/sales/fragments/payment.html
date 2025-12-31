@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<div th:fragment="content">
+  <div style="background:#fff;padding:16px;max-width:720px;">
+    <h3 th:text="'Thanh toán - Bàn ' + ${tableId}">Thanh toán</h3>
+
+    <div th:if="${hoaDon != null}">
+      <table border="1" style="width:100%; border-collapse:collapse; margin-bottom:8px;">
+        <thead>
+          <tr><th style="padding:6px">Tên món</th><th style="padding:6px">Số lượng</th><th style="padding:6px">Đơn giá</th><th style="padding:6px">Thành tiền</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="ct : ${hoaDon.chiTietHoaDons}">
+            <td style="padding:6px" th:text="${ct.thucDon.tenMon}">Món</td>
+            <td style="padding:6px;text-align:center" th:text="${ct.soLuong}">0</td>
+            <td style="padding:6px;text-align:right" th:text="${ct.giaTaiThoiDiemBan}">0</td>
+            <td style="padding:6px;text-align:right" th:text="${ct.thanhTien}">0</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="padding:6px;text-align:right"><strong>TỔNG:</strong></td>
+            <td style="padding:6px;text-align:right"><strong th:text="${hoaDon.tongTien}">0</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div>
+        <label>Tiền khách đưa: </label>
+        <input type="text" id="tienKhach" th:value="${hoaDon != null ? hoaDon.tongTien : ''}" />
+      </div>
+      <div style="margin-top:8px;">
+        <label><input type="checkbox" id="printInvoice" /> Có in hóa đơn không</label>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        <button type="button" th:onclick="|submitPayment(${tableId})|">Xác nhận thanh toán</button>
+        <button type="button" onclick="closeModal()">Hủy</button>
+      </div>
+    </div>
+    <div th:if="${hoaDon == null}">
+      <p>Không có hóa đơn để thanh toán.</p>
+      <div style="margin-top:12px;"><button type="button" onclick="closeModal()">Đóng</button></div>
+    </div>
+  </div>
+</div>
+
+

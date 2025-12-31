@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: content(~{::body})}">
+<body>
+<h2>User List</h2>
+<a th:href="@{/admin/users/create}">Create user</a>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Enabled</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="u : ${users}">
+        <td th:text="${u.tenDangNhap}">username</td>
+        <td th:text="${u.quyenHan}">ROLE</td>
+        <td th:text="${u.enabled}">enabled</td>
+        <td>
+            <a th:href="@{|/admin/users/${u.maTaiKhoan}/edit|}">Edit</a>
+            <form th:action="@{|/admin/users/${u.maTaiKhoan}/disable|}" method="post" style="display:inline">
+                <button type="submit">Disable</button>
+            </form>
+            <form th:action="@{|/admin/users/${u.maTaiKhoan}/delete|}" method="post" style="display:inline" onsubmit="return confirm('Xóa user này?')">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
+
+

@@ -1,0 +1,38 @@
+package com.example.demo.entity;
+
+import com.example.demo.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "tai_khoan",
+       uniqueConstraints = @UniqueConstraint(columnNames = "ten_dang_nhap"))
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class TaiKhoan {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long maTaiKhoan;
+
+    @Column(name = "ten_dang_nhap", nullable = false)
+    private String tenDangNhap;
+
+    @JsonIgnore
+    @Column(name = "mat_khau", nullable = false, length = 60)
+    private String matKhau;
+
+    @Enumerated(EnumType.STRING)
+    private Role quyenHan;
+
+    private String anh;
+    
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
+}
+
+

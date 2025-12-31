@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content">
+    <h1>Xem bàn: <span th:text="${tableId}">ID</span></h1>
+    <div th:if="${hoaDon != null}">
+      <h3>Hóa đơn chưa thanh toán</h3>
+      <table border="1" style="width:70%">
+        <thead>
+          <tr><th>Tên món</th><th>Số lượng</th><th>Giá</th><th>Thành tiền</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="ct : ${hoaDon.chiTietHoaDons}">
+            <td th:text="${ct.thucDon.tenMon}">Mon</td>
+            <td th:text="${ct.soLuong}">1</td>
+            <td th:text="${ct.giaTaiThoiDiemBan}">0</td>
+            <td th:text="${ct.thanhTien}">0</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Tổng: <span th:text="${hoaDon.tongTien}">0</span></p>
+      <a th:href="@{|/sales/${tableId}/menu|}">Chọn món</a>
+      <a th:href="@{|/sales/${tableId}/payment|}">Thanh toán</a>
+    </div>
+    <div th:if="${hoaDon == null}">
+      <p>Bàn trống</p>
+      <a th:href="@{|/sales/${tableId}/menu|}">Tạo hóa đơn và chọn món</a>
+    </div>
+  </div>
+</body>
+</html>
+
+

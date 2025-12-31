@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Edit User</title>
+</head>
+<body>
+<h2>Edit User</h2>
+<div th:if="${error}" style="color:red;margin-bottom:8px" th:text="${error}"></div>
+<form th:action="@{|/admin/users/${taiKhoan.maTaiKhoan}/edit|}" method="post">
+    <div>
+        <label>Username</label>
+        <input type="text" th:value="${taiKhoan.tenDangNhap}" readonly />
+    </div>
+    <div>
+        <label>New Password (leave blank to keep)</label>
+        <input type="password" name="matKhau" />
+    </div>
+    <div>
+        <label>Role</label>
+        <select name="quyenHan">
+            <option th:selected="${taiKhoan.quyenHan.name() == 'ADMIN'}" value="ADMIN">ADMIN</option>
+            <option th:selected="${taiKhoan.quyenHan.name() == 'NHANVIEN'}" value="NHANVIEN">NHANVIEN</option>
+        </select>
+    </div>
+
+    <h3>Employee info</h3>
+    <div>
+        <label>Ho Ten</label>
+        <input type="text" name="hoTen" th:value="${nhanVien != null ? nhanVien.hoTen : ''}" />
+    </div>
+    <div>
+        <label>So Dien Thoai</label>
+        <input type="text" name="soDienThoai" th:value="${nhanVien != null ? nhanVien.soDienThoai : ''}" />
+    </div>
+    <div>
+        <label>Dia Chi</label>
+        <input type="text" name="diaChi" th:value="${nhanVien != null ? nhanVien.diaChi : ''}" />
+    </div>
+    <div>
+        <label>Chuc Vu</label>
+        <select name="chucVuId">
+            <option th:each="c : ${chucVus}" th:value="${c.maChucVu}" th:text="${c.tenChucVu}"
+                    th:selected="${nhanVien != null and nhanVien.chucVu != null and nhanVien.chucVu.maChucVu == c.maChucVu}">CV</option>
+        </select>
+    </div>
+
+    <div>
+        <button type="submit">Save</button>
+    </div>
+</form>
+</body>
+</html>
+
+

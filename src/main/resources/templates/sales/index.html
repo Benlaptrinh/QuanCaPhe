@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content">
+    <h1>Quản lý bán hàng - Danh sách bàn</h1>
+    <style>
+      .table-grid { display:flex; flex-wrap:wrap; gap:10px; }
+      .table-card { padding:10px; min-width:120px; min-height:60px; cursor:pointer; border:1px solid #ccc; background:#eaffea; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+      .table-card.serving { background:#ddd; }
+      .table-card.reserved { background:#fff3cd; }
+      .table-card.active { outline:3px solid #2a7; }
+      /* modal inner style override */
+      #modal-body > div { box-shadow:0 2px 8px rgba(0,0,0,0.2); border-radius:4px; }
+    </style>
+
+    <div class="table-grid">
+      <div th:each="b : ${tables}" class="table-card" th:attr="data-id=${b.maBan}"
+           th:classappend="${b.tinhTrang.name() == 'TRONG' ? '' : (b.tinhTrang.name() == 'DANG_SU_DUNG' ? ' serving' : ' reserved')}"
+           th:title="${b.tinhTrang}">
+        <div th:text="${b.tenBan}">Bàn</div>
+        <div th:text="${b.tinhTrang}">TRONG</div>
+      </div>
+    </div>
+
+    <input type="hidden" id="selectedBanId" name="banId" />
+
+    <div style="margin-top:20px;">
+      <button id="btnView" type="button" style="display:inline-block; margin-right:8px;" onclick="openViewBan()" disabled>Xem bàn</button>
+
+      <button id="btnMenu" type="button" style="display:inline-block; margin-right:8px;" onclick="openMenuModal()" disabled>Chọn thực đơn</button>
+
+      <button id="btnPayment" type="button" style="display:inline-block; margin-right:8px;" onclick="openPaymentModal()" disabled>Thanh toán</button>
+
+      <button id="btnMove" disabled style="margin-left:20px;">Chuyển</button>
+      <button id="btnMerge" disabled>Gộp</button>
+      <button id="btnSplit" disabled>Tách</button>
+      <button id="btnReserve" disabled type="button" onclick="openReserveBan()">Đặt bàn</button>
+    </div>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      function selectBan(id){
+        var sel = document.getElementById('selectedBanId');
+        if(sel) sel.value = id;
+        // document.getElementById('formMenuBanId').value = id; (no longer using form submit)
+        var paymentHidden = document.getElementById('formPaymentBanId');
+        if(paymentHidden) paymentHidden.value = id;
+        document.querySelectorAll('.table-card').forEach(function(el){ el.classList.remove('active'); });
+        var el = document.querySelector('.table-card[data-id="' + id + '"]');
+        if(el) el.classList.add('active');
+        // enable action buttons when a table is selected
+        var btnView = document.getElementById('btnView');
+        var btnMenu = document.getElementById('btnMenu');
+        var btnPayment = document.getElementById('btnPayment');
+        var btnReserve = document.getElementById('btnReserve');
+        if(btnView) btnView.disabled = false;
+        if(btnMenu) btnMenu.disabled = false;
+        if(btnPayment) btnPayment.disabled = false;
+        if(btnReserve) btnReserve.disabled = false;
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('.table-card').forEach(function(el){
+          el.addEventListener('click', function(){ selectBan(this.getAttribute('data-id')); });
+        });
+        // initialize buttons disabled
+        document.getElementById('btnView').disabled = true;
+        document.getElementById('btnMenu').disabled = true;
+        document.getElementById('btnPayment').disabled = true;
+      });
+
+      function openViewBan(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/ban/' + id + '/view', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function openReserveBan(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/ban/' + id + '/reserve', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function openMenuModal(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/' + id + '/menu/modal', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function openPaymentModal(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/' + id + '/payment/modal', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function submitPayment(banId){
+        var tien = document.getElementById('tienKhach').value || '';
+        var print = document.getElementById('printInvoice') && document.getElementById('printInvoice').checked;
+        fetch('/sales/' + banId + '/payment', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/x-www-form-urlencoded'},
+          body: 'tienKhach=' + encodeURIComponent(tien) + '&print=' + (print ? 'true' : 'false')
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Thanh toán thành công');
+              closeModal();
+              // if server asked to print, it returns OK:PRINT:{id}
+              if(txt.startsWith('OK:PRINT:')) {
+                var parts = txt.split(':');
+                var id = parts[2];
+                // open print page in new tab
+                window.open('/invoice/' + id, '_blank');
+              }
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
+      }
+
+      function submitReserve(){
+        var id = document.getElementById('selectedBanId').value;
+        var ten = document.getElementById('tenKhach').value;
+        var sdt = document.getElementById('sdt').value;
+        var ngayGio = document.getElementById('ngayGio').value;
+        fetch('/sales/ban/' + id + '/reserve', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/x-www-form-urlencoded'},
+          body: 'tenKhach=' + encodeURIComponent(ten) + '&sdt=' + encodeURIComponent(sdt) + '&ngayGio=' + encodeURIComponent(ngayGio)
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Đặt bàn thành công');
+              closeModal();
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
+      }
+
+      function closeModal(){
+        var m = document.getElementById('modal');
+        if(m) m.remove();
+      }
+      /*]]>*/
+    </script>
+  </div>
+</body>
+</html>
+
+

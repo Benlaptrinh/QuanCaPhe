@@ -1,0 +1,21 @@
+<div th:fragment="sidebar">
+    <h4>Trang chủ</h4>
+    <ul>
+        <li><a th:href="@{/admin/dashboard}">Trang chủ</a></li>
+        <li><a th:href="@{/profile}">Trang cá nhân</a></li>
+        <li><a th:href="@{/admin/employees}">Quản lý nhân viên</a></li>
+        <li><a th:href="@{/admin/sales}">Quản lý bán hàng</a></li>
+        <li><a th:href="@{/admin/equipment}">Quản lý trang thiết bị</a></li>
+        <li><a th:href="@{/admin/warehouse}">Quản lý kho hàng</a></li>
+        <li><a th:href="@{/admin/menu}">Quản lý thực đơn</a></li>
+        <li><a th:href="@{/admin/marketing}">Quản lý marketing</a></li>
+        <li><a th:href="@{/admin/budget}">Quản lý ngân sách</a></li>
+        <li><a th:href="@{/admin/reports}">Thống kê - báo cáo</a></li>
+    </ul>
+
+    <form th:action="@{/logout}" method="post">
+        <button type="submit">Logout</button>
+    </form>
+</div>
+
+

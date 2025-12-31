@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<div th:fragment="content">
+  <div style="background: #fff; padding:16px; max-width:720px;">
+    <h3 th:text="'Xem bàn ' + ${banId}">Xem bàn</h3>
+
+    <div th:if="${empty}">
+      <p>Bàn trống</p>
+      <div style="margin-top:12px;">
+        <button type="button" onclick="closeModal()">Đóng</button>
+      </div>
+    </div>
+
+    <div th:if="${!empty}">
+      <div>
+        <table border="1" style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="padding:6px">Tên món</th>
+              <th style="padding:6px">Số lượng</th>
+              <th style="padding:6px">Đơn giá</th>
+              <th style="padding:6px">Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="ct : ${details}">
+              <td style="padding:6px" th:text="${ct.thucDon.tenMon}">Món</td>
+              <td style="padding:6px; text-align:center" th:text="${ct.soLuong}">0</td>
+              <td style="padding:6px; text-align:right" th:text="${ct.giaTaiThoiDiemBan}">0</td>
+              <td style="padding:6px; text-align:right" th:text="${ct.thanhTien}">0</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="padding:6px; text-align:right"><strong>TỔNG:</strong></td>
+              <td style="padding:6px; text-align:right"><strong th:text="${hoaDon.tongTien}">0</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        <button type="button" onclick="openMenuModal()">Chọn thực đơn</button>
+        <button type="button" onclick="openPaymentModal()">Thanh toán</button>
+        <button type="button" onclick="closeModal()">Đóng</button>
+        <div th:if="${hoaDon != null and hoaDon.trangThai.name() == 'MOI_TAO'}">
+          <form th:action="@{/sales/{banId}/cancel(banId=${banId})}" method="post" th:onsubmit="|return confirm('Bạn có chắc muốn hủy hóa đơn bàn ${banId}?');|" style="display:inline;">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;cursor:pointer;">Hủy hóa đơn</button>
+          </form>
+        </div>
+        <div th:if="${hoaDon != null and hoaDon.trangThai.name() == 'DA_THANH_TOAN'}">
+          <button type="button" th:onclick="|window.open('/invoice/' + ${hoaDon.maHoaDon})|">In hóa đơn</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

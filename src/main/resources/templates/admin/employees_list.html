@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content">
+    <h1>Danh sách nhân viên</h1>
+    <div th:if="${message}" style="color:green" th:text="${message}"></div>
+    <div th:if="${error}" style="color:red" th:text="${error}"></div>
+    <a th:href="@{/admin/employees/create}">Thêm nhân viên</a>
+    <form th:action="@{/admin/employees}" method="get" style="display:inline;margin-left:16px">
+      <input type="text" name="q" placeholder="Tìm theo họ tên" th:value="${param.q}" />
+      <button type="submit">Tìm</button>
+    </form>
+    <table border="1" style="width:80%; margin-top:10px">
+      <thead>
+        <tr><th>Họ tên</th><th>Chức vụ</th><th>Lương</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="nv : ${nhanViens}">
+          <td th:text="${nv.hoTen}">HoTen</td>
+          <td th:text="${nv.chucVu != null ? nv.chucVu.tenChucVu : 'N/A'}">ChucVu</td>
+          <td th:text="${nv.luong}">Luong</td>
+          <td>
+            <a th:href="@{|/admin/employees/${nv.maNhanVien}/edit|}">Edit</a>
+            <form th:action="@{|/admin/employees/${nv.maNhanVien}/delete|}" method="post" style="display:inline" onsubmit="return confirm('Xóa?')">
+              <button type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
+
+
