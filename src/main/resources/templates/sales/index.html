@@ -31,9 +31,9 @@
 
       <button id="btnPayment" type="button" style="display:inline-block; margin-right:8px;" onclick="openPaymentModal()" disabled>Thanh toán</button>
 
-      <button id="btnMove" disabled style="margin-left:20px;">Chuyển</button>
-      <button id="btnMerge" disabled>Gộp</button>
-      <button id="btnSplit" disabled>Tách</button>
+      <button id="btnMove" disabled style="margin-left:20px;" type="button" onclick="openMoveModal()">Chuyển</button>
+      <button id="btnMerge" disabled type="button" onclick="openMergeModal()">Gộp</button>
+      <button id="btnSplit" disabled type="button" onclick="openSplitModal()">Tách</button>
       <button id="btnReserve" disabled type="button" onclick="openReserveBan()">Đặt bàn</button>
     </div>
 
@@ -53,10 +53,26 @@
         var btnMenu = document.getElementById('btnMenu');
         var btnPayment = document.getElementById('btnPayment');
         var btnReserve = document.getElementById('btnReserve');
+        var btnMove = document.getElementById('btnMove');
+        var btnMerge = document.getElementById('btnMerge');
+        var btnSplit = document.getElementById('btnSplit');
+
         if(btnView) btnView.disabled = false;
         if(btnMenu) btnMenu.disabled = false;
         if(btnPayment) btnPayment.disabled = false;
         if(btnReserve) btnReserve.disabled = false;
+
+        // Table operations buttons - only enable for tables that are serving
+        var selectedTable = document.querySelector('.table-card[data-id="' + id + '"]');
+        if(selectedTable && selectedTable.classList.contains('serving')) {
+          if(btnMove) btnMove.disabled = false;
+          if(btnMerge) btnMerge.disabled = false;
+          if(btnSplit) btnSplit.disabled = false;
+        } else {
+          if(btnMove) btnMove.disabled = true;
+          if(btnMerge) btnMerge.disabled = true;
+          if(btnSplit) btnSplit.disabled = true;
+        }
       }
 
       document.addEventListener('DOMContentLoaded', function(){
@@ -67,6 +83,10 @@
         document.getElementById('btnView').disabled = true;
         document.getElementById('btnMenu').disabled = true;
         document.getElementById('btnPayment').disabled = true;
+        document.getElementById('btnReserve').disabled = true;
+        document.getElementById('btnMove').disabled = true;
+        document.getElementById('btnMerge').disabled = true;
+        document.getElementById('btnSplit').disabled = true;
       });
 
       function openViewBan(){
@@ -213,6 +233,145 @@
       function closeModal(){
         var m = document.getElementById('modal');
         if(m) m.remove();
+      }
+
+      function openMoveModal(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/ban/' + id + '/move', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function openMergeModal(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/ban/' + id + '/merge', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function openSplitModal(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/ban/' + id + '/split', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function submitMove(banId){
+        var toBanId = document.getElementById('toBanSelect').value;
+        if(!toBanId){ alert('Vui lòng chọn bàn đích'); return; }
+        fetch('/sales/ban/' + banId + '/move', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/x-www-form-urlencoded'},
+          body: 'toBanId=' + encodeURIComponent(toBanId)
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Chuyển bàn thành công');
+              closeModal();
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
+      }
+
+      function submitMerge(banId){
+        var sourceBanId = document.getElementById('sourceBanSelect').value;
+        if(!sourceBanId){ alert('Vui lòng chọn bàn nguồn'); return; }
+        fetch('/sales/ban/' + banId + '/merge', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/x-www-form-urlencoded'},
+          body: 'sourceBanId=' + encodeURIComponent(sourceBanId)
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Gộp bàn thành công');
+              closeModal();
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
+      }
+
+      function submitSplit(banId){
+        var toBanId = document.getElementById('toBanSelect').value;
+        if(!toBanId){ alert('Vui lòng chọn bàn đích'); return; }
+
+        // Collect split quantities
+        var formData = new FormData();
+        formData.append('toBanId', toBanId);
+
+        // Get all split quantity inputs
+        var inputs = document.querySelectorAll('input[id^="split_qty_"]');
+        inputs.forEach(function(input){
+          formData.append(input.name, input.value);
+        });
+
+        fetch('/sales/ban/' + banId + '/split', {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: new URLSearchParams(formData)
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Tách bàn thành công');
+              closeModal();
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
       }
       /*]]>*/
     </script>
