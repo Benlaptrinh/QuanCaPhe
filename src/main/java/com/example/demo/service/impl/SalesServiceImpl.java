@@ -302,6 +302,233 @@ public class SalesServiceImpl implements SalesService {
     public java.util.Optional<com.example.demo.entity.HoaDon> findInvoiceById(Long id) {
         return hoaDonRepository.findById(id);
     }
+
+    @Override
+    @Transactional
+    public void mergeTables(Long targetBanId, Long sourceBanId) {
+        if (targetBanId.equals(sourceBanId)) {
+            throw new IllegalArgumentException("Không thể gộp bàn với chính nó");
+        }
+
+        // Find invoices for both tables
+        Optional<HoaDon> targetHdOpt = hoaDonRepository.findChuaThanhToanByBan(targetBanId);
+        Optional<HoaDon> sourceHdOpt = hoaDonRepository.findChuaThanhToanByBan(sourceBanId);
+
+        if (targetHdOpt.isEmpty() && sourceHdOpt.isEmpty()) {
+            throw new IllegalStateException("Cả hai bàn đều không có hóa đơn");
+        }
+
+        // If target has no invoice but source does, just move the invoice to target
+        if (targetHdOpt.isEmpty()) {
+            HoaDon sourceHd = sourceHdOpt.get();
+            Ban targetBan = banRepository.findById(targetBanId).orElseThrow();
+            sourceHd.setBan(targetBan);
+            hoaDonRepository.save(sourceHd);
+
+            // Mark source table as empty
+            Ban sourceBan = banRepository.findById(sourceBanId).orElseThrow();
+            sourceBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+            banRepository.save(sourceBan);
+
+            return;
+        }
+
+        // If source has no invoice, nothing to merge
+        if (sourceHdOpt.isEmpty()) {
+            return;
+        }
+
+        // Both have invoices - merge source items into target
+        HoaDon targetHd = targetHdOpt.get();
+        HoaDon sourceHd = sourceHdOpt.get();
+
+        // Merge chiTietHoaDons
+        if (targetHd.getChiTietHoaDons() == null) {
+            targetHd.setChiTietHoaDons(new java.util.ArrayList<>());
+        }
+
+        if (sourceHd.getChiTietHoaDons() != null) {
+            for (com.example.demo.entity.ChiTietHoaDon sourceCt : sourceHd.getChiTietHoaDons()) {
+                // Find existing item in target invoice
+                com.example.demo.entity.ChiTietHoaDon existingCt = targetHd.getChiTietHoaDons().stream()
+                    .filter(ct -> ct.getThucDon().getMaThucDon().equals(sourceCt.getThucDon().getMaThucDon()))
+                    .findFirst().orElse(null);
+
+                if (existingCt != null) {
+                    // Merge quantities
+                    int newQty = existingCt.getSoLuong() + sourceCt.getSoLuong();
+                    existingCt.setSoLuong(newQty);
+                    existingCt.setThanhTien(existingCt.getGiaTaiThoiDiemBan().multiply(new BigDecimal(newQty)));
+                    chiTietHoaDonRepository.save(existingCt);
+                } else {
+                    // Add new item to target invoice
+                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    newCt.setHoaDon(targetHd);
+                    newCt.setThucDon(sourceCt.getThucDon());
+                    newCt.setSoLuong(sourceCt.getSoLuong());
+                    newCt.setGiaTaiThoiDiemBan(sourceCt.getGiaTaiThoiDiemBan());
+                    newCt.setThanhTien(sourceCt.getThanhTien());
+                    targetHd.getChiTietHoaDons().add(newCt);
+                    chiTietHoaDonRepository.save(newCt);
+                }
+            }
+        }
+
+        // Recalculate total for target invoice
+        BigDecimal total = targetHd.getChiTietHoaDons().stream()
+            .map(com.example.demo.entity.ChiTietHoaDon::getThanhTien)
+            .filter(java.util.Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        targetHd.setTongTien(total);
+        targetHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.DA_GOP);
+        hoaDonRepository.save(targetHd);
+
+        // Delete source invoice
+        chiTietHoaDonRepository.deleteByHoaDonId(sourceHd.getMaHoaDon());
+        hoaDonRepository.delete(sourceHd);
+
+        // Mark source table as empty
+        Ban sourceBan = banRepository.findById(sourceBanId).orElseThrow();
+        sourceBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+        banRepository.save(sourceBan);
+    }
+
+    @Override
+    @Transactional
+    public void splitTable(Long fromBanId, Long toBanId, java.util.Map<Long, Integer> itemQuantities) {
+        if (fromBanId.equals(toBanId)) {
+            throw new IllegalArgumentException("Không thể tách bàn với chính nó");
+        }
+
+        // Check if target table is empty
+        Ban toBan = banRepository.findById(toBanId).orElseThrow();
+        if (toBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.TRONG) {
+            throw new IllegalStateException("Bàn đích phải trống");
+        }
+
+        // Find source invoice
+        Optional<HoaDon> fromHdOpt = hoaDonRepository.findChuaThanhToanByBan(fromBanId);
+        if (fromHdOpt.isEmpty()) {
+            throw new IllegalStateException("Bàn nguồn không có hóa đơn");
+        }
+
+        HoaDon fromHd = fromHdOpt.get();
+
+        // Create new invoice for target table
+        HoaDon toHd = new HoaDon();
+        toHd.setBan(toBan);
+        toHd.setNgayGioTao(LocalDateTime.now());
+        toHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+        toHd.setChiTietHoaDons(new java.util.ArrayList<>());
+        toHd = hoaDonRepository.save(toHd);
+
+        BigDecimal fromTotal = BigDecimal.ZERO;
+        BigDecimal toTotal = BigDecimal.ZERO;
+
+        // Process each item
+        if (fromHd.getChiTietHoaDons() != null) {
+            java.util.List<com.example.demo.entity.ChiTietHoaDon> itemsToRemove = new java.util.ArrayList<>();
+
+            for (com.example.demo.entity.ChiTietHoaDon ct : fromHd.getChiTietHoaDons()) {
+                Long itemId = ct.getThucDon().getMaThucDon();
+                Integer splitQty = itemQuantities.getOrDefault(itemId, 0);
+
+                if (splitQty > 0 && splitQty < ct.getSoLuong()) {
+                    // Split this item
+                    int remainingQty = ct.getSoLuong() - splitQty;
+
+                    // Update source item
+                    ct.setSoLuong(remainingQty);
+                    ct.setThanhTien(ct.getGiaTaiThoiDiemBan().multiply(new BigDecimal(remainingQty)));
+                    chiTietHoaDonRepository.save(ct);
+                    fromTotal = fromTotal.add(ct.getThanhTien());
+
+                    // Create new item for target
+                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    newCt.setHoaDon(toHd);
+                    newCt.setThucDon(ct.getThucDon());
+                    newCt.setSoLuong(splitQty);
+                    newCt.setGiaTaiThoiDiemBan(ct.getGiaTaiThoiDiemBan());
+                    newCt.setThanhTien(ct.getGiaTaiThoiDiemBan().multiply(new BigDecimal(splitQty)));
+                    toHd.getChiTietHoaDons().add(newCt);
+                    chiTietHoaDonRepository.save(newCt);
+                    toTotal = toTotal.add(newCt.getThanhTien());
+
+                } else if (splitQty >= ct.getSoLuong()) {
+                    // Move entire item to target
+                    ct.setHoaDon(toHd);
+                    toHd.getChiTietHoaDons().add(ct);
+                    itemsToRemove.add(ct);
+                    toTotal = toTotal.add(ct.getThanhTien());
+                } else {
+                    // Keep entire item in source
+                    fromTotal = fromTotal.add(ct.getThanhTien());
+                }
+            }
+
+            // Remove moved items from source invoice
+            fromHd.getChiTietHoaDons().removeAll(itemsToRemove);
+        }
+
+        // Update totals
+        fromHd.setTongTien(fromTotal);
+        hoaDonRepository.save(fromHd);
+
+        toHd.setTongTien(toTotal);
+        hoaDonRepository.save(toHd);
+
+        // Update table statuses
+        toBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        banRepository.save(toBan);
+    }
+
+    @Override
+    @Transactional
+    public void moveTable(Long fromBanId, Long toBanId) {
+        if (fromBanId.equals(toBanId)) {
+            throw new IllegalArgumentException("Không thể chuyển bàn với chính nó");
+        }
+
+        // Check if target table is empty
+        Ban toBan = banRepository.findById(toBanId).orElseThrow();
+        if (toBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.TRONG) {
+            throw new IllegalStateException("Bàn đích phải trống");
+        }
+
+        // Find source invoice
+        Optional<HoaDon> hdOpt = hoaDonRepository.findChuaThanhToanByBan(fromBanId);
+        if (hdOpt.isEmpty()) {
+            throw new IllegalStateException("Bàn nguồn không có hóa đơn để chuyển");
+        }
+
+        // Move invoice to target table
+        HoaDon hd = hdOpt.get();
+        hd.setBan(toBan);
+        hoaDonRepository.save(hd);
+
+        // Update table statuses
+        Ban fromBan = banRepository.findById(fromBanId).orElseThrow();
+        fromBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+        banRepository.save(fromBan);
+
+        toBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        banRepository.save(toBan);
+    }
+
+    @Override
+    public java.util.List<Ban> findEmptyTables() {
+        return banRepository.findAll().stream()
+            .filter(ban -> ban.getTinhTrang() == com.example.demo.enums.TinhTrangBan.TRONG)
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public java.util.List<Ban> findOccupiedTablesExcept(Long excludeBanId) {
+        return banRepository.findAll().stream()
+            .filter(ban -> ban.getTinhTrang() == com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG)
+            .filter(ban -> !ban.getMaBan().equals(excludeBanId))
+            .collect(java.util.stream.Collectors.toList());
+    }
 }
 
 

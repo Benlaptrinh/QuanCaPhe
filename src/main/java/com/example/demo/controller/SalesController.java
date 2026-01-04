@@ -207,6 +207,79 @@ public class SalesController {
             return "ERROR:" + e.getMessage();
         }
     }
+
+    // Table operations
+    @GetMapping("/ban/{targetBanId}/merge")
+    public String mergeTableForm(@PathVariable Long targetBanId, Model model) {
+        model.addAttribute("targetBanId", targetBanId);
+        model.addAttribute("candidates", salesService.findOccupiedTablesExcept(targetBanId));
+        return "sales/fragments/merge-ban :: content";
+    }
+
+    @PostMapping("/ban/{targetBanId}/merge")
+    @ResponseBody
+    public String mergeTable(@PathVariable Long targetBanId, @RequestParam("sourceBanId") Long sourceBanId) {
+        try {
+            salesService.mergeTables(targetBanId, sourceBanId);
+            return "OK";
+        } catch (Exception e) {
+            return "ERROR:" + e.getMessage();
+        }
+    }
+
+    @GetMapping("/ban/{fromBanId}/split")
+    public String splitTableForm(@PathVariable Long fromBanId, Model model) {
+        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(fromBanId);
+        if (hdOpt.isEmpty()) {
+            model.addAttribute("error", "Bàn không có hóa đơn để tách");
+            return "sales/fragments/view-ban :: content";
+        }
+        model.addAttribute("fromBanId", fromBanId);
+        model.addAttribute("hoaDon", hdOpt.get());
+        model.addAttribute("empties", salesService.findEmptyTables());
+        return "sales/fragments/split-ban :: content";
+    }
+
+    @PostMapping("/ban/{fromBanId}/split")
+    @ResponseBody
+    public String splitTable(@PathVariable Long fromBanId,
+                           @RequestParam("toBanId") Long toBanId,
+                           @RequestParam java.util.Map<String, String> params) {
+        try {
+            java.util.Map<Long, Integer> itemQuantities = new java.util.HashMap<>();
+            for (java.util.Map.Entry<String, String> entry : params.entrySet()) {
+                if (entry.getKey().startsWith("split_qty_")) {
+                    Long itemId = Long.parseLong(entry.getKey().substring(10));
+                    Integer qty = Integer.parseInt(entry.getValue());
+                    if (qty > 0) {
+                        itemQuantities.put(itemId, qty);
+                    }
+                }
+            }
+            salesService.splitTable(fromBanId, toBanId, itemQuantities);
+            return "OK";
+        } catch (Exception e) {
+            return "ERROR:" + e.getMessage();
+        }
+    }
+
+    @GetMapping("/ban/{fromBanId}/move")
+    public String moveTableForm(@PathVariable Long fromBanId, Model model) {
+        model.addAttribute("fromBanId", fromBanId);
+        model.addAttribute("available", salesService.findEmptyTables());
+        return "sales/fragments/move-ban :: content";
+    }
+
+    @PostMapping("/ban/{fromBanId}/move")
+    @ResponseBody
+    public String moveTable(@PathVariable Long fromBanId, @RequestParam("toBanId") Long toBanId) {
+        try {
+            salesService.moveTable(fromBanId, toBanId);
+            return "OK";
+        } catch (Exception e) {
+            return "ERROR:" + e.getMessage();
+        }
+    }
 }
 
 
