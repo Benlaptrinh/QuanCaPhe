@@ -1,0 +1,10 @@
+<div th:fragment="flash">
+  <div th:if="${success}" style="padding:8px; background:#e6ffed; border:1px solid #b7f0c9; margin-bottom:12px;">
+    <span th:text="${success}">Success message</span>
+  </div>
+  <div th:if="${error}" style="padding:8px; background:#ffecec; border:1px solid #f5c2c2; margin-bottom:12px;">
+    <span th:text="${error}">Error message</span>
+  </div>
+</div>
+
+

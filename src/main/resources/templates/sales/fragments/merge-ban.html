@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<div th:fragment="content">
+  <div style="background:#fff;padding:16px;max-width:560px;">
+    <h3 th:text="'Gộp bàn vào ' + ${targetBanId}">Gộp bàn</h3>
+
+    <div>
+      <label>Chọn bàn nguồn để gộp vào bàn <strong th:text="${targetBanId}">-</strong>:</label>
+      <select id="sourceBanSelect" style="margin-left:8px;">
+        <option th:each="b : ${candidates}" th:value="${b.maBan}" th:text="${b.tenBan}">Bàn</option>
+      </select>
+    </div>
+
+    <div style="margin-top:12px; display:flex; gap:8px;">
+      <button type="button" th:onclick="|submitMerge(${targetBanId})|">Gộp</button>
+      <button type="button" onclick="closeModal()">Hủy</button>
+    </div>
+  </div>
+</div>
+
+
