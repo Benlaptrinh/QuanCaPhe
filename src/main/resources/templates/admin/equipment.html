@@ -2,8 +2,60 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
   <div th:fragment="content">
-    <h1>Quản lý trang thiết bị</h1>
-    <p>Trang này chưa có chức năng — placeholder.</p>
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Quản lý thiết bị</h1>
+        <a href="/admin/equipment/create" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Thêm thiết bị mới
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Mã thiết bị</th>
+                  <th>Tên thiết bị</th>
+                  <th>Số lượng</th>
+                  <th>Đơn giá mua</th>
+                  <th>Ngày mua</th>
+                  <th>Ghi chú</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(equipments)}">
+                  <td colspan="7" class="text-center">Chưa có thiết bị nào</td>
+                </tr>
+                <tr th:each="equipment : ${equipments}">
+                  <td th:text="${equipment.maThietBi}"></td>
+                  <td th:text="${equipment.tenThietBi}"></td>
+                  <td th:text="${equipment.soLuong}"></td>
+                  <td th:text="${#numbers.formatDecimal(equipment.donGiaMua, 0, 'COMMA', 2, 'POINT')} + ' VND'"></td>
+                  <td th:text="${#temporals.format(equipment.ngayMua, 'dd/MM/yyyy')}"></td>
+                  <td th:text="${equipment.ghiChu}"></td>
+                  <td>
+                    <a th:href="@{/admin/equipment/edit/{id}(id=${equipment.maThietBi})}"
+                       class="btn btn-sm btn-warning">
+                      <i class="fas fa-edit"></i> Sửa
+                    </a>
+                    <form th:action="@{/admin/equipment/delete/{id}(id=${equipment.maThietBi})}"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Bạn có chắc muốn xóa thiết bị này?')">
+                      <button type="submit" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i> Xóa
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>
