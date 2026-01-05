@@ -55,6 +55,7 @@
         var btnReserve = document.getElementById('btnReserve');
         var btnMove = document.getElementById('btnMove');
         var btnMerge = document.getElementById('btnMerge');
+        var btnSplit = document.getElementById('btnSplit');
         if(btnView) btnView.disabled = false;
         if(btnMenu) btnMenu.disabled = false;
         if(btnPayment) btnPayment.disabled = false;
@@ -75,6 +76,12 @@
             btnMerge.onclick = openMergeModal;
           }
         }
+        if (btnSplit) {
+          btnSplit.disabled = !isServing;
+          if (!btnSplit.onclick) {
+            btnSplit.onclick = openSplitModal;
+          }
+        }
       }
 
       document.addEventListener('DOMContentLoaded', function(){
@@ -87,6 +94,7 @@
         document.getElementById('btnPayment').disabled = true;
         document.getElementById('btnMove').disabled = true;
         document.getElementById('btnMerge').disabled = true;
+        document.getElementById('btnSplit').disabled = true;
         document.getElementById('btnReserve').disabled = true;
       });
 
@@ -238,6 +246,62 @@
           .then(function(txt){
             if(txt.startsWith('OK')) {
               alert('Gộp bàn thành công');
+              closeModal();
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
+      }
+
+      function openSplitModal(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/ban/' + id + '/split', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function submitSplit(fromBanId){
+        var toBanId = document.getElementById('toBanSelect') ? document.getElementById('toBanSelect').value : null;
+        if(!toBanId){ alert('Vui lòng chọn bàn đích'); return; }
+
+        var items = [];
+        var inputs = document.querySelectorAll('input[id^=\"split_qty_\"]');
+        inputs.forEach(function(input){
+          var id = input.getAttribute('data-id') || input.getAttribute('th:data-id') || null;
+          var val = parseInt(input.value || '0', 10);
+          if(val > 0 && id) {
+            items.push({ thucDonId: Number(id), soLuong: val });
+          }
+        });
+
+        if(items.length === 0) { alert('Vui lòng nhập số lượng cần tách'); return; }
+
+        fetch('/sales/' + fromBanId + '/split', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ toBanId: Number(toBanId), items: items })
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Tách bàn thành công');
               closeModal();
               location.reload();
             } else {
