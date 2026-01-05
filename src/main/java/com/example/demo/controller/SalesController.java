@@ -5,6 +5,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/sales")
@@ -205,6 +209,39 @@ public class SalesController {
             return "OK";
         } catch (Exception e) {
             return "ERROR:" + e.getMessage();
+        }
+    }
+
+    // GET modal for move - returns fragment listing empty tables (excluding from)
+    @GetMapping("/ban/{fromBanId}/move")
+    public String moveBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
+        model.addAttribute("fromBanId", fromBanId);
+        java.util.List<com.example.demo.entity.Ban> empties = salesService.findEmptyTables();
+        // exclude source table if present
+        empties.removeIf(b -> b.getMaBan().equals(fromBanId));
+        model.addAttribute("available", empties);
+        return "sales/fragments/move-ban :: content";
+    }
+
+    // JSON API to perform move
+    @PostMapping("/move")
+    @ResponseBody
+    public ResponseEntity<String> moveTableJson(@RequestBody Map<String, Object> payload) {
+        try {
+            if (payload == null || !payload.containsKey("fromBanId") || !payload.containsKey("toBanId")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing fromBanId or toBanId");
+            }
+            Long fromBanId = ((Number) payload.get("fromBanId")).longValue();
+            Long toBanId = ((Number) payload.get("toBanId")).longValue();
+
+            salesService.moveTable(fromBanId, toBanId);
+            return ResponseEntity.ok("OK");
+        } catch (ClassCastException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid id types");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("ERROR:" + ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR:" + ex.getMessage());
         }
     }
 }

@@ -17,6 +17,10 @@ public interface SalesService {
     void saveSelectedMenu(Long banId, java.util.Map<String,String> params);
     void cancelInvoice(Long banId);
     java.util.Optional<com.example.demo.entity.HoaDon> findInvoiceById(Long id);
+
+    // Table operations
+    void moveTable(Long fromBanId, Long toBanId);
+    java.util.List<Ban> findEmptyTables();
 }
 
 

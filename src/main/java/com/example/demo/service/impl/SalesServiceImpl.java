@@ -302,6 +302,47 @@ public class SalesServiceImpl implements SalesService {
     public java.util.Optional<com.example.demo.entity.HoaDon> findInvoiceById(Long id) {
         return hoaDonRepository.findById(id);
     }
+
+    @Override
+    @Transactional
+    public void moveTable(Long fromBanId, Long toBanId) {
+        if (fromBanId.equals(toBanId)) {
+            throw new IllegalArgumentException("Không thể chuyển bàn với chính nó");
+        }
+
+        Ban fromBan = banRepository.findById(fromBanId).orElseThrow(() -> new IllegalArgumentException("Bàn nguồn không tồn tại"));
+        Ban toBan = banRepository.findById(toBanId).orElseThrow(() -> new IllegalArgumentException("Bàn đích không tồn tại"));
+
+        if (fromBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+            throw new IllegalStateException("Bàn nguồn không đang sử dụng");
+        }
+        if (toBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.TRONG) {
+            throw new IllegalStateException("Bàn đích không trống");
+        }
+
+        java.util.Optional<HoaDon> hdOpt = hoaDonRepository.findChuaThanhToanByBan(fromBanId);
+        if (hdOpt.isEmpty()) {
+            throw new IllegalStateException("Bàn nguồn không có hóa đơn MOI_TAO");
+        }
+        HoaDon hd = hdOpt.get();
+
+        // move invoice to target table
+        hd.setBan(toBan);
+        hoaDonRepository.save(hd);
+
+        // update table statuses
+        fromBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+        toBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        banRepository.save(fromBan);
+        banRepository.save(toBan);
+    }
+
+    @Override
+    public java.util.List<Ban> findEmptyTables() {
+        return banRepository.findAll().stream()
+                .filter(b -> b.getTinhTrang() == com.example.demo.enums.TinhTrangBan.TRONG)
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
 
 
