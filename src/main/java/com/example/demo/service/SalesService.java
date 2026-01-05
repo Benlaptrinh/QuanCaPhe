@@ -25,7 +25,6 @@ public interface SalesService {
     void mergeTables(Long targetBanId, Long sourceBanId);
     void splitTable(Long fromBanId, Long toBanId, java.util.Map<Long, Integer> itemQuantities);
     void cancelReservation(Long banId);
-    void splitTable(Long fromBanId, Long toBanId, java.util.Map<Long, Integer> itemQuantities);
 }
 
 
