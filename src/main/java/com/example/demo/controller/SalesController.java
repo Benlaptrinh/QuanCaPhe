@@ -188,6 +188,12 @@ public class SalesController {
     @GetMapping("/ban/{id}/reserve")
     public String reserveBanFragment(@PathVariable("id") Long id, Model model) {
         model.addAttribute("banId", id);
+        // provide minimum datetime for datetime-local input to avoid using T(...) in template
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        String min = now.truncatedTo(java.time.temporal.ChronoUnit.MINUTES).toString().replace(":", "%3A");
+        // format to yyyy-MM-dd'T'HH:mm for input; replace %3A back to ':' for safety
+        String minFormatted = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(now);
+        model.addAttribute("minDate", minFormatted);
         return "sales/fragments/reserve :: content";
     }
 
