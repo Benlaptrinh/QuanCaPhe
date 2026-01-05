@@ -1,46 +1,54 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-  <div th:fragment="content">
-    <h2>Trang cá nhân</h2>
-    <div>
-      <label>Họ và tên:</label>
-      <span th:text="${nhanVien.hoTen}">HoTen</span>
-    </div>
-    <div>
-      <label>Chức vụ:</label>
-      <span th:text="${nhanVien.chucVu != null ? nhanVien.chucVu.tenChucVu : 'N/A'}">ChucVu</span>
-    </div>
-    <div>
-      <label>Địa chỉ:</label>
-      <span th:text="${nhanVien.diaChi}">DiaChi</span>
-    </div>
-    <div>
-      <label>Số điện thoại:</label>
-      <span th:text="${nhanVien.soDienThoai}">SoDienThoai</span>
-    </div>
-    <div>
-      <label>Lương:</label>
-      <span th:text="${nhanVien.luong != null ? nhanVien.luong : (nhanVien.chucVu != null ? nhanVien.chucVu.luong : 'N/A')}">Luong</span>
-    </div>
-    <div>
-      <label>Tên đăng nhập:</label>
-      <span th:text="${taiKhoan.tenDangNhap}">username</span>
-    </div>
-    <div>
-      <label>Ảnh:</label>
-      <div th:if="${taiKhoan.anh != null}">
-        <img th:src="${taiKhoan.anh}" alt="avatar" style="max-width:150px"/>
+  <div th:fragment="content" class="content-wrapper">
+    <h1>Trang cá nhân</h1>
+
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="avatar">
+          <img th:src="${taiKhoan.anh != null} ? ${taiKhoan.anh} : @{/img/default-avatar.png}" alt="avatar">
+        </div>
+        <div class="profile-main">
+          <h2 th:text="${nhanVien.hoTen}">Họ tên</h2>
+          <p class="muted" th:text="${nhanVien.chucVu != null ? nhanVien.chucVu.tenChucVu : 'N/A'}">Chức vụ</p>
+        </div>
       </div>
-    </div>
-    <div>
-      <a th:href="@{/profile/edit}">Chỉnh sửa</a>
-      <form th:action="@{/logout}" method="post" style="display:inline">
-        <button type="submit">Đăng xuất</button>
-      </form>
+
+      <div class="profile-section">
+        <h3>Thông tin cá nhân</h3>
+        <div class="info-row">
+          <span>Địa chỉ</span>
+          <span th:text="${nhanVien.diaChi != null ? nhanVien.diaChi : 'N/A'}"></span>
+        </div>
+        <div class="info-row">
+          <span>Số điện thoại</span>
+          <span th:text="${nhanVien.soDienThoai != null ? nhanVien.soDienThoai : 'N/A'}"></span>
+        </div>
+        <div class="info-row">
+          <span>Lương</span>
+          <span th:text="${nhanVien.luong != null ? nhanVien.luong : (nhanVien.chucVu != null ? nhanVien.chucVu.luong : 'N/A')}"></span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h3>Tài khoản</h3>
+        <div class="info-row">
+          <span>Tên đăng nhập</span>
+          <span th:text="${taiKhoan.tenDangNhap}">username</span>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <a class="btn btn-edit" th:href="@{/profile/edit}">
+          Chỉnh sửa
+        </a>
+        <form th:action="@{/logout}" method="post">
+          <button type="submit" class="btn btn-delete">Đăng xuất</button>
+        </form>
+      </div>
     </div>
   </div>
 </body>
 </html>
-
 
