@@ -244,6 +244,48 @@ public class SalesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR:" + ex.getMessage());
         }
     }
+
+    // GET modal for merge - returns fragment listing candidate source tables (excluding target)
+    @GetMapping("/ban/{targetBanId}/merge")
+    public String mergeBanFragment(@PathVariable("targetBanId") Long targetBanId, Model model) {
+        model.addAttribute("targetBanId", targetBanId);
+        model.addAttribute("candidates", salesService.findMergeCandidates(targetBanId));
+        return "sales/fragments/merge-ban :: content";
+    }
+
+    // POST perform merge (form submit)
+    @PostMapping("/ban/{targetBanId}/merge")
+    @ResponseBody
+    public String mergeTable(@PathVariable Long targetBanId, @RequestParam("sourceBanId") Long sourceBanId) {
+        try {
+            salesService.mergeTables(targetBanId, sourceBanId);
+            return "OK";
+        } catch (Exception e) {
+            return "ERROR:" + e.getMessage();
+        }
+    }
+
+    // JSON API to perform merge
+    @PostMapping("/merge")
+    @ResponseBody
+    public ResponseEntity<String> mergeTableJson(@RequestBody Map<String, Object> payload) {
+        try {
+            if (payload == null || !payload.containsKey("targetBanId") || !payload.containsKey("sourceBanId")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing targetBanId or sourceBanId");
+            }
+            Long targetBanId = ((Number) payload.get("targetBanId")).longValue();
+            Long sourceBanId = ((Number) payload.get("sourceBanId")).longValue();
+
+            salesService.mergeTables(targetBanId, sourceBanId);
+            return ResponseEntity.ok("OK");
+        } catch (ClassCastException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid id types");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("ERROR:" + ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR:" + ex.getMessage());
+        }
+    }
 }
 
 

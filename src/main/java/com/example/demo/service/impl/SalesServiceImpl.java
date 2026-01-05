@@ -343,6 +343,92 @@ public class SalesServiceImpl implements SalesService {
                 .filter(b -> b.getTinhTrang() == com.example.demo.enums.TinhTrangBan.TRONG)
                 .collect(java.util.stream.Collectors.toList());
     }
+
+    @Override
+    public java.util.List<Ban> findMergeCandidates(Long excludeBanId) {
+        return banRepository.findAll().stream()
+                .filter(b -> b.getTinhTrang() == com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG)
+                .filter(b -> !b.getMaBan().equals(excludeBanId))
+                .filter(b -> hoaDonRepository.findChuaThanhToanByBan(b.getMaBan()).isPresent())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void mergeTables(Long targetBanId, Long sourceBanId) {
+        if (targetBanId.equals(sourceBanId)) {
+            throw new IllegalArgumentException("Không thể gộp bàn vào chính nó");
+        }
+
+        Ban targetBan = banRepository.findById(targetBanId).orElseThrow(() -> new IllegalArgumentException("Bàn đích không tồn tại"));
+        Ban sourceBan = banRepository.findById(sourceBanId).orElseThrow(() -> new IllegalArgumentException("Bàn nguồn không tồn tại"));
+
+        if (targetBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+            throw new IllegalStateException("Bàn đích không đang sử dụng");
+        }
+        if (sourceBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+            throw new IllegalStateException("Bàn nguồn không đang sử dụng");
+        }
+
+        java.util.Optional<HoaDon> targetHdOpt = hoaDonRepository.findChuaThanhToanByBan(targetBanId);
+        java.util.Optional<HoaDon> sourceHdOpt = hoaDonRepository.findChuaThanhToanByBan(sourceBanId);
+        if (targetHdOpt.isEmpty()) {
+            throw new IllegalStateException("Bàn đích không có hóa đơn MOI_TAO");
+        }
+        if (sourceHdOpt.isEmpty()) {
+            throw new IllegalStateException("Bàn nguồn không có hóa đơn MOI_TAO");
+        }
+
+        HoaDon targetHd = targetHdOpt.get();
+        HoaDon sourceHd = sourceHdOpt.get();
+
+        // merge details by copying (preserve source invoice for audit)
+        if (sourceHd.getChiTietHoaDons() != null) {
+            for (com.example.demo.entity.ChiTietHoaDon srcCt : sourceHd.getChiTietHoaDons()) {
+                Long thucDonId = srcCt.getThucDon().getMaThucDon();
+                com.example.demo.entity.ChiTietHoaDon existing = targetHd.getChiTietHoaDons() == null ? null :
+                        targetHd.getChiTietHoaDons().stream()
+                                .filter(ct -> ct.getThucDon().getMaThucDon().equals(thucDonId))
+                                .findFirst().orElse(null);
+                if (existing != null) {
+                    int newQty = (existing.getSoLuong() == null ? 0 : existing.getSoLuong()) + (srcCt.getSoLuong() == null ? 0 : srcCt.getSoLuong());
+                    existing.setSoLuong(newQty);
+                    existing.setThanhTien(existing.getGiaTaiThoiDiemBan().multiply(new BigDecimal(newQty)));
+                    chiTietHoaDonRepository.save(existing);
+                } else {
+                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    newCt.setHoaDon(targetHd);
+                    newCt.setThucDon(srcCt.getThucDon());
+                    newCt.setSoLuong(srcCt.getSoLuong());
+                    newCt.setGiaTaiThoiDiemBan(srcCt.getGiaTaiThoiDiemBan());
+                    newCt.setThanhTien(srcCt.getThanhTien());
+                    chiTietHoaDonRepository.save(newCt);
+                    if (targetHd.getChiTietHoaDons() == null) targetHd.setChiTietHoaDons(new java.util.ArrayList<>());
+                    targetHd.getChiTietHoaDons().add(newCt);
+                }
+            }
+        }
+
+        // recalc total for target
+        BigDecimal total = targetHd.getChiTietHoaDons() == null ? BigDecimal.ZERO :
+                targetHd.getChiTietHoaDons().stream()
+                        .map(com.example.demo.entity.ChiTietHoaDon::getThanhTien)
+                        .filter(java.util.Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+        targetHd.setTongTien(total);
+        targetHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+        hoaDonRepository.save(targetHd);
+
+        // mark source invoice as DA_GOP (do not delete)
+        sourceHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.DA_GOP);
+        hoaDonRepository.save(sourceHd);
+
+        // update table statuses
+        sourceBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+        banRepository.save(sourceBan);
+        targetBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        banRepository.save(targetBan);
+    }
 }
 
 

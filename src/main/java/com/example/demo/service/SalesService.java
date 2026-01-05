@@ -21,6 +21,7 @@ public interface SalesService {
     // Table operations
     void moveTable(Long fromBanId, Long toBanId);
     java.util.List<Ban> findEmptyTables();
+    java.util.List<Ban> findMergeCandidates(Long excludeBanId);
 }
 
 
