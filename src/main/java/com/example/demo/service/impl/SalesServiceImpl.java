@@ -497,19 +497,29 @@ public class SalesServiceImpl implements SalesService {
                     toTotal = toTotal.add(newCt.getThanhTien());
 
                 } else if (splitQty >= ct.getSoLuong()) {
-                    // Move entire item to target
-                    ct.setHoaDon(toHd);
-                    toHd.getChiTietHoaDons().add(ct);
+                    // Move entire item to target — create a new detail for target and delete source later
+                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    newCt.setHoaDon(toHd);
+                    newCt.setThucDon(ct.getThucDon());
+                    newCt.setSoLuong(ct.getSoLuong());
+                    newCt.setGiaTaiThoiDiemBan(ct.getGiaTaiThoiDiemBan());
+                    newCt.setThanhTien(ct.getThanhTien());
+                    chiTietHoaDonRepository.save(newCt);
+                    toHd.getChiTietHoaDons().add(newCt);
                     itemsToRemove.add(ct);
-                    toTotal = toTotal.add(ct.getThanhTien());
+                    toTotal = toTotal.add(newCt.getThanhTien());
                 } else {
                     // Keep entire item in source
                     fromTotal = fromTotal.add(ct.getThanhTien());
                 }
             }
 
-            // Remove moved items from source invoice
-            fromHd.getChiTietHoaDons().removeAll(itemsToRemove);
+            // Remove moved items from source invoice and delete them explicitly to avoid orphanRemoval race
+            if (!itemsToRemove.isEmpty()) {
+                fromHd.getChiTietHoaDons().removeAll(itemsToRemove);
+                // delete originals
+                chiTietHoaDonRepository.deleteAll(itemsToRemove);
+            }
         }
 
         // Update totals
