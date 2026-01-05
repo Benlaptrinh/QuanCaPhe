@@ -134,7 +134,7 @@
 
       function openReserveBan(){
         var id = document.getElementById('selectedBanId').value;
-        if(!id){ alert('Vui lòng chọn bàn trước'); retu rn; }
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
         closeModal();
         fetch('/sales/ban/' + id + '/reserve', { credentials: 'same-origin' })
           .then(function(resp){ return resp.text(); })
