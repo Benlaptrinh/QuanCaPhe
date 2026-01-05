@@ -63,9 +63,11 @@
         if(btnPayment) btnPayment.disabled = false;
         if(btnReserve) btnReserve.disabled = false;
 
-        // enable move & merge only for serving tables
+        // enable move & merge only for serving tables; reserve only for empty tables
         var selectedTableEl = document.querySelector('.table-card[data-id=\"' + id + '\"]');
         var isServing = selectedTableEl && selectedTableEl.classList.contains('serving');
+        var isReserved = selectedTableEl && selectedTableEl.classList.contains('reserved');
+        var isEmpty = selectedTableEl && !isServing && !isReserved;
         if (btnMove) {
           btnMove.disabled = !isServing;
           if (!btnMove.onclick) {
@@ -90,6 +92,12 @@
           btnCancel.disabled = !isReserved;
           if (!btnCancel.onclick) {
             btnCancel.onclick = openCancelReservation;
+          }
+        }
+        if (btnReserve) {
+          btnReserve.disabled = !isEmpty;
+          if (!btnReserve.onclick) {
+            btnReserve.onclick = function(){ openReserveBan(); };
           }
         }
       }

@@ -196,16 +196,9 @@ public class SalesController {
     public String reserveBanSubmit(@PathVariable("id") Long id,
                                    @RequestParam("tenKhach") String tenKhach,
                                    @RequestParam("sdt") String sdt,
-                                   @RequestParam("ngayGio") String ngayGio) {
-        java.time.LocalDateTime dt;
+                                   @RequestParam("ngayGio") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime ngayGio) {
         try {
-            dt = java.time.LocalDateTime.parse(ngayGio);
-        } catch (Exception ex) {
-            // try parse as date + time separated
-            dt = java.time.LocalDateTime.now();
-        }
-        try {
-            salesService.reserveTable(id, tenKhach, sdt, dt);
+            salesService.reserveTable(id, tenKhach, sdt, ngayGio);
             return "OK";
         } catch (Exception e) {
             return "ERROR:" + e.getMessage();

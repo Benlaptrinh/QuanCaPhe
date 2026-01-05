@@ -11,8 +11,10 @@
         <input type="text" name="sdt" id="sdt" />
       </div>
       <div>
-        <label>Ngày giờ (ISO local, e.g. 2025-12-31T10:30)</label><br/>
-        <input type="text" name="ngayGio" id="ngayGio" />
+        <label>Ngày giờ đến</label><br/>
+        <input type="datetime-local" name="ngayGio" id="ngayGio"
+               th:attr="min=${#temporals.format(T(java.time.LocalDateTime).now(), 'yyyy-MM-dd''T''HH:mm')}"
+               required />
       </div>
       <div style="margin-top:8px;">
         <button type="button" onclick="submitReserve()">Đặt bàn</button>
