@@ -54,17 +54,25 @@
         var btnPayment = document.getElementById('btnPayment');
         var btnReserve = document.getElementById('btnReserve');
         var btnMove = document.getElementById('btnMove');
+        var btnMerge = document.getElementById('btnMerge');
         if(btnView) btnView.disabled = false;
         if(btnMenu) btnMenu.disabled = false;
         if(btnPayment) btnPayment.disabled = false;
         if(btnReserve) btnReserve.disabled = false;
 
-        // enable move only for serving tables
+        // enable move & merge only for serving tables
         var selectedTableEl = document.querySelector('.table-card[data-id=\"' + id + '\"]');
+        var isServing = selectedTableEl && selectedTableEl.classList.contains('serving');
         if (btnMove) {
-          btnMove.disabled = !(selectedTableEl && selectedTableEl.classList.contains('serving'));
+          btnMove.disabled = !isServing;
           if (!btnMove.onclick) {
             btnMove.onclick = openMoveModal;
+          }
+        }
+        if (btnMerge) {
+          btnMerge.disabled = !isServing;
+          if (!btnMerge.onclick) {
+            btnMerge.onclick = openMergeModal;
           }
         }
       }
@@ -78,6 +86,7 @@
         document.getElementById('btnMenu').disabled = true;
         document.getElementById('btnPayment').disabled = true;
         document.getElementById('btnMove').disabled = true;
+        document.getElementById('btnMerge').disabled = true;
         document.getElementById('btnReserve').disabled = true;
       });
 
@@ -185,6 +194,50 @@
           .then(function(txt){
             if(txt.startsWith('OK')) {
               alert('Chuyển bàn thành công');
+              closeModal();
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
+      }
+
+      function openMergeModal(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        closeModal();
+        fetch('/sales/ban/' + id + '/merge', { credentials: 'same-origin' })
+          .then(function(resp){ return resp.text(); })
+          .then(function(html){
+            var modal = document.getElementById('modal-body');
+            if(!modal){
+              var m = document.createElement('div');
+              m.id = 'modal';
+              m.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+              var mb = document.createElement('div');
+              mb.id = 'modal-body';
+              m.appendChild(mb);
+              document.body.appendChild(m);
+              modal = mb;
+            }
+            modal.innerHTML = html;
+            modal.parentElement.style.display = 'flex';
+          });
+      }
+
+      function submitMerge(targetBanId){
+        var sourceBanId = document.getElementById('sourceBanSelect') ? document.getElementById('sourceBanSelect').value : null;
+        if(!sourceBanId){ alert('Vui lòng chọn bàn nguồn'); return; }
+        if(!confirm('Gộp Bàn ' + sourceBanId + ' vào ' + targetBanId + '?')) return;
+        fetch('/sales/merge', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ targetBanId: targetBanId, sourceBanId: Number(sourceBanId) })
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Gộp bàn thành công');
               closeModal();
               location.reload();
             } else {
