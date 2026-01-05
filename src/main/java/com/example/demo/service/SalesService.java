@@ -24,6 +24,8 @@ public interface SalesService {
     java.util.List<Ban> findMergeCandidates(Long excludeBanId);
     void mergeTables(Long targetBanId, Long sourceBanId);
     void splitTable(Long fromBanId, Long toBanId, java.util.Map<Long, Integer> itemQuantities);
+    void cancelReservation(Long banId);
+    void splitTable(Long fromBanId, Long toBanId, java.util.Map<Long, Integer> itemQuantities);
 }
 
 

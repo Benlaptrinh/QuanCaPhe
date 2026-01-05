@@ -289,6 +289,22 @@ public class SalesController {
         }
     }
 
+    // Cancel reservation
+    @PostMapping("/ban/{banId}/cancel-reservation")
+    @ResponseBody
+    public ResponseEntity<String> cancelReservation(@PathVariable("banId") Long banId) {
+        try {
+            salesService.cancelReservation(banId);
+            return ResponseEntity.ok("OK");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ERROR:" + ex.getMessage());
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("ERROR:" + ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR:" + ex.getMessage());
+        }
+    }
+
     // JSON API for split
     @PostMapping("/{fromBanId}/split")
     @ResponseBody

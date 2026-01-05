@@ -34,6 +34,7 @@
       <button id="btnMove" disabled style="margin-left:20px;">Chuyển</button>
       <button id="btnMerge" disabled>Gộp</button>
       <button id="btnSplit" disabled>Tách</button>
+      <button id="btnCancel" disabled>Hủy đặt</button>
       <button id="btnReserve" disabled type="button" onclick="openReserveBan()">Đặt bàn</button>
     </div>
 
@@ -56,6 +57,7 @@
         var btnMove = document.getElementById('btnMove');
         var btnMerge = document.getElementById('btnMerge');
         var btnSplit = document.getElementById('btnSplit');
+        var btnCancel = document.getElementById('btnCancel');
         if(btnView) btnView.disabled = false;
         if(btnMenu) btnMenu.disabled = false;
         if(btnPayment) btnPayment.disabled = false;
@@ -82,6 +84,14 @@
             btnSplit.onclick = openSplitModal;
           }
         }
+        // cancel enabled for reserved tables
+        var isReserved = selectedTableEl && selectedTableEl.classList.contains('reserved');
+        if (btnCancel) {
+          btnCancel.disabled = !isReserved;
+          if (!btnCancel.onclick) {
+            btnCancel.onclick = openCancelReservation;
+          }
+        }
       }
 
       document.addEventListener('DOMContentLoaded', function(){
@@ -95,6 +105,7 @@
         document.getElementById('btnMove').disabled = true;
         document.getElementById('btnMerge').disabled = true;
         document.getElementById('btnSplit').disabled = true;
+        document.getElementById('btnCancel').disabled = true;
         document.getElementById('btnReserve').disabled = true;
       });
 
@@ -123,7 +134,7 @@
 
       function openReserveBan(){
         var id = document.getElementById('selectedBanId').value;
-        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        if(!id){ alert('Vui lòng chọn bàn trước'); retu rn; }
         closeModal();
         fetch('/sales/ban/' + id + '/reserve', { credentials: 'same-origin' })
           .then(function(resp){ return resp.text(); })
@@ -303,6 +314,24 @@
             if(txt.startsWith('OK')) {
               alert('Tách bàn thành công');
               closeModal();
+              location.reload();
+            } else {
+              alert('Lỗi: ' + txt);
+            }
+          });
+      }
+
+      function openCancelReservation(){
+        var id = document.getElementById('selectedBanId').value;
+        if(!id){ alert('Vui lòng chọn bàn trước'); return; }
+        if(!confirm('Bạn có chắc muốn hủy đặt bàn ' + id + ' không?')) return;
+        fetch('/sales/ban/' + id + '/cancel-reservation', {
+          method: 'POST',
+          credentials: 'same-origin'
+        }).then(function(r){ return r.text(); })
+          .then(function(txt){
+            if(txt.startsWith('OK')) {
+              alert('Hủy đặt bàn thành công');
               location.reload();
             } else {
               alert('Lỗi: ' + txt);

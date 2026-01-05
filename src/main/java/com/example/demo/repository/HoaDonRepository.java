@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
     @Query("select h from HoaDon h where h.ban.maBan = :maBan and h.trangThai = 'MOI_TAO'")
     Optional<HoaDon> findChuaThanhToanByBan(@Param("maBan") Long maBan);
+
+    boolean existsByBanAndTrangThai(com.example.demo.entity.Ban ban, com.example.demo.enums.TrangThaiHoaDon trangThai);
 }
 
 

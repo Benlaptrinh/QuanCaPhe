@@ -523,6 +523,27 @@ public class SalesServiceImpl implements SalesService {
         toBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
         banRepository.save(toBan);
     }
+
+    @Override
+    @Transactional
+    public void cancelReservation(Long banId) {
+        Ban ban = banRepository.findById(banId).orElseThrow(() -> new IllegalArgumentException("Bàn không tồn tại"));
+
+        if (ban.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DA_DAT) {
+            throw new IllegalStateException("Chỉ hủy được bàn đã đặt");
+        }
+
+        boolean hasHoaDon = hoaDonRepository.existsByBanAndTrangThai(ban, com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+        if (hasHoaDon) {
+            throw new IllegalStateException("Bàn đã có hóa đơn, không thể hủy");
+        }
+
+        // delete reservation details
+        chiTietDatBanRepository.deleteByBan(ban);
+
+        ban.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+        banRepository.save(ban);
+    }
 }
 
 
