@@ -253,6 +253,72 @@ public class SalesController {
         return "sales/fragments/merge-ban :: content";
     }
 
+    // GET modal for split - returns fragment for splitting a table
+    @GetMapping("/ban/{fromBanId}/split")
+    public String splitBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
+        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(fromBanId);
+        if (hdOpt.isEmpty()) {
+            model.addAttribute("error", "Bàn không có hóa đơn để tách");
+            return "sales/fragments/view-ban :: content";
+        }
+        model.addAttribute("fromBanId", fromBanId);
+        model.addAttribute("hoaDon", hdOpt.get());
+        model.addAttribute("empties", salesService.findEmptyTables());
+        return "sales/fragments/split-ban :: content";
+    }
+
+    // POST split via form params (legacy)
+    @PostMapping("/ban/{fromBanId}/split")
+    @ResponseBody
+    public String splitTable(@PathVariable("fromBanId") Long fromBanId,
+                             @RequestParam("toBanId") Long toBanId,
+                             @RequestParam java.util.Map<String, String> params) {
+        try {
+            java.util.Map<Long, Integer> itemQuantities = new java.util.HashMap<>();
+            for (java.util.Map.Entry<String, String> entry : params.entrySet()) {
+                if (entry.getKey().startsWith("split_qty_")) {
+                    Long itemId = Long.parseLong(entry.getKey().substring(10));
+                    Integer qty = Integer.parseInt(entry.getValue());
+                    if (qty > 0) itemQuantities.put(itemId, qty);
+                }
+            }
+            salesService.splitTable(fromBanId, toBanId, itemQuantities);
+            return "OK";
+        } catch (Exception e) {
+            return "ERROR:" + e.getMessage();
+        }
+    }
+
+    // JSON API for split
+    @PostMapping("/{fromBanId}/split")
+    @ResponseBody
+    public ResponseEntity<String> splitTableJson(@PathVariable("fromBanId") Long fromBanId, @RequestBody Map<String, Object> payload) {
+        try {
+            if (payload == null || !payload.containsKey("toBanId") || !payload.containsKey("items")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing toBanId or items");
+            }
+            Long toBanId = ((Number) payload.get("toBanId")).longValue();
+            java.util.List<?> items = (java.util.List<?>) payload.get("items");
+            java.util.Map<Long, Integer> itemQuantities = new java.util.HashMap<>();
+            for (Object o : items) {
+                if (o instanceof Map) {
+                    Map m = (Map) o;
+                    Long id = ((Number) m.get("thucDonId")).longValue();
+                    Integer qty = ((Number) m.get("soLuong")).intValue();
+                    if (qty > 0) itemQuantities.put(id, qty);
+                }
+            }
+            salesService.splitTable(fromBanId, toBanId, itemQuantities);
+            return ResponseEntity.ok("OK");
+        } catch (ClassCastException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid payload");
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("ERROR:" + ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR:" + ex.getMessage());
+        }
+    }
+
     // POST perform merge (form submit)
     @PostMapping("/ban/{targetBanId}/merge")
     @ResponseBody

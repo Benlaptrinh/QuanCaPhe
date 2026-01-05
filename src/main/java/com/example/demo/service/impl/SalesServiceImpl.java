@@ -429,6 +429,100 @@ public class SalesServiceImpl implements SalesService {
         targetBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
         banRepository.save(targetBan);
     }
+
+    @Override
+    @Transactional
+    public void splitTable(Long fromBanId, Long toBanId, java.util.Map<Long, Integer> itemQuantities) {
+        if (fromBanId.equals(toBanId)) {
+            throw new IllegalArgumentException("Không thể tách bàn với chính nó");
+        }
+
+        Ban fromBan = banRepository.findById(fromBanId).orElseThrow(() -> new IllegalArgumentException("Bàn nguồn không tồn tại"));
+        Ban toBan = banRepository.findById(toBanId).orElseThrow(() -> new IllegalArgumentException("Bàn đích không tồn tại"));
+
+        if (fromBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+            throw new IllegalStateException("Bàn nguồn không đang sử dụng");
+        }
+        if (toBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.TRONG) {
+            throw new IllegalStateException("Bàn đích phải trống");
+        }
+
+        java.util.Optional<HoaDon> fromHdOpt = hoaDonRepository.findChuaThanhToanByBan(fromBanId);
+        if (fromHdOpt.isEmpty()) {
+            throw new IllegalStateException("Bàn nguồn không có hóa đơn");
+        }
+        HoaDon fromHd = fromHdOpt.get();
+
+        if (itemQuantities == null || itemQuantities.isEmpty()) {
+            throw new IllegalArgumentException("Không có món để tách");
+        }
+
+        // create new invoice for target table
+        HoaDon toHd = new HoaDon();
+        toHd.setBan(toBan);
+        toHd.setNgayGioTao(LocalDateTime.now());
+        toHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+        toHd.setChiTietHoaDons(new java.util.ArrayList<>());
+        toHd = hoaDonRepository.save(toHd);
+
+        BigDecimal fromTotal = BigDecimal.ZERO;
+        BigDecimal toTotal = BigDecimal.ZERO;
+
+        if (fromHd.getChiTietHoaDons() != null) {
+            java.util.List<com.example.demo.entity.ChiTietHoaDon> itemsToRemove = new java.util.ArrayList<>();
+
+            for (com.example.demo.entity.ChiTietHoaDon ct : fromHd.getChiTietHoaDons()) {
+                Long itemId = ct.getThucDon().getMaThucDon();
+                Integer splitQty = itemQuantities.getOrDefault(itemId, 0);
+
+                if (splitQty > 0 && splitQty < ct.getSoLuong()) {
+                    // Split this item
+                    int remainingQty = ct.getSoLuong() - splitQty;
+
+                    // Update source item
+                    ct.setSoLuong(remainingQty);
+                    ct.setThanhTien(ct.getGiaTaiThoiDiemBan().multiply(new BigDecimal(remainingQty)));
+                    chiTietHoaDonRepository.save(ct);
+                    fromTotal = fromTotal.add(ct.getThanhTien());
+
+                    // Create new item for target
+                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    newCt.setHoaDon(toHd);
+                    newCt.setThucDon(ct.getThucDon());
+                    newCt.setSoLuong(splitQty);
+                    newCt.setGiaTaiThoiDiemBan(ct.getGiaTaiThoiDiemBan());
+                    newCt.setThanhTien(ct.getGiaTaiThoiDiemBan().multiply(new BigDecimal(splitQty)));
+                    toHd.getChiTietHoaDons().add(newCt);
+                    chiTietHoaDonRepository.save(newCt);
+                    toTotal = toTotal.add(newCt.getThanhTien());
+
+                } else if (splitQty >= ct.getSoLuong()) {
+                    // Move entire item to target
+                    ct.setHoaDon(toHd);
+                    toHd.getChiTietHoaDons().add(ct);
+                    itemsToRemove.add(ct);
+                    toTotal = toTotal.add(ct.getThanhTien());
+                } else {
+                    // Keep entire item in source
+                    fromTotal = fromTotal.add(ct.getThanhTien());
+                }
+            }
+
+            // Remove moved items from source invoice
+            fromHd.getChiTietHoaDons().removeAll(itemsToRemove);
+        }
+
+        // Update totals
+        fromHd.setTongTien(fromTotal);
+        hoaDonRepository.save(fromHd);
+
+        toHd.setTongTien(toTotal);
+        hoaDonRepository.save(toHd);
+
+        // Update table statuses
+        toBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        banRepository.save(toBan);
+    }
 }
 
 

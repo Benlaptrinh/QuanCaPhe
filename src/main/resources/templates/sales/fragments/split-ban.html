@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<div th:fragment="content">
+  <div style="background:#fff;padding:16px;max-width:720px;">
+    <h3 th:text="'Tách bàn từ ' + ${fromBanId}">Tách bàn</h3>
+
+    <div>
+      <label>Chọn bàn đích (TRỐNG):</label>
+      <select id="toBanSelect" style="margin-left:8px;">
+        <option th:each="b : ${empties}" th:value="${b.maBan}" th:text="${b.tenBan}">Bàn</option>
+      </select>
+    </div>
+
+    <div style="margin-top:12px;">
+      <table border="1" style="width:100%; border-collapse:collapse;">
+        <thead><tr><th>Tên món</th><th>Số lượng hiện tại</th><th>Số lượng tách</th></tr></thead>
+        <tbody>
+          <tr th:each="ct : ${hoaDon.chiTietHoaDons}">
+            <td th:text="${ct.thucDon.tenMon}">Món</td>
+            <td style="text-align:center" th:text="${ct.soLuong}">0</td>
+            <td style="text-align:center">
+              <input type="number" min="0" th:id="${'split_qty_' + ct.thucDon.maThucDon}" th:data-id="${ct.thucDon.maThucDon}" value="0" style="width:80px;" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:12px; display:flex; gap:8px;">
+      <button type="button" th:onclick="|submitSplit(${fromBanId})|">Xác nhận tách</button>
+      <button type="button" onclick="closeModal()">Hủy</button>
+    </div>
+  </div>
+</div>
+
+
