@@ -17,14 +17,28 @@ public class ThietBi {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long maThietBi;
 
+    @Column(name = "ten", nullable = false)
     private String tenThietBi;
+
+    @Column(name = "so_luong", nullable = false)
     private Integer soLuong;
 
-    @Column(precision = 13, scale = 2)
+    @Column(name = "don_gia_mua", precision = 13, scale = 2, nullable = false)
     private BigDecimal donGiaMua;
 
+    @Column(name = "ngay_mua", nullable = false)
     private LocalDate ngayMua;
+
+    @Column(name = "ghi_chu")
     private String ghiChu;
+
+    @Transient
+    public BigDecimal getTongGia() {
+        if (donGiaMua == null || soLuong == null) {
+            return BigDecimal.ZERO;
+        }
+        return donGiaMua.multiply(BigDecimal.valueOf(soLuong));
+    }
 }
 
 

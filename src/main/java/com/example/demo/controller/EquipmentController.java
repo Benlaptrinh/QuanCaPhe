@@ -1,0 +1,65 @@
+package com.example.demo.controller;
+
+import com.example.demo.entity.ThietBi;
+import com.example.demo.service.ThietBiService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Optional;
+
+@Controller
+@RequestMapping("/admin/equipment")
+public class EquipmentController {
+
+    private final ThietBiService thietBiService;
+
+    public EquipmentController(ThietBiService thietBiService) {
+        this.thietBiService = thietBiService;
+    }
+
+    @PostMapping
+    public String create(@ModelAttribute ThietBi thietBi, RedirectAttributes ra) {
+        thietBiService.save(thietBi);
+        ra.addFlashAttribute("success", "Thêm thiết bị thành công");
+        return "redirect:/admin/equipment";
+    }
+
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
+        Optional<ThietBi> opt = thietBiService.findById(id);
+        if (opt.isEmpty()) {
+            ra.addFlashAttribute("error", "Thiết bị không tồn tại");
+            return "redirect:/admin/equipment";
+        }
+        ra.addFlashAttribute("thietBi", opt.get());
+        return "redirect:/admin/equipment";
+    }
+
+    @PostMapping("/{id}")
+    public String update(@PathVariable Long id, @ModelAttribute ThietBi thietBi, RedirectAttributes ra) {
+        Optional<ThietBi> opt = thietBiService.findById(id);
+        if (opt.isEmpty()) {
+            ra.addFlashAttribute("error", "Thiết bị không tồn tại");
+            return "redirect:/admin/equipment";
+        }
+        ThietBi existing = opt.get();
+        existing.setTenThietBi(thietBi.getTenThietBi());
+        existing.setSoLuong(thietBi.getSoLuong());
+        existing.setDonGiaMua(thietBi.getDonGiaMua());
+        existing.setNgayMua(thietBi.getNgayMua());
+        existing.setGhiChu(thietBi.getGhiChu());
+        thietBiService.save(existing);
+        ra.addFlashAttribute("success", "Cập nhật thiết bị thành công");
+        return "redirect:/admin/equipment";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id, RedirectAttributes ra) {
+        thietBiService.deleteById(id);
+        ra.addFlashAttribute("success", "Xóa thiết bị thành công");
+        return "redirect:/admin/equipment";
+    }
+}
+

@@ -6,16 +6,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import com.example.demo.service.SalesService;
+import com.example.demo.service.ThietBiService;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminPagesController {
 
     private final SalesService salesService;
+    private final ThietBiService thietBiService;
     private String sidebar = "fragments/sidebar-admin";
 
-    public AdminPagesController(SalesService salesService) {
+    public AdminPagesController(SalesService salesService, ThietBiService thietBiService) {
         this.salesService = salesService;
+        this.thietBiService = thietBiService;
     }
 
     private String usernameFromAuth(Authentication auth) {
@@ -36,6 +39,11 @@ public class AdminPagesController {
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/equipment");
+        model.addAttribute("items", thietBiService.findAll());
+        // form backing object; prefer flash attribute if redirected from edit
+        if (!model.containsAttribute("thietBi")) {
+            model.addAttribute("thietBi", new com.example.demo.entity.ThietBi());
+        }
         return "layout/base";
     }
 
@@ -79,5 +87,4 @@ public class AdminPagesController {
         return "layout/base";
     }
 }
-
 
