@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content">
+    <h2>Chỉnh sửa danh mục</h2>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="@{/admin/menu/edit}" method="post">
+      <input type="hidden" name="id" th:value="${menu.maThucDon}" />
+
+      <div class="mb-3">
+        <label>Tên món</label>
+        <input type="text" name="tenMon" class="form-control" th:value="${menu.tenMon}" required />
+      </div>
+
+      <div class="mb-3">
+        <label>Giá tiền</label>
+        <input type="number" name="giaTien" class="form-control" step="0.01" th:value="${menu.giaHienTai}" required />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Lưu</button>
+      <a th:href="@{/admin/menu}" class="btn btn-secondary">Hủy</a>
+    </form>
+  </div>
+</body>
+</html>
+
+

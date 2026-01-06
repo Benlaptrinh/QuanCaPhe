@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content">
+    <h1>Nhập hàng</h1>
+
+    <form th:action="@{/admin/warehouse/create}" th:object="${form}" method="post">
+      <div>
+        <label>Tên hàng</label>
+        <input type="text" th:field="*{tenHangHoa}" required />
+      </div>
+
+      <div>
+        <label>Số lượng</label>
+        <input type="number" min="1" th:field="*{soLuong}" required />
+      </div>
+
+      <div>
+        <label>Đơn vị</label>
+        <select th:field="*{donViTinhId}" required>
+          <option value="">-- Chọn đơn vị --</option>
+          <option th:each="dv : ${donViTinhs}" th:value="${dv.maDonViTinh}" th:text="${dv.tenDonVi}"></option>
+        </select>
+      </div>
+
+      <div>
+        <label>Đơn giá</label>
+        <input type="number" min="0" step="0.01" th:field="*{donGia}" required />
+      </div>
+
+      <div>
+        <label>Ngày nhập</label>
+        <input type="datetime-local" th:field="*{ngayNhap}" required />
+      </div>
+
+      <div style="margin-top:8px;">
+        <button type="submit">Đồng ý</button>
+        <a th:href="@{/admin/warehouse}">Hủy</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
+
+

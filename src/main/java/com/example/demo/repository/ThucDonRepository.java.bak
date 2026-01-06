@@ -6,8 +6,6 @@ import java.util.Optional;
 
 public interface ThucDonRepository extends JpaRepository<ThucDon, Long> {
     Optional<ThucDon> findByTenMonIgnoreCase(String tenMon);
-    java.util.List<ThucDon> findByTenMonContainingIgnoreCase(String tenMon);
 }
-
 
 
