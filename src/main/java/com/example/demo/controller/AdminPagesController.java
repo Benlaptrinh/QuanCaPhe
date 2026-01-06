@@ -10,6 +10,7 @@ import com.example.demo.service.SalesService;
 import com.example.demo.service.ThietBiService;
 import com.example.demo.service.ThucDonService;
 import com.example.demo.service.HangHoaService;
+import com.example.demo.service.KhuyenMaiService;
 import com.example.demo.repository.DonViTinhRepository;
 import com.example.demo.service.NhanVienService;
 import com.example.demo.repository.TaiKhoanRepository;
@@ -31,12 +32,13 @@ public class AdminPagesController {
     private final TaiKhoanRepository taiKhoanRepository;
     private final HangHoaRepository hangHoaRepository;
     private final ThucDonService thucDonService;
+    private final KhuyenMaiService khuyenMaiService;
     private String sidebar = "fragments/sidebar-admin";
 
     public AdminPagesController(SalesService salesService, ThietBiService thietBiService, HangHoaService hangHoaService,
                                 DonViTinhRepository donViTinhRepository, NhanVienService nhanVienService,
                                 TaiKhoanRepository taiKhoanRepository, HangHoaRepository hangHoaRepository,
-                                ThucDonService thucDonService) {
+                                ThucDonService thucDonService, KhuyenMaiService khuyenMaiService) {
         this.salesService = salesService;
         this.thietBiService = thietBiService;
         this.hangHoaService = hangHoaService;
@@ -45,6 +47,7 @@ public class AdminPagesController {
         this.taiKhoanRepository = taiKhoanRepository;
         this.hangHoaRepository = hangHoaRepository;
         this.thucDonService = thucDonService;
+        this.khuyenMaiService = khuyenMaiService;
     }
 
     private String usernameFromAuth(Authentication auth) {
@@ -267,7 +270,9 @@ public class AdminPagesController {
     public String marketing(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/marketing");
+        model.addAttribute("contentFragment", "admin/marketing/list");
+        model.addAttribute("khuyenMais", khuyenMaiService.getAllKhuyenMai());
+        model.addAttribute("activeMenu", "marketing");
         return "layout/base";
     }
 
