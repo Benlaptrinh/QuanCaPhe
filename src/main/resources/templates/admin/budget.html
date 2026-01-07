@@ -1,6 +1,54 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
+  <div th:fragment="content" class="content-wrapper">
+    <h1>Quản lý ngân sách</h1>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <form method="get" style="margin-bottom:12px;">
+      Từ ngày <input type="date" name="from" th:value="${#dates.format(from,'yyyy-MM-dd')}" />
+      Đến ngày <input type="date" name="to" th:value="${#dates.format(to,'yyyy-MM-dd')}" />
+      <button class="btn btn-sm">Xem</button>
+    </form>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th class="text-right">Thu</th>
+          <th class="text-right">Chi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="row : ${thuChiList}">
+          <td th:text="${row.ngay}"></td>
+          <td class="text-right" th:text="${#numbers.formatDecimal(row.thu,0,'COMMA',0,'POINT')}"></td>
+          <td class="text-right" th:text="${#numbers.formatDecimal(row.chi,0,'COMMA',0,'POINT')}"></td>
+        </tr>
+        <tr th:if="${thuChiList == null || thuChiList.isEmpty()}">
+          <td colspan="3" class="text-center text-muted">Chưa có dữ liệu</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr/>
+    <h3>Thêm chi tiêu</h3>
+    <form th:action="@{/admin/budget/expense}" method="post" th:object="${chiTieuForm}">
+      Ngày <input type="date" th:field="*{ngayChi}" />
+      Khoản chi <input th:field="*{tenKhoanChi}" required />
+      Số tiền <input th:field="*{soTien}" />
+      <button class="btn btn-sm btn-primary">Lưu</button>
+      <a th:href="@{/admin/budget}" class="btn btn-sm btn-cancel">Hủy</a>
+    </form>
+  </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
   <div th:fragment="content">
     <h1>Quản lý ngân sách</h1>
     <p>Trang này chưa có chức năng — placeholder.</p>

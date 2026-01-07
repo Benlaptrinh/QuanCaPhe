@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.PathVariable;
 import com.example.demo.repository.HangHoaRepository;
+import com.example.demo.service.NganSachService;
 
 @Controller
 @RequestMapping("/admin")
@@ -32,13 +33,15 @@ public class AdminPagesController {
     private final TaiKhoanRepository taiKhoanRepository;
     private final HangHoaRepository hangHoaRepository;
     private final ThucDonService thucDonService;
+    private final NganSachService nganSachService;
     private final KhuyenMaiService khuyenMaiService;
     private String sidebar = "fragments/sidebar-admin";
 
     public AdminPagesController(SalesService salesService, ThietBiService thietBiService, HangHoaService hangHoaService,
                                 DonViTinhRepository donViTinhRepository, NhanVienService nhanVienService,
                                 TaiKhoanRepository taiKhoanRepository, HangHoaRepository hangHoaRepository,
-                                ThucDonService thucDonService, KhuyenMaiService khuyenMaiService) {
+                                ThucDonService thucDonService, KhuyenMaiService khuyenMaiService,
+                                NganSachService nganSachService) {
         this.salesService = salesService;
         this.thietBiService = thietBiService;
         this.hangHoaService = hangHoaService;
@@ -48,6 +51,7 @@ public class AdminPagesController {
         this.hangHoaRepository = hangHoaRepository;
         this.thucDonService = thucDonService;
         this.khuyenMaiService = khuyenMaiService;
+        this.nganSachService = nganSachService;
     }
 
     private String usernameFromAuth(Authentication auth) {
@@ -277,11 +281,27 @@ public class AdminPagesController {
     }
 
     @GetMapping("/budget")
-    public String budget(Model model, Authentication auth) {
+    public String budget(@org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate from,
+                         @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate to,
+                         Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/budget");
+        if (from != null && to != null) {
+            model.addAttribute("thuChiList", nganSachService.xemThuChi(from, to));
+        }
+        model.addAttribute("chiTieuForm", new com.example.demo.dto.ChiTieuForm());
+        model.addAttribute("activeMenu", "budget");
         return "layout/base";
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping("/budget/expense")
+    public String themChi(@org.springframework.web.bind.annotation.ModelAttribute com.example.demo.dto.ChiTieuForm form,
+                          java.security.Principal principal, org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        String username = principal == null ? null : principal.getName();
+        nganSachService.themChiTieu(form, username);
+        ra.addFlashAttribute("success", "Thêm chi tiêu thành công");
+        return "redirect:/admin/budget";
     }
 
     @GetMapping("/reports")
