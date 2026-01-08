@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ReportFilterDTO;
 import com.example.demo.dto.ReportRowDTO;
+import com.example.demo.service.ReportService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,25 +19,17 @@ import java.util.List;
 public class ReportController {
 
     private String sidebar = "fragments/sidebar-admin";
+    private final ReportService reportService;
+
+    public ReportController(ReportService reportService) {
+        this.reportService = reportService;
+    }
 
     private String usernameFromAuth(Authentication auth) {
         return auth == null ? null : auth.getName();
     }
 
-    private List<ReportRowDTO> mockThuChi() {
-        return List.of(
-            new ReportRowDTO(
-                LocalDate.of(2024, 12, 23),
-                new BigDecimal("500000"),
-                new BigDecimal("1000000")
-            ),
-            new ReportRowDTO(
-                LocalDate.of(2024, 12, 24),
-                new BigDecimal("1000000"),
-                new BigDecimal("200000")
-            )
-        );
-    }
+    
 
     @GetMapping
     public String showReportPage(Model model, Authentication auth) {
@@ -49,8 +41,8 @@ public class ReportController {
 
         model.addAttribute("filter", filter);
 
-        // MOCK DATA mặc định (đầu tháng -> hôm nay)
-        model.addAttribute("reportData", mockThuChi());
+        // Lấy dữ liệu thực từ service (hiện service sẽ truy vấn repository)
+        model.addAttribute("reportData", reportService.thongKeThuChi(filter.getFromDate(), filter.getToDate()));
 
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
@@ -76,8 +68,7 @@ public class ReportController {
             model.addAttribute("error", error);
             model.addAttribute("reportData", List.of());
         } else {
-            // 👉 MÓC DỮ LIỆU GIẢ
-            model.addAttribute("reportData", mockThuChi());
+            model.addAttribute("reportData", reportService.thongKeThuChi(filter.getFromDate(), filter.getToDate()));
         }
 
         model.addAttribute("filter", filter);
