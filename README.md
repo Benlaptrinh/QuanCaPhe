@@ -1,4 +1,4 @@
-# QuanCaPhe — Quản lý quán cà phê (dành cho junior)
+# QuanCaPhe — Quản lý quán cà phê
 
 README đầy đủ cho developer, reviewer và các bạn junior mới tham gia dự án.
 
@@ -190,18 +190,7 @@ Lưu ý:
 
 ---
 
-## 9. Lộ trình refactor (khuyến nghị)
-
-**Đợt 1 — Audit & Clean:** xoá code dư, fix Thymeleaf parsing.  
-**Đợt 2 — Package Reorg:** tách report module (done).  
-**Đợt 3 — Service Split:** tách finance/sales/staff service (done).  
-**Đợt 4 — Repository Consolidation:** gom native report SQL vào `report.repository` (next).  
-**Đợt 5 — Template Fragments:** tách `admin/report` thành partials cho từng report.  
-**Đợt 6 — Tests:** thêm unit test cho report mapping + smoke test.
-
----
-
-## 10. Troubleshooting & lỗi thường gặp
+## 9. Troubleshooting & lỗi thường gặp
 
 - App fail startup với `Query validation failed` ở repository:
   - Kiểm tra JPQL có `function('date', ...)` hoặc constructor expression dùng function DB-specific. Nên chuyển sang native SQL.
@@ -211,7 +200,7 @@ Lưu ý:
 
 ---
 
-## 11. Checklist khi PR
+## 10. Checklist khi PR
 
 - Chạy `./mvnw -DskipTests package` và test UI cơ bản.  
 - Change scope gọn (1 feature/PR).  
