@@ -6,6 +6,7 @@ import com.example.demo.service.KhuyenMaiService;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import com.example.demo.dto.KhuyenMaiForm;
+import java.math.BigDecimal;
 
 @Service
 public class KhuyenMaiServiceImpl implements KhuyenMaiService {
@@ -44,8 +45,8 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
         km.setTenKhuyenMai(form.getTenKhuyenMai());
         km.setNgayBatDau(form.getNgayBatDau());
         km.setNgayKetThuc(form.getNgayKetThuc());
-        // convert integer percent to BigDecimal to match entity
-        km.setGiaTriGiam(java.math.BigDecimal.valueOf(form.getGiaTriGiam()));
+        
+        km.setGiaTriGiam(BigDecimal.valueOf(form.getGiaTriGiam()));
 
         khuyenMaiRepository.save(km);
     }
@@ -90,7 +91,7 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
         km.setTenKhuyenMai(form.getTenKhuyenMai());
         km.setNgayBatDau(form.getNgayBatDau());
         km.setNgayKetThuc(form.getNgayKetThuc());
-        km.setGiaTriGiam(java.math.BigDecimal.valueOf(form.getGiaTriGiam()));
+        km.setGiaTriGiam(BigDecimal.valueOf(form.getGiaTriGiam()));
 
         khuyenMaiRepository.save(km);
     }

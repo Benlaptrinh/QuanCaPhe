@@ -5,6 +5,7 @@ import com.example.demo.service.KhuyenMaiService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -47,7 +48,7 @@ public class AdminMarketingController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@org.springframework.web.bind.annotation.PathVariable Long id, Model model, RedirectAttributes ra) {
+    public String showEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
         try {
             KhuyenMaiForm form = khuyenMaiService.getFormById(id);
             model.addAttribute("khuyenMaiForm", form);
@@ -63,7 +64,7 @@ public class AdminMarketingController {
     }
 
     @PostMapping("/edit/{id}")
-    public String updateKhuyenMai(@org.springframework.web.bind.annotation.PathVariable Long id,
+    public String updateKhuyenMai(@PathVariable Long id,
                                   KhuyenMaiForm khuyenMaiForm,
                                   RedirectAttributes redirectAttributes,
                                   Model model) {
@@ -83,7 +84,7 @@ public class AdminMarketingController {
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteKhuyenMai(@org.springframework.web.bind.annotation.PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteKhuyenMai(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             khuyenMaiService.deleteById(id);
             redirectAttributes.addFlashAttribute("success", "Xóa khuyến mãi thành công");
@@ -93,5 +94,4 @@ public class AdminMarketingController {
         return "redirect:/admin/marketing";
     }
 }
-
 

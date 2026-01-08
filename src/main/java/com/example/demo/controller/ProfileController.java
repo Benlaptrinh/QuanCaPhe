@@ -30,7 +30,7 @@ public class ProfileController {
         NhanVien nv = nhanVienService.findByTaiKhoanId(tk.getMaTaiKhoan()).orElse(null);
         model.addAttribute("taiKhoan", tk);
         model.addAttribute("nhanVien", nv == null ? new NhanVien() : nv);
-        // choose sidebar based on role: admin sees admin sidebar, others see staff
+        
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         model.addAttribute("sidebarFragment", isAdmin ? "fragments/sidebar-admin" : "fragments/sidebar-staff");

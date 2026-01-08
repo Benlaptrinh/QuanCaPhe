@@ -1,38 +1,42 @@
-<div th:fragment="content">
-    <h2>Thống kê - báo cáo</h2>
+<div th:fragment="content" class="content-wrapper report-page">
+    <h2 class="report-title">Thống kê - báo cáo</h2>
   
-    <div th:if="${error}" style="color:red">
+    <div th:if="${error}" class="alert alert-error">
       <p th:text="${error}"></p>
     </div>
   
-    <form th:action="@{/admin/report}" method="post" th:object="${filter}">
-      <fieldset style="margin-bottom:8px;">
+    <form class="report-form" th:action="@{/admin/report}" method="post" th:object="${filter}">
+      <fieldset class="report-types">
         <legend>Loại báo cáo</legend>
-        <label>
+        <label class="report-option">
           <input type="radio" th:field="*{type}" value="FINANCE"> Thu – Chi
         </label>
-        <label style="margin-left:10px;">
+        <label class="report-option">
           <input type="radio" th:field="*{type}" value="SALES"> Bán hàng
         </label>
-        <label style="margin-left:10px;">
+        <label class="report-option">
           <input type="radio" th:field="*{type}" value="STAFF"> Nhân viên
         </label>
       </fieldset>
-      <div>
-        <label>Từ ngày:</label>
-        <input type="date" th:field="*{fromDate}" required>
+      <div class="report-dates">
+        <label class="report-date">
+          <span>Từ ngày:</span>
+          <input type="date" th:field="*{fromDate}" required>
+        </label>
+        <label class="report-date">
+          <span>Đến ngày:</span>
+          <input type="date" th:field="*{toDate}" required>
+        </label>
       </div>
-      <div>
-        <label>Đến ngày:</label>
-        <input type="date" th:field="*{toDate}" required>
+      <div class="report-actions">
+        <button class="btn btn-primary" type="submit">Xem</button>
+        <button class="btn btn-secondary no-print" type="button" onclick="window.print()">In</button>
       </div>
-      <button type="submit">Xem</button>
-      <button type="button" onclick="window.print()" class="no-print" style="margin-left:8px;">In</button>
     </form>
   
     <!-- TABLE (Thu - Chi) -->
     <div th:if="${filter.type == 'FINANCE'}">
-      <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
+      <table class="data-table report-table"
              th:if="${reportData != null and !reportData.isEmpty()}">
       <thead>
         <tr>
@@ -59,15 +63,15 @@
       </tfoot>
       </table>
 
-      <p th:if="${reportData == null or reportData.isEmpty()}">
+      <p class="report-empty" th:if="${reportData == null or reportData.isEmpty()}">
         Chưa có dữ liệu
       </p>
     </div>
 
     <!-- SALES BY DAY -->
     <div th:if="${filter.type == 'SALES'}">
-      <h3 style="margin-top:24px;">Bán hàng theo ngày</h3>
-      <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
+      <h3 class="report-subtitle">Bán hàng theo ngày</h3>
+      <table class="data-table report-table"
              th:if="${salesByDay != null and !salesByDay.isEmpty()}">
       <thead>
         <tr>
@@ -92,7 +96,7 @@
       </tfoot>
       </table>
 
-      <p th:if="${salesByDay == null or salesByDay.isEmpty()}">
+      <p class="report-empty" th:if="${salesByDay == null or salesByDay.isEmpty()}">
         Chưa có dữ liệu bán hàng
       </p>
     </div>
@@ -100,8 +104,8 @@
 
     <!-- STAFF REPORT -->
     <div th:if="${filter.type == 'STAFF'}">
-      <h3 style="margin-top:24px;">Báo cáo nhân viên</h3>
-      <table border="1" cellpadding="8" cellspacing="0" style="width:400px;"
+      <h3 class="report-subtitle">Báo cáo nhân viên</h3>
+      <table class="data-table report-table report-table--compact"
              th:if="${staffReport != null and !staffReport.isEmpty()}">
       <thead>
         <tr>
@@ -117,7 +121,7 @@
       </tbody>
       </table>
 
-      <p th:if="${staffReport == null or staffReport.isEmpty()}">
+      <p class="report-empty" th:if="${staffReport == null or staffReport.isEmpty()}">
         Chưa có dữ liệu nhân viên
       </p>
     </div>

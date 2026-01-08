@@ -2,24 +2,28 @@
  <!DOCTYPE html>
  <html xmlns:th="http://www.thymeleaf.org">
  <head th:replace="fragments/head :: head"></head>
- <body>
- <header th:replace="fragments/header :: header"></header>
+ <body class="app-body">
+ <header class="app-header">
+   <div th:replace="fragments/header :: header"></div>
+ </header>
  
- <main>
-   <div style="display:flex; height:100vh; box-sizing:border-box">
+ <main class="app-main">
+   <div class="app-layout">
      <!-- SIDEBAR -->
-     <div style="width:250px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box">
+     <aside class="sidebar">
        <div th:replace="~{${sidebarFragment} :: sidebar}"></div>
-     </div>
+     </aside>
  
      <!-- CONTENT -->
-     <div style="flex:1; padding:20px; box-sizing:border-box">
+     <section class="content-area">
        <div th:replace="~{${contentFragment} :: content}"></div>
-     </div>
+     </section>
    </div>
  </main>
  
- <footer th:replace="fragments/footer :: footer"></footer>
+ <footer class="app-footer">
+   <div th:replace="fragments/footer :: footer"></div>
+ </footer>
  </body>
  </html>
  

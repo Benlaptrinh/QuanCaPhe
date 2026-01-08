@@ -20,7 +20,7 @@ public class NhanVienServiceImpl implements NhanVienService {
         this.taiKhoanRepository = taiKhoanRepository;
     }
 
-    // save implemented below with automatic salary set from ChucVu
+    
 
     @Override
     public List<NhanVien> findAll() {
@@ -38,7 +38,7 @@ public class NhanVienServiceImpl implements NhanVienService {
     }
 
     @Override
-    public java.util.List<NhanVien> findByHoTenContaining(String keyword) {
+    public List<NhanVien> findByHoTenContaining(String keyword) {
         return nhanVienRepository.findByHoTenContainingIgnoreCase(keyword);
     }
 

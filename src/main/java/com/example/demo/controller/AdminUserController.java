@@ -8,8 +8,14 @@ import com.example.demo.service.NhanVienService;
 import com.example.demo.service.TaiKhoanService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/admin/users")
@@ -46,7 +52,7 @@ public class AdminUserController {
     public String create(@ModelAttribute TaiKhoan taiKhoan,
                          @ModelAttribute NhanVien nhanVien,
                          @RequestParam(value = "chucVuId", required = false) Long chucVuId,
-                         org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes) {
         try {
             TaiKhoan saved = taiKhoanService.save(taiKhoan);
             if (chucVuId != null) {
@@ -68,7 +74,7 @@ public class AdminUserController {
         TaiKhoan tk = taiKhoanService.findById(id).orElse(null);
         if (tk == null) return "redirect:/admin/users";
         model.addAttribute("taiKhoan", tk);
-        // find associated nhan vien if exists
+        
         nhanVienService.findAll().stream()
                 .filter(n -> n.getTaiKhoan() != null && n.getTaiKhoan().getMaTaiKhoan().equals(id))
                 .findFirst()
@@ -82,12 +88,12 @@ public class AdminUserController {
                        @ModelAttribute TaiKhoan taiKhoan,
                        @ModelAttribute NhanVien nhanVien,
                        @RequestParam(value = "chucVuId", required = false) Long chucVuId,
-                       org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+                       RedirectAttributes redirectAttributes) {
         TaiKhoan existing = taiKhoanService.findById(id).orElse(null);
         if (existing == null) return "redirect:/admin/users";
         existing.setQuyenHan(taiKhoan.getQuyenHan());
         if (taiKhoan.getMatKhau() != null && !taiKhoan.getMatKhau().isEmpty()) {
-            existing.setMatKhau(taiKhoan.getMatKhau()); // save will hash
+            existing.setMatKhau(taiKhoan.getMatKhau()); 
         }
         try {
             taiKhoanService.save(existing);
@@ -96,7 +102,7 @@ public class AdminUserController {
             return "redirect:/admin/users/" + id + "/edit";
         }
 
-        // update nhan vien
+        
         nhanVienService.findById(nhanVien.getMaNhanVien()).ifPresent(n -> {
             n.setHoTen(nhanVien.getHoTen());
             n.setSoDienThoai(nhanVien.getSoDienThoai());
@@ -117,14 +123,14 @@ public class AdminUserController {
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
-        // id is TaiKhoan id
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        
         nhanVienService.deleteByTaiKhoanId(id);
         taiKhoanService.findById(id).ifPresent(t -> {
-            // ensure account removed if still exists
+            
             try {
-                // delete via repository
-                // taiKhoanService has no delete, use repository via service save/disable; simplest: disable
+                
+                
                 taiKhoanService.disable(id);
             } catch (Exception ignored) {}
         });
@@ -132,5 +138,4 @@ public class AdminUserController {
         return "redirect:/admin/users";
     }
 }
-
 

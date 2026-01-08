@@ -1,14 +1,15 @@
-<div th:fragment="sidebar">
-    <h4>Trang chủ</h4>
-    <ul>
-        <li><a th:href="@{/staff/home}">Trang chủ</a></li>
-        <li><a th:href="@{/profile}">Trang cá nhân</a></li>
-        <li><a th:href="@{/staff/sales}">Quản lý bán hàng</a></li>
-    </ul>
+<div th:fragment="sidebar" class="sidebar-inner">
+    <h4 class="sidebar-title">Trang chủ</h4>
+    <nav class="sidebar-nav">
+        <ul class="sidebar-list">
+            <li><a class="sidebar-link" th:href="@{/staff/home}">Trang chủ</a></li>
+            <li><a class="sidebar-link" th:href="@{/profile}">Trang cá nhân</a></li>
+            <li><a class="sidebar-link" th:href="@{/staff/sales}">Quản lý bán hàng</a></li>
+        </ul>
+    </nav>
 
-    <form th:action="@{/logout}" method="post">
-        <button type="submit">Logout</button>
+    <form class="sidebar-logout" th:action="@{/logout}" method="post">
+        <button class="sidebar-logout-btn" type="submit">Logout</button>
     </form>
 </div>
-
 

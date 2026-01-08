@@ -5,10 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import com.example.demo.dto.StaffReportRowDTO;
 import java.util.Optional;
+import java.util.List;
 
 public interface NhanVienRepository extends JpaRepository<NhanVien, Long> {
     Optional<NhanVien> findByTaiKhoan_MaTaiKhoan(Long maTaiKhoan);
-    java.util.List<NhanVien> findByHoTenContainingIgnoreCase(String keyword);
+    List<NhanVien> findByHoTenContainingIgnoreCase(String keyword);
 
     @Query("""
         SELECT new com.example.demo.dto.StaffReportRowDTO(
@@ -18,7 +19,7 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Long> {
         FROM NhanVien nv
         GROUP BY nv.enabled
     """)
-    java.util.List<StaffReportRowDTO> thongKeNhanVien();
+    List<StaffReportRowDTO> thongKeNhanVien();
 }
 
 

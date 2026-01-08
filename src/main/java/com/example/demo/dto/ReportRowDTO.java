@@ -1,6 +1,8 @@
 package com.example.demo.dto;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.sql.Date;
 
 public class ReportRowDTO {
 
@@ -14,8 +16,8 @@ public class ReportRowDTO {
         this.chi = chi == null ? 0L : chi;
     }
 
-    // Hibernate / JPQL may pass java.sql.Date and BigDecimal/Number for aggregated results.
-    public ReportRowDTO(java.sql.Date sqlDate, java.math.BigDecimal thu, Number chi) {
+    
+    public ReportRowDTO(Date sqlDate, BigDecimal thu, Number chi) {
         this(sqlDate != null ? sqlDate.toLocalDate() : null,
              thu != null ? thu.longValue() : 0L,
              chi != null ? chi.longValue() : 0L);

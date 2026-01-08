@@ -1,7 +1,5 @@
 package com.example.demo.controller;
 
-
-
 import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
 import com.example.demo.repository.ChucVuRepository;
@@ -10,10 +8,15 @@ import com.example.demo.service.TaiKhoanService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import com.example.demo.enums.Role;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/admin/employees")
@@ -121,7 +124,7 @@ public class AdminEmployeesController {
         if (chucVuId != null) {
             chucVuRepository.findById(chucVuId).ifPresent(existing::setChucVu);
         }
-        // handle account
+        
         try {
             if (tenDangNhap != null && !tenDangNhap.isBlank()) {
                 if (existing.getTaiKhoan() == null) {

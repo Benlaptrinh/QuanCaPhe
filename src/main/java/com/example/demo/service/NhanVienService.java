@@ -11,6 +11,6 @@ public interface NhanVienService {
     Optional<NhanVien> findByTaiKhoanId(Long maTaiKhoan);
     void deleteByTaiKhoanId(Long maTaiKhoan);
     void deleteById(Long id);
-    java.util.List<NhanVien> findByHoTenContaining(String keyword);
+    List<NhanVien> findByHoTenContaining(String keyword);
 }
 

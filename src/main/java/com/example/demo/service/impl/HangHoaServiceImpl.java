@@ -16,6 +16,8 @@ import com.example.demo.entity.DonViTinh;
 import com.example.demo.entity.DonXuat;
 import com.example.demo.entity.NhanVien;
 import com.example.demo.repository.DonViTinhRepository;
+import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class HangHoaServiceImpl implements HangHoaService {
@@ -58,14 +60,14 @@ public class HangHoaServiceImpl implements HangHoaService {
         return result;
     }
     @Override
-    public java.util.List<HangHoaKhoDTO> searchHangHoa(String keyword) {
+    public List<HangHoaKhoDTO> searchHangHoa(String keyword) {
         List<HangHoa> list;
         if (keyword == null || keyword.trim().isEmpty()) {
             list = hangHoaRepo.findAll();
         } else {
             list = hangHoaRepo.findByTenHangHoaContainingIgnoreCase(keyword.trim());
         }
-        java.util.List<HangHoaKhoDTO> result = new ArrayList<>();
+        List<HangHoaKhoDTO> result = new ArrayList<>();
         for (HangHoa hh : list) {
             HangHoaKhoDTO dto = new HangHoaKhoDTO();
             dto.setMaHangHoa(hh.getMaHangHoa());
@@ -80,7 +82,7 @@ public class HangHoaServiceImpl implements HangHoaService {
         return result;
     }
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void nhapHang(HangHoaNhapForm form, NhanVien nhanVien) {
         if (form.getSoLuong() == null || form.getSoLuong() <= 0) {
             throw new IllegalArgumentException("Số lượng phải > 0");
@@ -111,13 +113,13 @@ public class HangHoaServiceImpl implements HangHoaService {
         dn.setNhanVien(nhanVien);
         dn.setSoLuong(form.getSoLuong());
         dn.setNgayNhap(form.getNgayNhap());
-        // save log
+        
         donNhapRepo.save(dn);
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
-    public void xuatHang(Long hangHoaId, Integer soLuong, java.time.LocalDateTime ngayXuat, NhanVien nhanVien) {
+    @Transactional
+    public void xuatHang(Long hangHoaId, Integer soLuong, LocalDateTime ngayXuat, NhanVien nhanVien) {
         if (soLuong == null || soLuong <= 0) {
             throw new IllegalArgumentException("Số lượng xuất phải > 0");
         }
@@ -127,11 +129,11 @@ public class HangHoaServiceImpl implements HangHoaService {
             throw new RuntimeException("Số lượng tồn kho không đủ");
         }
 
-        // trừ tồn
+        
         hh.setSoLuong(hh.getSoLuong() - soLuong);
         hangHoaRepo.save(hh);
 
-        // ghi log xuất
+        
         DonXuat dx = new DonXuat();
         dx.setHangHoa(hh);
         dx.setSoLuong(soLuong);
@@ -141,7 +143,7 @@ public class HangHoaServiceImpl implements HangHoaService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void updateHangHoa(EditHangHoaForm form) {
         HangHoa hh = hangHoaRepo.findById(form.getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hàng hóa"));
@@ -161,7 +163,7 @@ public class HangHoaServiceImpl implements HangHoaService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void deleteHangHoa(Long id) {
         HangHoa hh = hangHoaRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hàng hóa"));

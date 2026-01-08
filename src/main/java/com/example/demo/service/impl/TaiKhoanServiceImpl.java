@@ -22,18 +22,18 @@ public class TaiKhoanServiceImpl implements TaiKhoanService {
 
 	@Override
 	public TaiKhoan save(TaiKhoan taiKhoan) {
-		// validate username uniqueness
+		
 		if (taiKhoan.getTenDangNhap() != null && !taiKhoan.getTenDangNhap().isEmpty()) {
 			taiKhoanRepository.findByTenDangNhap(taiKhoan.getTenDangNhap())
 					.ifPresent(existing -> {
-						// if creating new or changing to a username that belongs to another account -> error
+						
 						if (taiKhoan.getMaTaiKhoan() == null || !existing.getMaTaiKhoan().equals(taiKhoan.getMaTaiKhoan())) {
 							throw new IllegalArgumentException("Username already exists");
 						}
 					});
 		}
 
-		// If creating a new account, password is required
+		
 		if (taiKhoan.getMaTaiKhoan() == null) {
 			if (taiKhoan.getMatKhau() == null || taiKhoan.getMatKhau().isBlank()) {
 				throw new IllegalArgumentException("Password required when creating account");
@@ -41,7 +41,7 @@ public class TaiKhoanServiceImpl implements TaiKhoanService {
 		}
 
 		if (taiKhoan.getMatKhau() != null && !taiKhoan.getMatKhau().isEmpty()) {
-			// Chỉ mã hóa nếu chưa mã hóa (chuỗi chưa bắt đầu bằng $2a$ hoặc $2b$)
+			
 			if (!taiKhoan.getMatKhau().startsWith("$2a$") && !taiKhoan.getMatKhau().startsWith("$2b$")) {
 				taiKhoan.setMatKhau(passwordEncoder.encode(taiKhoan.getMatKhau()));
 			}
