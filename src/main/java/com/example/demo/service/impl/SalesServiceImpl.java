@@ -14,9 +14,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Optional;
+import com.example.demo.entity.ChiTietDatBan;
+import com.example.demo.entity.ChiTietHoaDon;
+import com.example.demo.entity.NhanVien;
+import com.example.demo.entity.TaiKhoan;
+import com.example.demo.enums.TinhTrangBan;
+import com.example.demo.enums.TrangThaiHoaDon;
+import com.example.demo.repository.ChiTietDatBanRepository;
+import com.example.demo.repository.NhanVienRepository;
+import com.example.demo.repository.TaiKhoanRepository;
 
 @Service
 public class SalesServiceImpl implements SalesService {
@@ -27,17 +35,17 @@ public class SalesServiceImpl implements SalesService {
     private final HoaDonRepository hoaDonRepository;
     private final ThucDonRepository thucDonRepository;
     private final ChiTietHoaDonRepository chiTietHoaDonRepository;
-    private final com.example.demo.repository.ChiTietDatBanRepository chiTietDatBanRepository;
-    private final com.example.demo.repository.TaiKhoanRepository taiKhoanRepository;
-    private final com.example.demo.repository.NhanVienRepository nhanVienRepository;
+    private final ChiTietDatBanRepository chiTietDatBanRepository;
+    private final TaiKhoanRepository taiKhoanRepository;
+    private final NhanVienRepository nhanVienRepository;
 
     public SalesServiceImpl(BanRepository banRepository,
                             HoaDonRepository hoaDonRepository,
                             ThucDonRepository thucDonRepository,
                             ChiTietHoaDonRepository chiTietHoaDonRepository,
-                            com.example.demo.repository.ChiTietDatBanRepository chiTietDatBanRepository,
-                            com.example.demo.repository.TaiKhoanRepository taiKhoanRepository,
-                            com.example.demo.repository.NhanVienRepository nhanVienRepository) {
+                            ChiTietDatBanRepository chiTietDatBanRepository,
+                            TaiKhoanRepository taiKhoanRepository,
+                            NhanVienRepository nhanVienRepository) {
         this.banRepository = banRepository;
         this.hoaDonRepository = hoaDonRepository;
         this.thucDonRepository = thucDonRepository;
@@ -70,17 +78,17 @@ public class SalesServiceImpl implements SalesService {
             banRepository.findById(tableId).ifPresent(b -> {
                 n.setBan(b);
                 // mark table as occupied
-                b.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+                b.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
                 banRepository.save(b);
             });
             n.setNgayGioTao(LocalDateTime.now());
-            n.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+            n.setTrangThai(TrangThaiHoaDon.MOI_TAO);
             return hoaDonRepository.save(n);
         });
 
         ThucDon item = thucDonRepository.findById(itemId).orElseThrow();
         // find existing chi tiet
-        com.example.demo.entity.ChiTietHoaDon existing = hd.getChiTietHoaDons() == null ? null :
+        ChiTietHoaDon existing = hd.getChiTietHoaDons() == null ? null :
                 hd.getChiTietHoaDons().stream()
                         .filter(ct -> ct.getThucDon().getMaThucDon().equals(item.getMaThucDon()))
                         .findFirst().orElse(null);
@@ -91,7 +99,7 @@ public class SalesServiceImpl implements SalesService {
             existing.setThanhTien(item.getGiaHienTai().multiply(new BigDecimal(newQty)));
             chiTietHoaDonRepository.save(existing);
         } else {
-            com.example.demo.entity.ChiTietHoaDon ct = new com.example.demo.entity.ChiTietHoaDon();
+            ChiTietHoaDon ct = new ChiTietHoaDon();
             ct.setHoaDon(hd);
             ct.setThucDon(item);
             int qty = (quantity == null ? 1 : quantity);
@@ -106,7 +114,7 @@ public class SalesServiceImpl implements SalesService {
         // update total
         BigDecimal total = hd.getChiTietHoaDons() == null ? BigDecimal.ZERO :
                 hd.getChiTietHoaDons().stream()
-                        .map(com.example.demo.entity.ChiTietHoaDon::getThanhTien)
+                        .map(ChiTietHoaDon::getThanhTien)
                         .filter(java.util.Objects::nonNull)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
         hd.setTongTien(total);
@@ -119,7 +127,7 @@ public class SalesServiceImpl implements SalesService {
         hoaDonRepository.findChuaThanhToanByBan(tableId).ifPresent(hd -> {
             java.math.BigDecimal total = hd.getChiTietHoaDons() == null ? java.math.BigDecimal.ZERO :
                     hd.getChiTietHoaDons().stream()
-                            .map(com.example.demo.entity.ChiTietHoaDon::getThanhTien)
+                            .map(ChiTietHoaDon::getThanhTien)
                             .filter(java.util.Objects::nonNull)
                             .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
             hd.setTongTien(total);
@@ -128,12 +136,12 @@ public class SalesServiceImpl implements SalesService {
                 throw new IllegalArgumentException("Tiền khách đưa nhỏ hơn tổng");
             }
             // set payment info
-            hd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.DA_THANH_TOAN);
+            hd.setTrangThai(TrangThaiHoaDon.DA_THANH_TOAN);
             hd.setNgayThanhToan(java.time.LocalDateTime.now());
             hoaDonRepository.save(hd);
 
             if (releaseTable && hd.getBan() != null) {
-                hd.getBan().setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+                hd.getBan().setTinhTrang(TinhTrangBan.TRONG);
                 banRepository.save(hd.getBan());
             }
         });
@@ -143,13 +151,13 @@ public class SalesServiceImpl implements SalesService {
     @Transactional
     public void reserveTable(Long banId, String tenKhach, String sdt, java.time.LocalDateTime ngayGioDat) {
         Ban ban = banRepository.findById(banId).orElseThrow();
-        if (ban.getTinhTrang() == com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+        if (ban.getTinhTrang() == TinhTrangBan.DANG_SU_DUNG) {
             throw new IllegalStateException("Bàn đang phục vụ, không thể đặt");
         }
-        if (ban.getTinhTrang() == com.example.demo.enums.TinhTrangBan.DA_DAT) {
+        if (ban.getTinhTrang() == TinhTrangBan.DA_DAT) {
             throw new IllegalStateException("Bàn đã được đặt trước");
         }
-        com.example.demo.entity.ChiTietDatBan d = new com.example.demo.entity.ChiTietDatBan();
+        ChiTietDatBan d = new ChiTietDatBan();
         d.setBan(ban);
         d.setTenKhach(tenKhach);
         d.setSdt(sdt);
@@ -161,17 +169,17 @@ public class SalesServiceImpl implements SalesService {
         }
         String username = auth.getName();
         logger.info("reserveTable invoked by username={}", username);
-        java.util.Optional<com.example.demo.entity.TaiKhoan> tkOpt = taiKhoanRepository.findByTenDangNhap(username);
+        java.util.Optional<TaiKhoan> tkOpt = taiKhoanRepository.findByTenDangNhap(username);
         if (tkOpt.isEmpty()) {
             throw new IllegalStateException("Không tìm thấy tài khoản cho user " + username);
         }
-        com.example.demo.entity.TaiKhoan tk = tkOpt.get();
+        TaiKhoan tk = tkOpt.get();
         logger.info("Found TaiKhoan ma={} for username={}", tk.getMaTaiKhoan(), username);
-        java.util.Optional<com.example.demo.entity.NhanVien> nvOpt = nhanVienRepository.findByTaiKhoan_MaTaiKhoan(tk.getMaTaiKhoan());
-        com.example.demo.entity.NhanVien nv;
+        java.util.Optional<NhanVien> nvOpt = nhanVienRepository.findByTaiKhoan_MaTaiKhoan(tk.getMaTaiKhoan());
+        NhanVien nv;
         if (nvOpt.isEmpty()) {
             logger.warn("No NhanVien linked to TaiKhoan ma={}, will create placeholder NhanVien", tk.getMaTaiKhoan());
-            nv = new com.example.demo.entity.NhanVien();
+            nv = new NhanVien();
             nv.setHoTen(username);
             nv.setSoDienThoai(null);
             nv.setDiaChi(null);
@@ -184,7 +192,7 @@ public class SalesServiceImpl implements SalesService {
         d.setNhanVien(nv);
         logger.info("Reserve will be saved with NhanVien ma={}", nv.getMaNhanVien());
         chiTietDatBanRepository.save(d);
-        ban.setTinhTrang(com.example.demo.enums.TinhTrangBan.DA_DAT);
+        ban.setTinhTrang(TinhTrangBan.DA_DAT);
         banRepository.save(ban);
     }
 
@@ -196,7 +204,7 @@ public class SalesServiceImpl implements SalesService {
             HoaDon n = new HoaDon();
             banRepository.findById(banId).ifPresent(n::setBan);
             n.setNgayGioTao(java.time.LocalDateTime.now());
-            n.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+            n.setTrangThai(TrangThaiHoaDon.MOI_TAO);
             return hoaDonRepository.save(n);
         });
 
@@ -219,8 +227,8 @@ public class SalesServiceImpl implements SalesService {
         }
 
         // build quick lookup of existing details by thucDon id
-        java.util.Map<Long, com.example.demo.entity.ChiTietHoaDon> existingMap = new java.util.HashMap<>();
-        for (com.example.demo.entity.ChiTietHoaDon ct : new java.util.ArrayList<>(hd.getChiTietHoaDons())) {
+        java.util.Map<Long, ChiTietHoaDon> existingMap = new java.util.HashMap<>();
+        for (ChiTietHoaDon ct : new java.util.ArrayList<>(hd.getChiTietHoaDons())) {
             if (ct.getThucDon() != null && ct.getThucDon().getMaThucDon() != null) {
                 existingMap.put(ct.getThucDon().getMaThucDon(), ct);
             }
@@ -232,7 +240,7 @@ public class SalesServiceImpl implements SalesService {
             if (params.containsKey(key)) {
                 try { qty = Integer.parseInt(params.get(key)); } catch (Exception ignored) {}
             }
-            com.example.demo.entity.ChiTietHoaDon existing = existingMap.get(mon.getMaThucDon());
+            ChiTietHoaDon existing = existingMap.get(mon.getMaThucDon());
 
             if (qty > 0) {
                 if (existing != null) {
@@ -240,7 +248,7 @@ public class SalesServiceImpl implements SalesService {
                     existing.setGiaTaiThoiDiemBan(mon.getGiaHienTai());
                     existing.setThanhTien(mon.getGiaHienTai().multiply(new java.math.BigDecimal(qty)));
                 } else {
-                    com.example.demo.entity.ChiTietHoaDon ct = new com.example.demo.entity.ChiTietHoaDon();
+                    ChiTietHoaDon ct = new ChiTietHoaDon();
                     ct.setHoaDon(hd);
                     ct.setThucDon(mon);
                     ct.setSoLuong(qty);
@@ -257,7 +265,7 @@ public class SalesServiceImpl implements SalesService {
         }
 
         // recalc total from remaining details
-        for (com.example.demo.entity.ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
+        for (ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
             if (ct.getThanhTien() != null) {
                 total = total.add(ct.getThanhTien());
             }
@@ -268,7 +276,7 @@ public class SalesServiceImpl implements SalesService {
         // if at least one item, mark table as serving
         if (total.compareTo(java.math.BigDecimal.ZERO) > 0 && hd.getBan() != null) {
             Ban b = hd.getBan();
-            b.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+            b.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
             banRepository.save(b);
         }
     }
@@ -281,7 +289,7 @@ public class SalesServiceImpl implements SalesService {
             throw new IllegalStateException("Không có hóa đơn CHƯA THANH TOÁN cho bàn");
         }
         HoaDon hd = hdOpt.get();
-        if (hd.getTrangThai() != com.example.demo.enums.TrangThaiHoaDon.MOI_TAO) {
+        if (hd.getTrangThai() != TrangThaiHoaDon.MOI_TAO) {
             throw new IllegalStateException("Chỉ hủy hóa đơn ở trạng thái MOI_TAO");
         }
 
@@ -293,13 +301,13 @@ public class SalesServiceImpl implements SalesService {
         // set table to TRONG
         Ban b = banRepository.findById(banId).orElse(null);
         if (b != null) {
-            b.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+            b.setTinhTrang(TinhTrangBan.TRONG);
             banRepository.save(b);
         }
     }
 
     @Override
-    public java.util.Optional<com.example.demo.entity.HoaDon> findInvoiceById(Long id) {
+    public java.util.Optional<HoaDon> findInvoiceById(Long id) {
         return hoaDonRepository.findById(id);
     }
 
@@ -313,10 +321,10 @@ public class SalesServiceImpl implements SalesService {
         Ban fromBan = banRepository.findById(fromBanId).orElseThrow(() -> new IllegalArgumentException("Bàn nguồn không tồn tại"));
         Ban toBan = banRepository.findById(toBanId).orElseThrow(() -> new IllegalArgumentException("Bàn đích không tồn tại"));
 
-        if (fromBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+        if (fromBan.getTinhTrang() != TinhTrangBan.DANG_SU_DUNG) {
             throw new IllegalStateException("Bàn nguồn không đang sử dụng");
         }
-        if (toBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.TRONG) {
+        if (toBan.getTinhTrang() != TinhTrangBan.TRONG) {
             throw new IllegalStateException("Bàn đích không trống");
         }
 
@@ -331,8 +339,8 @@ public class SalesServiceImpl implements SalesService {
         hoaDonRepository.save(hd);
 
         // update table statuses
-        fromBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
-        toBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        fromBan.setTinhTrang(TinhTrangBan.TRONG);
+        toBan.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
         banRepository.save(fromBan);
         banRepository.save(toBan);
     }
@@ -340,14 +348,14 @@ public class SalesServiceImpl implements SalesService {
     @Override
     public java.util.List<Ban> findEmptyTables() {
         return banRepository.findAll().stream()
-                .filter(b -> b.getTinhTrang() == com.example.demo.enums.TinhTrangBan.TRONG)
+                .filter(b -> b.getTinhTrang() == TinhTrangBan.TRONG)
                 .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
     public java.util.List<Ban> findMergeCandidates(Long excludeBanId) {
         return banRepository.findAll().stream()
-                .filter(b -> b.getTinhTrang() == com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG)
+                .filter(b -> b.getTinhTrang() == TinhTrangBan.DANG_SU_DUNG)
                 .filter(b -> !b.getMaBan().equals(excludeBanId))
                 .filter(b -> hoaDonRepository.findChuaThanhToanByBan(b.getMaBan()).isPresent())
                 .collect(java.util.stream.Collectors.toList());
@@ -363,10 +371,10 @@ public class SalesServiceImpl implements SalesService {
         Ban targetBan = banRepository.findById(targetBanId).orElseThrow(() -> new IllegalArgumentException("Bàn đích không tồn tại"));
         Ban sourceBan = banRepository.findById(sourceBanId).orElseThrow(() -> new IllegalArgumentException("Bàn nguồn không tồn tại"));
 
-        if (targetBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+        if (targetBan.getTinhTrang() != TinhTrangBan.DANG_SU_DUNG) {
             throw new IllegalStateException("Bàn đích không đang sử dụng");
         }
-        if (sourceBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+        if (sourceBan.getTinhTrang() != TinhTrangBan.DANG_SU_DUNG) {
             throw new IllegalStateException("Bàn nguồn không đang sử dụng");
         }
 
@@ -384,9 +392,9 @@ public class SalesServiceImpl implements SalesService {
 
         // merge details by copying (preserve source invoice for audit)
         if (sourceHd.getChiTietHoaDons() != null) {
-            for (com.example.demo.entity.ChiTietHoaDon srcCt : sourceHd.getChiTietHoaDons()) {
+            for (ChiTietHoaDon srcCt : sourceHd.getChiTietHoaDons()) {
                 Long thucDonId = srcCt.getThucDon().getMaThucDon();
-                com.example.demo.entity.ChiTietHoaDon existing = targetHd.getChiTietHoaDons() == null ? null :
+                ChiTietHoaDon existing = targetHd.getChiTietHoaDons() == null ? null :
                         targetHd.getChiTietHoaDons().stream()
                                 .filter(ct -> ct.getThucDon().getMaThucDon().equals(thucDonId))
                                 .findFirst().orElse(null);
@@ -396,7 +404,7 @@ public class SalesServiceImpl implements SalesService {
                     existing.setThanhTien(existing.getGiaTaiThoiDiemBan().multiply(new BigDecimal(newQty)));
                     chiTietHoaDonRepository.save(existing);
                 } else {
-                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    ChiTietHoaDon newCt = new ChiTietHoaDon();
                     newCt.setHoaDon(targetHd);
                     newCt.setThucDon(srcCt.getThucDon());
                     newCt.setSoLuong(srcCt.getSoLuong());
@@ -412,21 +420,21 @@ public class SalesServiceImpl implements SalesService {
         // recalc total for target
         BigDecimal total = targetHd.getChiTietHoaDons() == null ? BigDecimal.ZERO :
                 targetHd.getChiTietHoaDons().stream()
-                        .map(com.example.demo.entity.ChiTietHoaDon::getThanhTien)
+                        .map(ChiTietHoaDon::getThanhTien)
                         .filter(java.util.Objects::nonNull)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
         targetHd.setTongTien(total);
-        targetHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+        targetHd.setTrangThai(TrangThaiHoaDon.MOI_TAO);
         hoaDonRepository.save(targetHd);
 
         // mark source invoice as DA_GOP (do not delete)
-        sourceHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.DA_GOP);
+        sourceHd.setTrangThai(TrangThaiHoaDon.DA_GOP);
         hoaDonRepository.save(sourceHd);
 
         // update table statuses
-        sourceBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+        sourceBan.setTinhTrang(TinhTrangBan.TRONG);
         banRepository.save(sourceBan);
-        targetBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        targetBan.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
         banRepository.save(targetBan);
     }
 
@@ -440,10 +448,10 @@ public class SalesServiceImpl implements SalesService {
         Ban fromBan = banRepository.findById(fromBanId).orElseThrow(() -> new IllegalArgumentException("Bàn nguồn không tồn tại"));
         Ban toBan = banRepository.findById(toBanId).orElseThrow(() -> new IllegalArgumentException("Bàn đích không tồn tại"));
 
-        if (fromBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG) {
+        if (fromBan.getTinhTrang() != TinhTrangBan.DANG_SU_DUNG) {
             throw new IllegalStateException("Bàn nguồn không đang sử dụng");
         }
-        if (toBan.getTinhTrang() != com.example.demo.enums.TinhTrangBan.TRONG) {
+        if (toBan.getTinhTrang() != TinhTrangBan.TRONG) {
             throw new IllegalStateException("Bàn đích phải trống");
         }
 
@@ -461,7 +469,7 @@ public class SalesServiceImpl implements SalesService {
         HoaDon toHd = new HoaDon();
         toHd.setBan(toBan);
         toHd.setNgayGioTao(LocalDateTime.now());
-        toHd.setTrangThai(com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+        toHd.setTrangThai(TrangThaiHoaDon.MOI_TAO);
         toHd.setChiTietHoaDons(new java.util.ArrayList<>());
         toHd = hoaDonRepository.save(toHd);
 
@@ -469,9 +477,9 @@ public class SalesServiceImpl implements SalesService {
         BigDecimal toTotal = BigDecimal.ZERO;
 
         if (fromHd.getChiTietHoaDons() != null) {
-            java.util.List<com.example.demo.entity.ChiTietHoaDon> itemsToRemove = new java.util.ArrayList<>();
+            java.util.List<ChiTietHoaDon> itemsToRemove = new java.util.ArrayList<>();
 
-            for (com.example.demo.entity.ChiTietHoaDon ct : fromHd.getChiTietHoaDons()) {
+            for (ChiTietHoaDon ct : fromHd.getChiTietHoaDons()) {
                 Long itemId = ct.getThucDon().getMaThucDon();
                 Integer splitQty = itemQuantities.getOrDefault(itemId, 0);
 
@@ -486,7 +494,7 @@ public class SalesServiceImpl implements SalesService {
                     fromTotal = fromTotal.add(ct.getThanhTien());
 
                     // Create new item for target
-                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    ChiTietHoaDon newCt = new ChiTietHoaDon();
                     newCt.setHoaDon(toHd);
                     newCt.setThucDon(ct.getThucDon());
                     newCt.setSoLuong(splitQty);
@@ -498,7 +506,7 @@ public class SalesServiceImpl implements SalesService {
 
                 } else if (splitQty >= ct.getSoLuong()) {
                     // Move entire item to target — create a new detail for target and delete source later
-                    com.example.demo.entity.ChiTietHoaDon newCt = new com.example.demo.entity.ChiTietHoaDon();
+                    ChiTietHoaDon newCt = new ChiTietHoaDon();
                     newCt.setHoaDon(toHd);
                     newCt.setThucDon(ct.getThucDon());
                     newCt.setSoLuong(ct.getSoLuong());
@@ -530,7 +538,7 @@ public class SalesServiceImpl implements SalesService {
         hoaDonRepository.save(toHd);
 
         // Update table statuses
-        toBan.setTinhTrang(com.example.demo.enums.TinhTrangBan.DANG_SU_DUNG);
+        toBan.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
         banRepository.save(toBan);
     }
 
@@ -539,11 +547,11 @@ public class SalesServiceImpl implements SalesService {
     public void cancelReservation(Long banId) {
         Ban ban = banRepository.findById(banId).orElseThrow(() -> new IllegalArgumentException("Bàn không tồn tại"));
 
-        if (ban.getTinhTrang() != com.example.demo.enums.TinhTrangBan.DA_DAT) {
+        if (ban.getTinhTrang() != TinhTrangBan.DA_DAT) {
             throw new IllegalStateException("Chỉ hủy được bàn đã đặt");
         }
 
-        boolean hasHoaDon = hoaDonRepository.existsByBanAndTrangThai(ban, com.example.demo.enums.TrangThaiHoaDon.MOI_TAO);
+        boolean hasHoaDon = hoaDonRepository.existsByBanAndTrangThai(ban, TrangThaiHoaDon.MOI_TAO);
         if (hasHoaDon) {
             throw new IllegalStateException("Bàn đã có hóa đơn, không thể hủy");
         }
@@ -551,7 +559,7 @@ public class SalesServiceImpl implements SalesService {
         // delete reservation details
         chiTietDatBanRepository.deleteByBan(ban);
 
-        ban.setTinhTrang(com.example.demo.enums.TinhTrangBan.TRONG);
+        ban.setTinhTrang(TinhTrangBan.TRONG);
         banRepository.save(ban);
     }
 }

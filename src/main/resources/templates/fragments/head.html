@@ -3,5 +3,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Demo App</title>
   <link rel="stylesheet" th:href="@{/css/admin.css}" />
+  <style>
+    /* Print styles for report pages */
+    @media print {
+      nav, header, footer, button, form, .sidebar, .no-print {
+        display: none !important;
+      }
+      body {
+        font-size: 12pt;
+      }
+      table {
+        width: 100% !important;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #000;
+        padding: 6px;
+      }
+    }
+  </style>
 </head>
 

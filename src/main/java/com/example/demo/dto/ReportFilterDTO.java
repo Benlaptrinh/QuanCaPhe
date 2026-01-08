@@ -10,6 +10,8 @@ public class ReportFilterDTO {
 
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate toDate;
+	
+	private String type;
 
 	public LocalDate getFromDate() {
 		return fromDate;
@@ -25,5 +27,13 @@ public class ReportFilterDTO {
 
 	public void setToDate(LocalDate toDate) {
 		this.toDate = toDate;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 }

@@ -3,7 +3,6 @@ package com.example.demo.entity;
 import com.example.demo.enums.TrangThaiHoaDon;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -40,7 +39,7 @@ public class HoaDon {
     private LocalDateTime ngayThanhToan;
 
     @OneToMany(mappedBy = "hoaDon", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<com.example.demo.entity.ChiTietHoaDon> chiTietHoaDons;
+    private java.util.List<ChiTietHoaDon> chiTietHoaDons;
 }
 
 

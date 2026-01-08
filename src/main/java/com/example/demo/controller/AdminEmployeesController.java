@@ -12,8 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.util.List;
+import com.example.demo.enums.Role;
 
 @Controller
 @RequestMapping("/admin/employees")
@@ -73,10 +73,10 @@ public class AdminEmployeesController {
                 tk.setTenDangNhap(tenDangNhap);
                 tk.setMatKhau(matKhau);
                 try {
-                    com.example.demo.enums.Role r = (role == null || role.isBlank()) ? com.example.demo.enums.Role.NHANVIEN : com.example.demo.enums.Role.valueOf(role);
+                    Role r = (role == null || role.isBlank()) ? Role.NHANVIEN : Role.valueOf(role);
                     tk.setQuyenHan(r);
                 } catch (IllegalArgumentException ex) {
-                    tk.setQuyenHan(com.example.demo.enums.Role.NHANVIEN);
+                    tk.setQuyenHan(Role.NHANVIEN);
                 }
                 tk.setEnabled(true);
                 TaiKhoan savedTk = taiKhoanService.save(tk);
@@ -132,10 +132,10 @@ public class AdminEmployeesController {
                     tk.setTenDangNhap(tenDangNhap);
                     tk.setMatKhau(matKhau);
                     try {
-                        com.example.demo.enums.Role r = (role == null || role.isBlank()) ? com.example.demo.enums.Role.NHANVIEN : com.example.demo.enums.Role.valueOf(role);
+                        Role r = (role == null || role.isBlank()) ? Role.NHANVIEN : Role.valueOf(role);
                         tk.setQuyenHan(r);
                     } catch (IllegalArgumentException ex) {
-                        tk.setQuyenHan(com.example.demo.enums.Role.NHANVIEN);
+                        tk.setQuyenHan(Role.NHANVIEN);
                     }
                     tk.setEnabled(true);
                     TaiKhoan saved = taiKhoanService.save(tk);
@@ -145,7 +145,7 @@ public class AdminEmployeesController {
                     tk.setTenDangNhap(tenDangNhap);
                     if (matKhau != null && !matKhau.isBlank()) tk.setMatKhau(matKhau);
                     try {
-                        com.example.demo.enums.Role r = (role == null || role.isBlank()) ? tk.getQuyenHan() : com.example.demo.enums.Role.valueOf(role);
+                        Role r = (role == null || role.isBlank()) ? tk.getQuyenHan() : Role.valueOf(role);
                         tk.setQuyenHan(r);
                     } catch (IllegalArgumentException ex) {
                     }

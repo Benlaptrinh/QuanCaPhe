@@ -4,8 +4,8 @@ import com.example.demo.entity.DonXuat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDateTime;
+import com.example.demo.entity.HangHoa;
 
 public interface DonXuatRepository extends JpaRepository<DonXuat, Long> {
 
@@ -15,7 +15,7 @@ public interface DonXuatRepository extends JpaRepository<DonXuat, Long> {
         where d.hangHoa.maHangHoa = :id
     """)
     LocalDateTime findNgayXuatGanNhat(@Param("id") Long hangHoaId);
-    boolean existsByHangHoa(com.example.demo.entity.HangHoa hangHoa);
+    boolean existsByHangHoa(HangHoa hangHoa);
 }
 
 

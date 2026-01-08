@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -40,6 +39,7 @@ public class ReportController {
         ReportFilterDTO filter = new ReportFilterDTO();
         filter.setFromDate(now.withDayOfMonth(1));
         filter.setToDate(now);
+        filter.setType("FINANCE");
 
         model.addAttribute("filter", filter);
 

@@ -6,6 +6,18 @@
     </div>
   
     <form th:action="@{/admin/report}" method="post" th:object="${filter}">
+      <fieldset style="margin-bottom:8px;">
+        <legend>Loại báo cáo</legend>
+        <label>
+          <input type="radio" th:field="*{type}" value="FINANCE"> Thu – Chi
+        </label>
+        <label style="margin-left:10px;">
+          <input type="radio" th:field="*{type}" value="SALES"> Bán hàng
+        </label>
+        <label style="margin-left:10px;">
+          <input type="radio" th:field="*{type}" value="STAFF"> Nhân viên
+        </label>
+      </fieldset>
       <div>
         <label>Từ ngày:</label>
         <input type="date" th:field="*{fromDate}" required>
@@ -15,11 +27,13 @@
         <input type="date" th:field="*{toDate}" required>
       </div>
       <button type="submit">Xem</button>
+      <button type="button" onclick="window.print()" class="no-print" style="margin-left:8px;">In</button>
     </form>
   
-    <!-- TABLE -->
-    <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
-           th:if="${reportData != null and !reportData.isEmpty()}">
+    <!-- TABLE (Thu - Chi) -->
+    <div th:if="${filter.type == 'FINANCE'}">
+      <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
+             th:if="${reportData != null and !reportData.isEmpty()}">
       <thead>
         <tr>
           <th>Ngày</th>
@@ -43,16 +57,18 @@
           <th th:text="${#numbers.formatDecimal(#aggregates.sum(reportData.![chi]),0,'COMMA',0,'POINT')}"></th>
         </tr>
       </tfoot>
-    </table>
-  
-    <p th:if="${reportData == null or reportData.isEmpty()}">
-      Chưa có dữ liệu
-    </p>
+      </table>
+
+      <p th:if="${reportData == null or reportData.isEmpty()}">
+        Chưa có dữ liệu
+      </p>
+    </div>
 
     <!-- SALES BY DAY -->
-    <h3 style="margin-top:24px;">Bán hàng theo ngày</h3>
-    <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
-           th:if="${salesByDay != null and !salesByDay.isEmpty()}">
+    <div th:if="${filter.type == 'SALES'}">
+      <h3 style="margin-top:24px;">Bán hàng theo ngày</h3>
+      <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
+             th:if="${salesByDay != null and !salesByDay.isEmpty()}">
       <thead>
         <tr>
           <th>Ngày</th>
@@ -74,13 +90,19 @@
           <th th:text="${#numbers.formatDecimal(#aggregates.sum(salesByDay.![doanhThu]),0,'COMMA',0,'POINT')}"></th>
         </tr>
       </tfoot>
-    </table>
+      </table>
+
+      <p th:if="${salesByDay == null or salesByDay.isEmpty()}">
+        Chưa có dữ liệu bán hàng
+      </p>
+    </div>
 
 
     <!-- STAFF REPORT -->
-    <h3 style="margin-top:24px;">Báo cáo nhân viên</h3>
-    <table border="1" cellpadding="8" cellspacing="0" style="width:400px;"
-           th:if="${staffReport != null and !staffReport.isEmpty()}">
+    <div th:if="${filter.type == 'STAFF'}">
+      <h3 style="margin-top:24px;">Báo cáo nhân viên</h3>
+      <table border="1" cellpadding="8" cellspacing="0" style="width:400px;"
+             th:if="${staffReport != null and !staffReport.isEmpty()}">
       <thead>
         <tr>
           <th>Trạng thái</th>
@@ -93,10 +115,11 @@
           <td th:text="${r.soLuong}"></td>
         </tr>
       </tbody>
-    </table>
+      </table>
 
-    <p th:if="${staffReport == null or staffReport.isEmpty()}">
-      Chưa có dữ liệu nhân viên
-    </p>
+      <p th:if="${staffReport == null or staffReport.isEmpty()}">
+        Chưa có dữ liệu nhân viên
+      </p>
+    </div>
   </div>
   

@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import java.util.Map;
+import com.example.demo.entity.Ban;
+import com.example.demo.entity.ChiTietHoaDon;
+import com.example.demo.entity.HoaDon;
 
 @Controller
 @RequestMapping("/sales")
@@ -37,12 +40,12 @@ public class SalesController {
     public String selectMenuForm(@PathVariable Long banId, Model model) {
         model.addAttribute("menu", salesService.findMenuItems());
         model.addAttribute("tableId", banId);
-        java.util.Optional<com.example.demo.entity.HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
+        java.util.Optional<HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
         model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
         java.util.Map<Long, Integer> qtyMap = new java.util.HashMap<>();
         hoaDonOpt.ifPresent(hd -> {
             if (hd.getChiTietHoaDons() != null) {
-                for (com.example.demo.entity.ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
+                for (ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
                     if (ct.getThucDon() != null && ct.getSoLuong() != null) {
                         qtyMap.put(ct.getThucDon().getMaThucDon(), ct.getSoLuong());
                     }
@@ -58,12 +61,12 @@ public class SalesController {
         // same as selectMenuForm but separate path to avoid ambiguity
         model.addAttribute("menu", salesService.findMenuItems());
         model.addAttribute("tableId", banId);
-        java.util.Optional<com.example.demo.entity.HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
+        java.util.Optional<HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
         model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
         java.util.Map<Long, Integer> qtyMap = new java.util.HashMap<>();
         hoaDonOpt.ifPresent(hd -> {
             if (hd.getChiTietHoaDons() != null) {
-                for (com.example.demo.entity.ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
+                for (ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
                     if (ct.getThucDon() != null && ct.getSoLuong() != null) {
                         qtyMap.put(ct.getThucDon().getMaThucDon(), ct.getSoLuong());
                     }
@@ -109,10 +112,10 @@ public class SalesController {
             money = java.math.BigDecimal.ZERO;
         }
         // determine release: default to true when full payment
-        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
+        java.util.Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
         boolean release = false;
         if (hdOpt.isPresent()) {
-            com.example.demo.entity.HoaDon hd = hdOpt.get();
+            HoaDon hd = hdOpt.get();
             java.math.BigDecimal total = hd.getTongTien() == null ? java.math.BigDecimal.ZERO : hd.getTongTien();
             if (money.compareTo(total) >= 0) release = true;
         }
@@ -139,11 +142,11 @@ public class SalesController {
             money = java.math.BigDecimal.ZERO;
         }
         try {
-            java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
+            java.util.Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
             if (hdOpt.isEmpty()) {
                 return "ERROR:Không tìm thấy hóa đơn để thanh toán";
             }
-            com.example.demo.entity.HoaDon hd = hdOpt.get();
+            HoaDon hd = hdOpt.get();
             java.math.BigDecimal total = hd.getTongTien() == null ? java.math.BigDecimal.ZERO : hd.getTongTien();
             boolean release = money.compareTo(total) >= 0;
             salesService.payInvoice(banId, money, release);
@@ -172,13 +175,13 @@ public class SalesController {
 
     @GetMapping("/ban/{id}/view")
     public String viewBanFragment(@PathVariable("id") Long id, Model model) {
-        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
+        java.util.Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
         model.addAttribute("banId", id);
         if (hdOpt.isEmpty()) {
             model.addAttribute("empty", true);
         } else {
             model.addAttribute("empty", false);
-            com.example.demo.entity.HoaDon hd = hdOpt.get();
+            HoaDon hd = hdOpt.get();
             model.addAttribute("hoaDon", hd);
             model.addAttribute("details", hd.getChiTietHoaDons());
         }
@@ -215,7 +218,7 @@ public class SalesController {
     @GetMapping("/ban/{fromBanId}/move")
     public String moveBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
         model.addAttribute("fromBanId", fromBanId);
-        java.util.List<com.example.demo.entity.Ban> empties = salesService.findEmptyTables();
+        java.util.List<Ban> empties = salesService.findEmptyTables();
         // exclude source table if present
         empties.removeIf(b -> b.getMaBan().equals(fromBanId));
         model.addAttribute("available", empties);
@@ -255,7 +258,7 @@ public class SalesController {
     // GET modal for split - returns fragment for splitting a table
     @GetMapping("/ban/{fromBanId}/split")
     public String splitBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
-        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(fromBanId);
+        java.util.Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(fromBanId);
         if (hdOpt.isEmpty()) {
             model.addAttribute("error", "Bàn không có hóa đơn để tách");
             return "sales/fragments/view-ban :: content";

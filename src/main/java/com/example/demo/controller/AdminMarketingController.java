@@ -49,7 +49,7 @@ public class AdminMarketingController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@org.springframework.web.bind.annotation.PathVariable Long id, Model model, RedirectAttributes ra) {
         try {
-            com.example.demo.dto.KhuyenMaiForm form = khuyenMaiService.getFormById(id);
+            KhuyenMaiForm form = khuyenMaiService.getFormById(id);
             model.addAttribute("khuyenMaiForm", form);
             model.addAttribute("khuyenMaiId", id);
             model.addAttribute("sidebarFragment", "fragments/sidebar-admin");

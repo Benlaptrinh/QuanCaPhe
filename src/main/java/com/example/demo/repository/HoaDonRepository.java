@@ -7,12 +7,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.demo.entity.Ban;
+import com.example.demo.enums.TrangThaiHoaDon;
 
 public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
     @Query("select h from HoaDon h where h.ban.maBan = :maBan and h.trangThai = 'MOI_TAO'")
     Optional<HoaDon> findChuaThanhToanByBan(@Param("maBan") Long maBan);
 
-    boolean existsByBanAndTrangThai(com.example.demo.entity.Ban ban, com.example.demo.enums.TrangThaiHoaDon trangThai);
+    boolean existsByBanAndTrangThai(Ban ban, TrangThaiHoaDon trangThai);
     List<HoaDon> findByNgayThanhToanBetween(LocalDateTime from, LocalDateTime to);
     @Query("""
         SELECT h
