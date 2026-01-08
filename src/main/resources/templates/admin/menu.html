@@ -1,11 +1,61 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-  <div th:fragment="content">
+  <div th:fragment="content" class="content-wrapper">
+    <h1>Danh sách thực đơn</h1>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="action-bar">
+      <a th:href="@{/admin/menu/create}" class="btn btn-primary">+ Thêm danh mục</a>
+      <form th:action="@{/admin/menu/search}" method="get" class="search-form">
+        <input type="text" name="keyword" placeholder="Nhập tên món..." th:value="${keyword}">
+        <button class="btn btn-sm">Tìm kiếm</button>
+        <a th:href="@{/admin/menu}" class="btn btn-sm btn-cancel">Reset</a>
+      </form>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Tên món</th>
+          <th class="text-right">Giá tiền</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item, stat : ${menuList}">
+          <td th:text="${stat.count}"></td>
+          <td th:text="${item.tenMon}"></td>
+          <td class="text-right" th:text="${#numbers.formatDecimal(item.giaHienTai, 0, 'COMMA', 0, 'POINT')}"></td>
+          <td class="action-buttons">
+            <a th:href="@{/admin/menu/edit/{id}(id=${item.maThucDon})}" class="btn btn-sm btn-edit">Chỉnh sửa</a>
+            <a th:href="@{/admin/menu/delete/{id}(id=${item.maThucDon})}"
+               class="btn btn-sm btn-delete"
+               onclick="return confirm('Bạn có muốn xóa bản ghi này hay không?')">Xóa</a>
+          </td>
+        </tr>
+
+        <tr th:if="${menuList.isEmpty()}">
+          <td colspan="4" class="text-center text-muted">
+            Chưa có món nào trong thực đơn
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content" class="content-wrapper">
     <h1>Quản lý thực đơn</h1>
     <p>Trang này chưa có chức năng — placeholder.</p>
   </div>
 </body>
 </html>
-
 

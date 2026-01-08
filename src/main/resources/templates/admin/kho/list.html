@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content" class="content-wrapper">
+    <h1>Kho hàng</h1>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="form-box">
+      <h2 style="margin:0 0 10px;">Nhập hàng hóa</h2>
+      <form th:action="@{/admin/warehouse/create}" th:object="${form}" method="post">
+        <div class="form-group">
+          <label>Tên hàng</label>
+          <input type="text" th:field="*{tenHangHoa}" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số lượng</label>
+            <input type="number" min="1" th:field="*{soLuong}" required>
+          </div>
+          <div class="form-group">
+            <label>Đơn giá</label>
+            <input type="number" min="0" step="1000" th:field="*{donGia}" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Đơn vị</label>
+            <select th:field="*{donViTinhId}" required>
+              <option value="">-- Chọn đơn vị --</option>
+              <option th:each="dv : ${donViTinhs}" th:value="${dv.maDonViTinh}" th:text="${dv.tenDonVi}"></option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ngày nhập</label>
+            <input type="datetime-local" th:field="*{ngayNhap}" required>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Nhập hàng</button>
+        </div>
+      </form>
+    </div>
+    <!-- Export form -->
+    <div class="form-box" style="margin-top:16px;">
+      <h2 style="margin:0 0 10px;">Xuất hàng hóa</h2>
+      <form th:action="@{/admin/warehouse/export}" th:object="${xuatForm}" method="post">
+        <div class="form-group">
+          <label>Hàng hóa</label>
+          <select th:field="*{hangHoaId}" required>
+            <option value="">-- Chọn hàng hóa --</option>
+            <option th:each="hh : ${hangHoas}" th:value="${hh.maHangHoa}" th:text="${hh.tenHangHoa + ' (Tồn: ' + hh.soLuong + ')'}"></option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số lượng xuất</label>
+            <input type="number" min="1" th:field="*{soLuong}" required />
+          </div>
+          <div class="form-group">
+            <label>Ngày xuất</label>
+            <input type="datetime-local" th:field="*{ngayXuat}" required />
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:8px;">
+          <button type="submit" class="btn btn-danger">Xuất hàng</button>
+        </div>
+      </form>
+    </div>
+
+    <form method="get" th:action="@{/admin/warehouse}" class="mb-3" style="margin-top:12px;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" name="keyword" placeholder="Tìm theo tên hàng hóa..." th:value="${keyword}" />
+        <button class="btn btn-secondary">Tìm kiếm</button>
+        <a th:href="@{/admin/warehouse}" class="btn btn-outline-secondary">Reset</a>
+      </div>
+    </form>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tên hàng</th>
+          <th>Số lượng</th>
+          <th>Đơn vị</th>
+          <th class="text-right">Đơn giá</th>
+          <th>Ngày nhập gần nhất</th>
+          <th>Ngày xuất gần nhất</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item : ${items}">
+          <td th:text="${item.tenHangHoa}"></td>
+          <td th:text="${item.soLuong}"></td>
+          <td th:text="${item.donVi}"></td>
+          <td class="text-right" th:text="${#numbers.formatDecimal(item.donGia,0,'COMMA',0,'POINT')}"></td>
+          <td th:text="${item.ngayNhapGanNhat != null
+            ? #temporals.format(item.ngayNhapGanNhat,'dd/MM/yyyy HH:mm')
+            : '-'}"></td>
+          <td th:text="${item.ngayXuatGanNhat != null
+            ? #temporals.format(item.ngayXuatGanNhat,'dd/MM/yyyy HH:mm')
+            : '-'}"></td>
+          <td>
+            <a th:href="@{/admin/warehouse/edit/{id}(id=${item.maHangHoa})}" class="btn btn-sm btn-warning">Sửa</a>
+            <a th:href="@{/admin/warehouse/delete/{id}(id=${item.maHangHoa})}"
+               class="btn btn-sm btn-danger"
+               onclick="return confirm('Bạn có chắc muốn xóa hàng hóa này?')">
+              Xóa
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

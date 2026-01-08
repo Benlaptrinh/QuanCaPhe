@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="content" class="content-wrapper">
+    <h1>Danh sách khuyến mãi</h1>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="action-bar">
+      <a th:href="@{/admin/marketing/add}" class="btn btn-primary">+ Thêm khuyến mãi</a>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tên khuyến mãi</th>
+          <th>Ngày bắt đầu</th>
+          <th>Ngày kết thúc</th>
+          <th class="text-right">% giảm giá</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="km : ${khuyenMais}">
+          <td th:text="${km.tenKhuyenMai}"></td>
+          <td th:text="${km.ngayBatDau}"></td>
+          <td th:text="${km.ngayKetThuc}"></td>
+          <td class="text-right" th:text="${#numbers.formatDecimal(km.giaTriGiam, 0, 'COMMA', 0, 'POINT')} + '%'"></td>
+          <td class="action-buttons">
+            <a th:href="@{/admin/marketing/edit/{id}(id=${km.maKhuyenMai})}" class="btn btn-sm btn-edit">Chỉnh sửa</a>
+            <a th:href="@{/admin/marketing/delete/{id}(id=${km.maKhuyenMai})}"
+               class="btn btn-sm btn-delete"
+               onclick="return confirm('Bạn có chắc muốn xóa khuyến mãi này hay không?')">Xóa</a>
+          </td>
+        </tr>
+
+        <tr th:if="${#lists.isEmpty(khuyenMais)}">
+          <td colspan="5" class="text-center text-muted">Chưa có khuyến mãi nào</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
+
