@@ -1,65 +1,3 @@
-<!-- <div th:fragment="content">
-  <h2>Thống kê - báo cáo</h2>
-
-  <div th:if="${error}" style="color:red">
-      <p th:text="${error}"></p>
-  </div>
-
-  <form th:action="@{/admin/report}" method="post" th:object="${filter}">
-      <div>
-          <label>Từ ngày:</label>
-          <input type="date" th:field="*{fromDate}" required>
-      </div>
-      <div>
-          <label>Đến ngày:</label>
-          <input type="date" th:field="*{toDate}" required>
-      </div>
-      <button type="submit">Xem</button>
-  </form>
-
-  <div th:if="${filter.fromDate != null}">
-      <p>
-          Thống kê từ
-          <b th:text="${filter.fromDate}"></b>
-          đến
-          <b th:text="${filter.toDate}"></b>
-      </p>
-  </div>
-
-  <table border="1" cellpadding="8" cellspacing="0" style="width:600px;" th:if="${reportData != null and !reportData.isEmpty()}">
-      <thead>
-          <tr>
-              <th>Ngày</th>
-              <th>Thu</th>
-              <th>Chi</th>
-          </tr>
-      </thead>
-
-      <tbody>
-          <tr th:each="row : ${reportData}">
-              <td th:text="${row.ngay}"></td>
-              <td th:text="${#numbers.formatDecimal(row.thu,0,'COMMA',0,'POINT')}"></td>
-              <td th:text="${#numbers.formatDecimal(row.chi,0,'COMMA',0,'POINT')}"></td>
-          </tr>
-      </tbody>
-
-      <tfoot>
-          <tr>
-              <th>Tổng</th>
-              <th th:text="${#numbers.formatDecimal(
-                  reportData.?sum(thu), 0,'COMMA',0,'POINT')}">
-              </th>
-              <th th:text="${#numbers.formatDecimal(
-                  reportData.?sum(chi), 0,'COMMA',0,'POINT')}">
-              </th>
-          </tr>
-      </tfoot>
-  </table>
-
-  <p th:if="${reportData != null and reportData.isEmpty()}">
-      Chưa có dữ liệu
-  </p>
-</div> -->
 <div th:fragment="content">
     <h2>Thống kê - báo cáo</h2>
   
@@ -109,6 +47,30 @@
   
     <p th:if="${reportData == null or reportData.isEmpty()}">
       Chưa có dữ liệu
+    </p>
+
+    <!-- STAFF REPORT -->
+    <h3 style="margin-top:24px;">Báo cáo nhân viên</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:400px;"
+           th:if="${staffReport != null and !staffReport.isEmpty()}">
+      <thead>
+        <tr>
+          <th>Trạng thái</th>
+          <th>Số lượng</th>
+          <th>Tổng lương</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="r : ${staffReport}">
+          <td th:text="${r.trangThai}"></td>
+          <td th:text="${r.soLuong}"></td>
+          <td th:text="${#numbers.formatDecimal(r.tongLuong,0,'COMMA',0,'POINT')}"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p th:if="${staffReport == null or staffReport.isEmpty()}">
+      Chưa có dữ liệu nhân viên
     </p>
   </div>
   

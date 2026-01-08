@@ -14,14 +14,18 @@ import java.util.ArrayList;
 import java.math.BigDecimal;
 
 import com.example.demo.entity.HoaDon;
+import com.example.demo.repository.NhanVienRepository;
+import com.example.demo.dto.StaffReportRowDTO;
 
 @Service
 public class ReportServiceImpl implements ReportService {
 
     private final HoaDonRepository hoaDonRepository;
+    private final NhanVienRepository nhanVienRepository;
 
-    public ReportServiceImpl(HoaDonRepository hoaDonRepository) {
+    public ReportServiceImpl(HoaDonRepository hoaDonRepository, NhanVienRepository nhanVienRepository) {
         this.hoaDonRepository = hoaDonRepository;
+        this.nhanVienRepository = nhanVienRepository;
     }
 
     @Override
@@ -42,6 +46,11 @@ public class ReportServiceImpl implements ReportService {
                 .toList();
 
         return result;
+    }
+
+    @Override
+    public List<StaffReportRowDTO> thongKeNhanVien() {
+        return nhanVienRepository.thongKeNhanVien();
     }
     
 }

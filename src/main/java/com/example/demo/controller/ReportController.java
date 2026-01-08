@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.ReportFilterDTO;
 import com.example.demo.dto.ReportRowDTO;
 import com.example.demo.service.ReportService;
+import com.example.demo.dto.StaffReportRowDTO;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,6 +44,8 @@ public class ReportController {
 
         // Lấy dữ liệu thực từ service (hiện service sẽ truy vấn repository)
         model.addAttribute("reportData", reportService.thongKeThuChi(filter.getFromDate(), filter.getToDate()));
+        // staff report
+        model.addAttribute("staffReport", reportService.thongKeNhanVien());
 
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
@@ -69,6 +72,7 @@ public class ReportController {
             model.addAttribute("reportData", List.of());
         } else {
             model.addAttribute("reportData", reportService.thongKeThuChi(filter.getFromDate(), filter.getToDate()));
+            model.addAttribute("staffReport", reportService.thongKeNhanVien());
         }
 
         model.addAttribute("filter", filter);

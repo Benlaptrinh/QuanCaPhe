@@ -32,6 +32,10 @@ public class NhanVien {
     
     @Column(precision = 13, scale = 2)
     private java.math.BigDecimal luong;
+
+    @Column(nullable = false)
+private Boolean enabled = true;
+
 }
 
 
