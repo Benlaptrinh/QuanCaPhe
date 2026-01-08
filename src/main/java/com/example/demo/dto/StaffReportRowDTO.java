@@ -1,17 +1,14 @@
 package com.example.demo.dto;
 
-import java.math.BigDecimal;
-
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 public class StaffReportRowDTO {
 
     private String trangThai;
     private Long soLuong;
-    private BigDecimal tongLuong;
 
-    
+    public StaffReportRowDTO(String trangThai, Long soLuong) {
+        this.trangThai = trangThai;
+        this.soLuong = soLuong == null ? 0L : soLuong;
+    }
 
     public String getTrangThai() {
         return trangThai;
@@ -19,10 +16,6 @@ public class StaffReportRowDTO {
 
     public Long getSoLuong() {
         return soLuong;
-    }
-
-    public BigDecimal getTongLuong() {
-        return tongLuong;
     }
 }
 

@@ -49,6 +49,34 @@
       Chưa có dữ liệu
     </p>
 
+    <!-- SALES BY DAY -->
+    <h3 style="margin-top:24px;">Bán hàng theo ngày</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
+           th:if="${salesByDay != null and !salesByDay.isEmpty()}">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Số hóa đơn</th>
+          <th>Doanh thu</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="r : ${salesByDay}">
+          <td th:text="${#temporals.format(r.ngay,'dd/MM')}"></td>
+          <td th:text="${r.soHoaDon}"></td>
+          <td th:text="${#numbers.formatDecimal(r.doanhThu,0,'COMMA',0,'POINT')}"></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Tổng</th>
+          <th th:text="${#aggregates.sum(salesByDay.![soHoaDon])}"></th>
+          <th th:text="${#numbers.formatDecimal(#aggregates.sum(salesByDay.![doanhThu]),0,'COMMA',0,'POINT')}"></th>
+        </tr>
+      </tfoot>
+    </table>
+
+
     <!-- STAFF REPORT -->
     <h3 style="margin-top:24px;">Báo cáo nhân viên</h3>
     <table border="1" cellpadding="8" cellspacing="0" style="width:400px;"
@@ -57,14 +85,12 @@
         <tr>
           <th>Trạng thái</th>
           <th>Số lượng</th>
-          <th>Tổng lương</th>
         </tr>
       </thead>
       <tbody>
         <tr th:each="r : ${staffReport}">
           <td th:text="${r.trangThai}"></td>
           <td th:text="${r.soLuong}"></td>
-          <td th:text="${#numbers.formatDecimal(r.tongLuong,0,'COMMA',0,'POINT')}"></td>
         </tr>
       </tbody>
     </table>

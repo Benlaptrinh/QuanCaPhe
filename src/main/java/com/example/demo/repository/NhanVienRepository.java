@@ -13,8 +13,7 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Long> {
     @Query("""
         SELECT new com.example.demo.dto.StaffReportRowDTO(
             CASE WHEN nv.enabled = true THEN 'Đang làm' ELSE 'Nghỉ việc' END,
-            COUNT(nv),
-            COALESCE(SUM(nv.luong), 0)
+            COUNT(nv)
         )
         FROM NhanVien nv
         GROUP BY nv.enabled
