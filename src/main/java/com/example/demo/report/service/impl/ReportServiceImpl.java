@@ -1,17 +1,20 @@
-package com.example.demo.service.impl;
+package com.example.demo.report.service.impl;
 
-import com.example.demo.dto.ReportRowDTO;
+import com.example.demo.report.dto.ReportRowDTO;
+import com.example.demo.report.dto.StaffReportRowDTO;
+import com.example.demo.report.dto.SalesByDayRowDTO;
 import com.example.demo.repository.HoaDonRepository;
-import com.example.demo.service.ReportService;
+import com.example.demo.repository.NhanVienRepository;
+import com.example.demo.report.service.ReportService;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.math.BigDecimal;
-import com.example.demo.dto.SalesByDayRowDTO;
-import com.example.demo.repository.NhanVienRepository;
-import com.example.demo.dto.StaffReportRowDTO;
-import java.sql.Date;
+
+import com.example.demo.entity.HoaDon;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -26,16 +29,13 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<ReportRowDTO> thongKeThuChi(LocalDate from, LocalDate to) {
-    
         LocalDateTime fromTime = from.atStartOfDay();
         LocalDateTime toTime = to.atTime(23, 59, 59);
-    
-        
-        List<Object[]> rows = hoaDonRepository.thongKeThuRaw(fromTime, toTime);
 
+        List<Object[]> rows = hoaDonRepository.thongKeThuRaw(fromTime, toTime);
         List<ReportRowDTO> result = rows.stream()
                 .map(r -> new ReportRowDTO(
-                        (Date) r[0],
+                        (java.sql.Date) r[0],
                         (BigDecimal) r[1],
                         (Number) r[2]
                 ))
@@ -46,8 +46,19 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<StaffReportRowDTO> thongKeNhanVien() {
-        return nhanVienRepository.thongKeNhanVien();
+        List<Object[]> rows = nhanVienRepository.thongKeNhanVienRaw();
+    
+        List<StaffReportRowDTO> result = new ArrayList<>();
+        for (Object[] r : rows) {
+            Boolean enabled = (Boolean) r[0];
+            Long count = (Long) r[1];
+    
+            String trangThai = enabled ? "Đang làm" : "Nghỉ việc";
+            result.add(new StaffReportRowDTO(trangThai, count));
+        }
+        return result;
     }
+    
 
     @Override
     public List<SalesByDayRowDTO> reportSalesByDay(LocalDate from, LocalDate to) {
@@ -57,13 +68,12 @@ public class ReportServiceImpl implements ReportService {
         List<Object[]> rows = hoaDonRepository.thongKeBanHangTheoNgayRaw(fromTime, toTime);
         return rows.stream()
                 .map(r -> new SalesByDayRowDTO(
-                        ((Date) r[0]).toLocalDate(),
+                        ((java.sql.Date) r[0]).toLocalDate(),
                         ((Number) r[1]).longValue(),
                         (BigDecimal) r[2]
                 ))
                 .toList();
     }
-    
 }
 
 

@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.report.dto;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
@@ -16,7 +16,6 @@ public class ReportRowDTO {
         this.chi = chi == null ? 0L : chi;
     }
 
-    
     public ReportRowDTO(Date sqlDate, BigDecimal thu, Number chi) {
         this(sqlDate != null ? sqlDate.toLocalDate() : null,
              thu != null ? thu.longValue() : 0L,
@@ -35,3 +34,5 @@ public class ReportRowDTO {
         return chi;
     }
 }
+
+

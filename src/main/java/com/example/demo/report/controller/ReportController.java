@@ -1,7 +1,10 @@
-package com.example.demo.controller;
+package com.example.demo.report.controller;
 
-import com.example.demo.dto.ReportFilterDTO;
-import com.example.demo.service.ReportService;
+import com.example.demo.report.dto.ReportFilterDTO;
+import com.example.demo.report.dto.ReportRowDTO;
+import com.example.demo.report.dto.StaffReportRowDTO;
+import com.example.demo.report.dto.SalesByDayRowDTO;
+import com.example.demo.report.service.ReportService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,8 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import java.util.List;
+
 import java.time.LocalDate;
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/report")
@@ -38,11 +42,8 @@ public class ReportController {
 
         model.addAttribute("filter", filter);
 
-        
         model.addAttribute("reportData", reportService.thongKeThuChi(filter.getFromDate(), filter.getToDate()));
-        
         model.addAttribute("salesByDay", reportService.reportSalesByDay(filter.getFromDate(), filter.getToDate()));
-        
         model.addAttribute("staffReport", reportService.thongKeNhanVien());
 
         model.addAttribute("username", usernameFromAuth(auth));
@@ -84,3 +85,5 @@ public class ReportController {
         return "layout/base";
     }
 }
+
+

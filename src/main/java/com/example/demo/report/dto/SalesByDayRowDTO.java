@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.report.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

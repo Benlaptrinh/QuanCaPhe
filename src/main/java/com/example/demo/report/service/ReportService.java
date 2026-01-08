@@ -1,10 +1,11 @@
-package com.example.demo.service;
+package com.example.demo.report.service;
 
-import com.example.demo.dto.ReportRowDTO;
-import com.example.demo.dto.StaffReportRowDTO;
+import com.example.demo.report.dto.ReportRowDTO;
+import com.example.demo.report.dto.StaffReportRowDTO;
+import com.example.demo.report.dto.SalesByDayRowDTO;
+
 import java.time.LocalDate;
 import java.util.List;
-import com.example.demo.dto.SalesByDayRowDTO;
 
 public interface ReportService {
     List<ReportRowDTO> thongKeThuChi(LocalDate from, LocalDate to);
