@@ -1,78 +1,78 @@
-# QuanCaPhe — Coffee Shop Management (Junior-friendly)
+# QuanCaPhe — Quản lý quán cà phê (dành cho junior)
 
-Comprehensive project README for developers, reviewers and junior contributors.
+README đầy đủ cho developer, reviewer và các bạn junior mới tham gia dự án.
 
-This document contains:
-- A high-level description
-- Exact technology choices and recommended versions
-- Architecture and package layout
-- Feature list and business flows
-- How to run locally (quickstart + configuration)
-- Developer conventions, refactor roadmap and testing suggestions
+Tài liệu này gồm:
+- Mô tả tổng quan
+- Công nghệ sử dụng và phiên bản khuyến nghị
+- Kiến trúc và cấu trúc package
+- Danh sách tính năng và luồng nghiệp vụ
+- Cách chạy local (quickstart + cấu hình)
+- Quy ước dev, lộ trình refactor và gợi ý testing
 
-Keep this file up to date — it's the single source of truth for onboarding.
-
----
-
-## Project summary
-
-**Project name:** QuanCaPhe (Coffee Shop Management)  
-**Purpose:** a server-rendered web application (Spring Boot + Thymeleaf) to manage operations of a small coffee shop: table-based sales, employee management, menu & equipment management, and reporting (finance, sales-by-day, staff).
-
-Target audience: junior engineers learning a full-stack Spring Boot application with a focus on backend responsibilities (service and repository layers) and server-side rendering.
+Hãy giữ file này luôn cập nhật — đây là nguồn thông tin duy nhất cho việc onboarding.
 
 ---
 
-## 1. Tech stack & exact recommendations
+## 1. Tóm tắt dự án
 
-- **Java:** 17 (LTS) — compile and run with Java 17 JVM  
-- **Spring Boot:** 3.x (check `pom.xml` for exact version)  
-- **Spring MVC** + **Thymeleaf** (server-side UI)  
-- **Spring Data JPA** (Hibernate) for ORM  
-- **Spring Security** for authentication & role-based access  
-- **Database:** MySQL (development); H2 for lightweight tests is recommended  
-- **Build:** Maven (use wrapper `./mvnw`)  
-- **Dev tools:** optional `spring-boot-devtools` for hot reload during dev
+**Tên dự án:** QuanCaPhe (Coffee Shop Management)  
+**Mục tiêu:** ứng dụng web render server (Spring Boot + Thymeleaf) để quản lý vận hành quán cà phê nhỏ: bán hàng theo bàn, quản lý nhân viên, thực đơn & thiết bị, và báo cáo (thu/chi, bán hàng theo ngày, nhân sự).
 
-Notes:
-- Use exact dependency versions in `pom.xml` when reproducing environment. The project was built against Spring Boot 3.x and Java 17.
+Đối tượng: junior học full-stack Spring Boot, tập trung vào backend (service/repository) và render server-side.
 
 ---
 
-## 2. Architecture & design principles
+## 2. Tech stack & phiên bản khuyến nghị
 
-This project follows a layered architecture:
+- **Java:** 17 (LTS) — compile và chạy bằng JVM Java 17  
+- **Spring Boot:** 3.x (xem `pom.xml` để biết phiên bản chính xác)  
+- **Spring MVC** + **Thymeleaf** (UI server-side)  
+- **Spring Data JPA** (Hibernate) cho ORM  
+- **Spring Security** cho xác thực & phân quyền  
+- **Database:** MySQL (dev); khuyến nghị H2 cho test nhẹ  
+- **Build:** Maven (dùng wrapper `./mvnw`)  
+- **Dev tools:** tùy chọn `spring-boot-devtools` để hot reload
 
-- **Controller (Web layer)** — Accepts HTTP requests, validates basic input, calls the Service layer and returns Thymeleaf views with model attributes. Controllers should be thin.
-- **Service (Business layer)** — Contains the domain/business logic: calculations, date-time conversions, aggregation, transaction boundaries, mapping raw query results to DTOs.
-- **Repository (Data access layer)** — JPA repositories and native SQL queries for DB-specific aggregations (reports). Repository methods return domain entities or raw objects for service mapping.
-- **Entity (Domain model)** — JPA-mapped entities representing DB tables.
-- **DTO (Data Transfer Objects)** — Immutable or simple objects used to transfer data between service and presentation layers (forms, report rows).
-
-Design rules for maintainability:
-- Keep Controllers thin — move business logic & mapping to Services.  
-- When reporting by date, prefer native SQL grouping on the DB side (stable) and map `Object[]` → DTOs in service. Avoid fragile JPQL using `function('date', ...)` in constructor expression.  
-- Templates (Thymeleaf) should avoid complex SpEL; use `#aggregates.sum(list.![field])` for totals.  
-- Keep queries and mapping documented in service code to ease review.
+Lưu ý:
+- Dùng đúng phiên bản dependency trong `pom.xml`. Dự án được build với Spring Boot 3.x và Java 17.
 
 ---
 
-## 3. Project structure (recommended)
+## 3. Kiến trúc & nguyên tắc thiết kế
 
-Key packages (present in codebase):
+Dự án theo kiến trúc nhiều lớp:
+
+- **Controller (Web layer)** — nhận HTTP request, validate cơ bản, gọi Service và trả về Thymeleaf view + model. Controller nên mỏng.
+- **Service (Business layer)** — xử lý logic nghiệp vụ: tính toán, chuyển đổi thời gian, tổng hợp, mapping dữ liệu.
+- **Repository (Data access layer)** — JPA repository & native SQL cho báo cáo. Repository trả về entity hoặc raw objects để service mapping.
+- **Entity (Domain model)** — JPA entity đại diện bảng DB.
+- **DTO (Data Transfer Objects)** — object đơn giản/immutable để truyền dữ liệu giữa các lớp.
+
+Nguyên tắc để dễ bảo trì:
+- Controller mỏng; logic & mapping nằm ở Service.  
+- Báo cáo theo ngày: ưu tiên native SQL `DATE(column)` để nhóm dữ liệu; service map `Object[]` → DTO. Tránh JPQL dùng `function('date', ...)` trong constructor expression.  
+- Template Thymeleaf tránh SpEL phức tạp; dùng `#aggregates.sum(list.![field])` để tính tổng.  
+- Query & mapping nên có chú thích ở service để dễ review.
+
+---
+
+## 4. Cấu trúc dự án (khuyến nghị)
+
+Các package chính (đã có trong code):
 
 ```
 src/main/java/com/example/demo
-├─ controller/              # Non-report controllers (admin pages, sales UI, etc.)
-├─ report/                  # Report module (self-contained)
+├─ controller/              # Controller cho admin/sales/... (không gồm report)
+├─ report/                  # Module báo cáo (tách riêng)
 │  ├─ controller/
 │  ├─ dto/
 │  ├─ repository/
 │  └─ service/
-├─ service/                 # Application services (non-report)
-├─ repository/              # Domain JPA repositories (Ban, HoaDon, NhanVien, ...)
+├─ service/                 # Service nghiệp vụ (non-report)
+├─ repository/              # JPA repository cho domain (Ban, HoaDon, NhanVien,...)
 ├─ entity/                  # JPA entities
-├─ dto/                     # Shared DTOs / forms
+├─ dto/                     # DTO dùng chung / form
 └─ security/                # Security config / user details
 ```
 
@@ -80,63 +80,63 @@ Templates:
 
 ```
 src/main/resources/templates/
-├─ fragments/   # head, header, footer, sidebar fragments
-├─ layout/      # base layout using fragments
-├─ admin/       # admin pages including report UI
-├─ sales/       # sales UI
-└─ ... 
+├─ fragments/   # head, header, footer, sidebar
+├─ layout/      # base layout dùng fragments
+├─ admin/       # trang admin (bao gồm report UI)
+├─ sales/       # UI bán hàng
+└─ ...
 ```
 
 Static assets: `src/main/resources/static/` (css/js/images).
 
 ---
 
-## 4. Important entities & repositories (quick)
+## 5. Entity & repository quan trọng (tóm tắt)
 
-- `HoaDon` — invoice (maHoaDon, ngayGioTao, ngayThanhToan, tongTien, trangThai)  
-- `ChiTietHoaDon` — invoice lines (menu item, quantity, price)  
-- `Ban` — table  
-- `NhanVien` — employee (enabled flag denotes active / inactive)  
-- Repositories: `HoaDonRepository`, `NhanVienRepository`, `ChiTieuRepository` (for expenses)
+- `HoaDon` — hóa đơn (maHoaDon, ngayGioTao, ngayThanhToan, tongTien, trangThai)  
+- `ChiTietHoaDon` — chi tiết hóa đơn (món, số lượng, giá)  
+- `Ban` — bàn  
+- `NhanVien` — nhân viên (`enabled` để phân biệt đang làm / nghỉ)  
+- Repository: `HoaDonRepository`, `NhanVienRepository`, `ChiTieuRepository` (chi tiêu)
 
-Reporting notes:
-- Grouping per day and sums are best done by native SQL with `DATE(column)` for MySQL and mapped in service.
-
----
-
-## 5. Features & key flows
-
-Sales flow (table-based):
-1. Create `HoaDon` when a table opens.  
-2. Add `ChiTietHoaDon` (menu items) to the invoice.  
-3. On checkout, set `trangThai = 'DA_THANH_TOAN'` and `ngayThanhToan = now()`.  
-
-Employee flow:
-- Admin can create/update `NhanVien`.  
-- Each `NhanVien` may be linked to a `TaiKhoan` (account).  
-- `enabled` boolean indicates active/inactive (used by staff reports).
-
-Reports (UC11):
-- UI: Date range + radio type `{FINANCE, SALES, STAFF}` + “Xem” + “In”.  
-- Finance (Thu/Chi): combine invoice totals and expense records per day.  
-- Sales by day: date, invoice count, daily revenue.  
-- Staff: active vs inactive counts.
-
-Implementation notes:
-- Controller supplies `filter` and selected report data to the model.  
-- Service performs mapping and returns DTO lists for templates.  
-- Template uses `#aggregates.sum` for totals and `#temporals.format` to render dates.
+Ghi chú báo cáo:
+- Group theo ngày + tổng tiền nên làm bằng native SQL `DATE(column)` và map tại service.
 
 ---
 
-## 6. How to run locally — Quickstart
+## 6. Tính năng & luồng chính
 
-Prerequisites:
-- Java 17+ installed  
-- MySQL server running locally  
-- Create database `quancaphe` and user credentials (or change `application.properties`)
+**Bán hàng theo bàn:**
+1. Mở bàn → tạo `HoaDon`.  
+2. Thêm `ChiTietHoaDon` (món).  
+3. Thanh toán → set `trangThai = 'DA_THANH_TOAN'` và `ngayThanhToan = now()`.
 
-1) Configure database in `src/main/resources/application.properties`:
+**Nhân viên:**
+- Admin tạo/cập nhật `NhanVien`.  
+- `NhanVien` có thể gắn `TaiKhoan`.  
+- `enabled` dùng cho báo cáo nhân sự.
+
+**Báo cáo (UC11):**
+- UI: chọn khoảng ngày + loại báo cáo `{FINANCE, SALES, STAFF}` + “Xem” + “In”.  
+- Thu/Chi: tổng doanh thu và chi tiêu theo ngày.  
+- Bán hàng theo ngày: số hóa đơn + doanh thu.  
+- Nhân viên: số lượng active/inactive.
+
+Ghi chú triển khai:
+- Controller cung cấp `filter` + dữ liệu báo cáo cho view.  
+- Service map dữ liệu và trả về list DTO.  
+- Template dùng `#aggregates.sum` để tính tổng.
+
+---
+
+## 7. Chạy local — Quickstart
+
+**Yêu cầu:**
+- Java 17+  
+- MySQL chạy local  
+- Tạo database `quancaphe` và user (hoặc chỉnh `application.properties`)
+
+**Bước 1:** cấu hình DB trong `src/main/resources/application.properties`:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/quancaphe?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh
@@ -149,83 +149,80 @@ spring.thymeleaf.cache=false
 server.port=8080
 ```
 
-2) Build and run:
+**Bước 2:** build & chạy:
 
 ```bash
 ./mvnw -DskipTests package
 ./mvnw spring-boot:run
 ```
 
-3) Open browser:
-- `http://localhost:8080/login` — login page  
-- `http://localhost:8080/admin/report` — report page (admin)
+**Bước 3:** mở trình duyệt:
+- `http://localhost:8080/login` — trang login  
+- `http://localhost:8080/admin/report` — trang báo cáo (admin)
 
-Notes:
-- Use `ddl-auto=update` only for local dev. Use Flyway/Liquibase for production.
+Lưu ý:
+- `ddl-auto=update` chỉ dùng cho dev. Production nên dùng Flyway/Liquibase.
 
 ---
 
-## 7. Developer conventions & best practices
+## 8. Quy ước dev & best practices
 
-Branching:
+**Branch:**
 - `main`: stable release  
-- `feature/<name>`: feature development  
-- `refactor/<name>`: refactor-only changes
+- `feature/<name>`: phát triển tính năng  
+- `refactor/<name>`: refactor
 
-Commit messages:
-- Use conventional, short prefixes: `feat(...)`, `fix(...)`, `refactor(...)`
+**Commit message:**
+- Dùng prefix ngắn: `feat(...)`, `fix(...)`, `refactor(...)`
 
-Coding rules:
-- Keep controllers thin; services handle logic and mapping.  
-- Repository returns minimal data; avoid putting mapping logic in repositories.  
-- Avoid JPQL constructs that depend on dialect-specific functions in constructor expressions. Use native SQL for stable aggregation queries.
+**Coding rules:**
+- Controller mỏng; logic đặt ở Service.  
+- Repository chỉ trả dữ liệu; mapping nằm ở Service.  
+- Tránh JPQL dùng function phụ thuộc dialect trong constructor expression; ưu tiên native SQL.
 
-Thymeleaf rules:
-- Avoid SpEL expressions that Thymeleaf cannot parse; use `#aggregates.sum(list.![field])` for totals.  
-- Use fragments for header/footer/sidebar and include them with `th:replace="~{fragments/head :: head}"`.
+**Thymeleaf:**
+- Tránh SpEL phức tạp; dùng `#aggregates.sum(list.![field])`.  
+- Dùng fragments cho header/footer/sidebar với `th:replace="~{fragments/head :: head}"`.
 
-Testing:
-- Focus unit tests on Service mapping & aggregation logic.  
-- Use H2 for lightweight integration tests when testing repository queries (with caution for DATE behavior).
-
----
-
-## 8. Refactor roadmap (recommended)
-
-Short plan (non-breaking):
-- **Đợt 1 — Audit & Clean:** remove unused DTOs/services, fix Thymeleaf parsing.  
-- **Đợt 2 — Package Reorg:** move report code to `report` module (done).  
-- **Đợt 3 — Service Split:** separate finance/sales/staff services (done).  
-- **Đợt 4 — Repository Consolidation:** put native report SQL into `report.repository` (next).  
-- **Đợt 5 — Template Fragments:** split `admin/report` into small partials per report.  
-- **Đợt 6 — Tests:** add unit tests for report mapping and a small integration smoke test.
+**Testing:**
+- Ưu tiên unit test cho mapping & logic tổng hợp.  
+- Dùng H2 cho integration test nhẹ (lưu ý behavior của DATE).
 
 ---
 
-## 9. Troubleshooting & common issues
+## 9. Lộ trình refactor (khuyến nghị)
 
-- If app fails at startup with `Query validation failed` referencing a repository:
-  - Inspect JPQL for `function('date', ...)` or constructor expressions that use DB-specific functions. Move those queries to native SQL.
-
-- If totals show `null` or template parsing errors:
-  - Ensure model supplies `List.of()` (not `null`) and use `#aggregates.sum(list.![field])`.
-
----
-
-## 10. Contributing / PR checklist
-
-- Run `./mvnw -DskipTests package` and manual UI smoke test.  
-- Keep changes scoped (one feature per PR).  
-- Add unit tests for service logic when adding/changing business logic.  
-- Document DB changes and add migrations under `src/main/resources/db/migration` if schema changes are required.
+**Đợt 1 — Audit & Clean:** xoá code dư, fix Thymeleaf parsing.  
+**Đợt 2 — Package Reorg:** tách report module (done).  
+**Đợt 3 — Service Split:** tách finance/sales/staff service (done).  
+**Đợt 4 — Repository Consolidation:** gom native report SQL vào `report.repository` (next).  
+**Đợt 5 — Template Fragments:** tách `admin/report` thành partials cho từng report.  
+**Đợt 6 — Tests:** thêm unit test cho report mapping + smoke test.
 
 ---
 
-If you want, I can also:
-- Add a `scripts/` folder with a quick SQL seed script.  
-- Add two sample unit tests for the sales report mapping.  
-- Split the report templates into fragments as planned.
+## 10. Troubleshooting & lỗi thường gặp
 
-Tell me which follow-up you'd like and I'll implement it.
+- App fail startup với `Query validation failed` ở repository:
+  - Kiểm tra JPQL có `function('date', ...)` hoặc constructor expression dùng function DB-specific. Nên chuyển sang native SQL.
 
+- Tổng bị `null` hoặc lỗi parse template:
+  - Đảm bảo model luôn trả list (không null) và dùng `#aggregates.sum(list.![field])`.
 
+---
+
+## 11. Checklist khi PR
+
+- Chạy `./mvnw -DskipTests package` và test UI cơ bản.  
+- Change scope gọn (1 feature/PR).  
+- Thêm unit test khi sửa logic nghiệp vụ.  
+- Nếu đổi schema, thêm migration ở `src/main/resources/db/migration`.
+
+---
+
+Nếu bạn muốn, mình có thể:
+- Thêm `scripts/` với SQL seed nhanh.  
+- Viết 2 unit test mẫu cho báo cáo bán hàng.  
+- Tách template report thành các fragment nhỏ.
+
+Hãy nói phần bạn muốn làm tiếp và mình sẽ triển khai.
