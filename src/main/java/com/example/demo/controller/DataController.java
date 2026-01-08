@@ -32,9 +32,9 @@ public class DataController {
         return "layout/base";
     }
 
-    /**
-     * Trigger backup and return file as attachment so browser shows Save As dialog.
-     */
+    
+
+
     @PostMapping("/backup")
     public Object backup(RedirectAttributes ra) {
         java.io.File f = null;
@@ -61,9 +61,9 @@ public class DataController {
         return "layout/base";
     }
 
-    /**
-     * Accept uploaded .sql file and restore database from it.
-     */
+    
+
+
     @PostMapping(value = "/restore", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String restore(@RequestPart("file") MultipartFile file, RedirectAttributes ra) {
         if (file == null || file.isEmpty()) {

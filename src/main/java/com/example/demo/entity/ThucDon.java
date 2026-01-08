@@ -1,9 +1,8 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
+import lombok.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "thuc_don")

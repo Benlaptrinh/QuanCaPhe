@@ -1,30 +1,129 @@
-<div th:fragment="content">
-  <h2>Thống kê - báo cáo</h2>
-
-  <div th:if="${error}" style="color:red">
+<div th:fragment="content" class="content-wrapper report-page">
+    <h2 class="report-title">Thống kê - báo cáo</h2>
+  
+    <div th:if="${error}" class="alert alert-error">
       <p th:text="${error}"></p>
-  </div>
-
-  <form th:action="@{/admin/report}" method="post" th:object="${filter}">
-      <div>
-          <label>Từ ngày:</label>
+    </div>
+  
+    <form class="report-form" th:action="@{/admin/report}" method="post" th:object="${filter}">
+      <fieldset class="report-types">
+        <legend>Loại báo cáo</legend>
+        <label class="report-option">
+          <input type="radio" th:field="*{type}" value="FINANCE"> Thu – Chi
+        </label>
+        <label class="report-option">
+          <input type="radio" th:field="*{type}" value="SALES"> Bán hàng
+        </label>
+        <label class="report-option">
+          <input type="radio" th:field="*{type}" value="STAFF"> Nhân viên
+        </label>
+      </fieldset>
+      <div class="report-dates">
+        <label class="report-date">
+          <span>Từ ngày:</span>
           <input type="date" th:field="*{fromDate}" required>
-      </div>
-      <div>
-          <label>Đến ngày:</label>
+        </label>
+        <label class="report-date">
+          <span>Đến ngày:</span>
           <input type="date" th:field="*{toDate}" required>
+        </label>
       </div>
-      <button type="submit">Xem</button>
-  </form>
+      <div class="report-actions">
+        <button class="btn btn-primary" type="submit">Xem</button>
+        <button class="btn btn-secondary no-print" type="button" onclick="window.print()">In</button>
+      </div>
+    </form>
+  
+    <!-- TABLE (Thu - Chi) -->
+    <div th:if="${filter.type == 'FINANCE'}">
+      <table class="data-table report-table"
+             th:if="${reportData != null and !reportData.isEmpty()}">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Thu</th>
+          <th>Chi</th>
+        </tr>
+      </thead>
+  
+      <tbody>
+        <tr th:each="row : ${reportData}">
+          <td th:text="${#temporals.format(row.ngay,'dd/MM')}"></td>
+          <td th:text="${#numbers.formatDecimal(row.thu,0,'COMMA',0,'POINT')}"></td>
+          <td th:text="${#numbers.formatDecimal(row.chi,0,'COMMA',0,'POINT')}"></td>
+        </tr>
+      </tbody>
+  
+      <tfoot>
+        <tr>
+          <th>Tổng</th>
+          <th th:text="${#numbers.formatDecimal(#aggregates.sum(reportData.![thu]),0,'COMMA',0,'POINT')}"></th>
+          <th th:text="${#numbers.formatDecimal(#aggregates.sum(reportData.![chi]),0,'COMMA',0,'POINT')}"></th>
+        </tr>
+      </tfoot>
+      </table>
 
-  <div th:if="${filter.fromDate != null}">
-      <p>
-          Thống kê từ
-          <b th:text="${filter.fromDate}"></b>
-          đến
-          <b th:text="${filter.toDate}"></b>
+      <p class="report-empty" th:if="${reportData == null or reportData.isEmpty()}">
+        Chưa có dữ liệu
       </p>
-  </div>
+    </div>
 
-  <!-- Bảng kết quả sẽ thêm sau -->
-</div>
+    <!-- SALES BY DAY -->
+    <div th:if="${filter.type == 'SALES'}">
+      <h3 class="report-subtitle">Bán hàng theo ngày</h3>
+      <table class="data-table report-table"
+             th:if="${salesByDay != null and !salesByDay.isEmpty()}">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Số hóa đơn</th>
+          <th>Doanh thu</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="r : ${salesByDay}">
+          <td th:text="${#temporals.format(r.ngay,'dd/MM')}"></td>
+          <td th:text="${r.soHoaDon}"></td>
+          <td th:text="${#numbers.formatDecimal(r.doanhThu,0,'COMMA',0,'POINT')}"></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Tổng</th>
+          <th th:text="${#aggregates.sum(salesByDay.![soHoaDon])}"></th>
+          <th th:text="${#numbers.formatDecimal(#aggregates.sum(salesByDay.![doanhThu]),0,'COMMA',0,'POINT')}"></th>
+        </tr>
+      </tfoot>
+      </table>
+
+      <p class="report-empty" th:if="${salesByDay == null or salesByDay.isEmpty()}">
+        Chưa có dữ liệu bán hàng
+      </p>
+    </div>
+
+
+    <!-- STAFF REPORT -->
+    <div th:if="${filter.type == 'STAFF'}">
+      <h3 class="report-subtitle">Báo cáo nhân viên</h3>
+      <table class="data-table report-table report-table--compact"
+             th:if="${staffReport != null and !staffReport.isEmpty()}">
+      <thead>
+        <tr>
+          <th>Trạng thái</th>
+          <th>Số lượng</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="r : ${staffReport}">
+          <td th:text="${r.trangThai}"></td>
+          <td th:text="${r.soLuong}"></td>
+        </tr>
+      </tbody>
+      </table>
+
+      <p class="report-empty" th:if="${staffReport == null or staffReport.isEmpty()}">
+        Chưa có dữ liệu nhân viên
+      </p>
+    </div>
+  </div>
+  

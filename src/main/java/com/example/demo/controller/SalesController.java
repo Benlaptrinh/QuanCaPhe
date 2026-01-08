@@ -3,12 +3,28 @@ package com.example.demo.controller;
 import com.example.demo.service.SalesService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.format.annotation.DateTimeFormat;
 import java.util.Map;
+import com.example.demo.entity.Ban;
+import com.example.demo.entity.ChiTietHoaDon;
+import com.example.demo.entity.HoaDon;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.math.BigDecimal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/sales")
@@ -37,12 +53,12 @@ public class SalesController {
     public String selectMenuForm(@PathVariable Long banId, Model model) {
         model.addAttribute("menu", salesService.findMenuItems());
         model.addAttribute("tableId", banId);
-        java.util.Optional<com.example.demo.entity.HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
+        Optional<HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
         model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
-        java.util.Map<Long, Integer> qtyMap = new java.util.HashMap<>();
+        Map<Long, Integer> qtyMap = new HashMap<>();
         hoaDonOpt.ifPresent(hd -> {
             if (hd.getChiTietHoaDons() != null) {
-                for (com.example.demo.entity.ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
+                for (ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
                     if (ct.getThucDon() != null && ct.getSoLuong() != null) {
                         qtyMap.put(ct.getThucDon().getMaThucDon(), ct.getSoLuong());
                     }
@@ -55,15 +71,15 @@ public class SalesController {
 
     @GetMapping("/{banId}/menu/modal")
     public String selectMenuModal(@PathVariable Long banId, Model model) {
-        // same as selectMenuForm but separate path to avoid ambiguity
+        
         model.addAttribute("menu", salesService.findMenuItems());
         model.addAttribute("tableId", banId);
-        java.util.Optional<com.example.demo.entity.HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
+        Optional<HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(banId);
         model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
-        java.util.Map<Long, Integer> qtyMap = new java.util.HashMap<>();
+        Map<Long, Integer> qtyMap = new HashMap<>();
         hoaDonOpt.ifPresent(hd -> {
             if (hd.getChiTietHoaDons() != null) {
-                for (com.example.demo.entity.ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
+                for (ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
                     if (ct.getThucDon() != null && ct.getSoLuong() != null) {
                         qtyMap.put(ct.getThucDon().getMaThucDon(), ct.getSoLuong());
                     }
@@ -81,7 +97,7 @@ public class SalesController {
 
     @PostMapping("/{banId}/menu")
     public String selectMenuSubmit(@PathVariable Long banId,
-                                   @RequestParam java.util.Map<String,String> params) {
+                                   @RequestParam Map<String,String> params) {
         salesService.saveSelectedMenu(banId, params);
         return "redirect:/admin/sales";
     }
@@ -102,18 +118,18 @@ public class SalesController {
     public String thanhToan(@PathVariable Long banId,
                             @RequestParam("tienKhach") String tienKhach,
                             @RequestParam(value = "print", required = false) boolean print) {
-        java.math.BigDecimal money;
+        BigDecimal money;
         try {
-            money = new java.math.BigDecimal(tienKhach.replaceAll("[^0-9.]", ""));
+            money = new BigDecimal(tienKhach.replaceAll("[^0-9.]", ""));
         } catch (Exception ex) {
-            money = java.math.BigDecimal.ZERO;
+            money = BigDecimal.ZERO;
         }
-        // determine release: default to true when full payment
-        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
+        
+        Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
         boolean release = false;
         if (hdOpt.isPresent()) {
-            com.example.demo.entity.HoaDon hd = hdOpt.get();
-            java.math.BigDecimal total = hd.getTongTien() == null ? java.math.BigDecimal.ZERO : hd.getTongTien();
+            HoaDon hd = hdOpt.get();
+            BigDecimal total = hd.getTongTien() == null ? BigDecimal.ZERO : hd.getTongTien();
             if (money.compareTo(total) >= 0) release = true;
         }
         salesService.payInvoice(banId, money, release);
@@ -132,23 +148,23 @@ public class SalesController {
     public String paymentSubmit(@PathVariable Long banId,
                                 @RequestParam("tienKhach") String tienKhach,
                                 @RequestParam(value = "print", required = false) boolean print) {
-        java.math.BigDecimal money;
+        BigDecimal money;
         try {
-            money = new java.math.BigDecimal(tienKhach.replaceAll("[^0-9.]", ""));
+            money = new BigDecimal(tienKhach.replaceAll("[^0-9.]", ""));
         } catch (Exception ex) {
-            money = java.math.BigDecimal.ZERO;
+            money = BigDecimal.ZERO;
         }
         try {
-            java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
+            Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(banId);
             if (hdOpt.isEmpty()) {
                 return "ERROR:Không tìm thấy hóa đơn để thanh toán";
             }
-            com.example.demo.entity.HoaDon hd = hdOpt.get();
-            java.math.BigDecimal total = hd.getTongTien() == null ? java.math.BigDecimal.ZERO : hd.getTongTien();
+            HoaDon hd = hdOpt.get();
+            BigDecimal total = hd.getTongTien() == null ? BigDecimal.ZERO : hd.getTongTien();
             boolean release = money.compareTo(total) >= 0;
             salesService.payInvoice(banId, money, release);
             if (print) {
-                // return indicator for client to open print page; use the paid invoice id
+                
                 Long id = hd.getMaHoaDon();
                 return "OK:PRINT:" + id;
             }
@@ -172,13 +188,13 @@ public class SalesController {
 
     @GetMapping("/ban/{id}/view")
     public String viewBanFragment(@PathVariable("id") Long id, Model model) {
-        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
+        Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
         model.addAttribute("banId", id);
         if (hdOpt.isEmpty()) {
             model.addAttribute("empty", true);
         } else {
             model.addAttribute("empty", false);
-            com.example.demo.entity.HoaDon hd = hdOpt.get();
+            HoaDon hd = hdOpt.get();
             model.addAttribute("hoaDon", hd);
             model.addAttribute("details", hd.getChiTietHoaDons());
         }
@@ -188,11 +204,9 @@ public class SalesController {
     @GetMapping("/ban/{id}/reserve")
     public String reserveBanFragment(@PathVariable("id") Long id, Model model) {
         model.addAttribute("banId", id);
-        // provide minimum datetime for datetime-local input to avoid using T(...) in template
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        String min = now.truncatedTo(java.time.temporal.ChronoUnit.MINUTES).toString().replace(":", "%3A");
-        // format to yyyy-MM-dd'T'HH:mm for input; replace %3A back to ':' for safety
-        String minFormatted = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(now);
+        LocalDateTime now = LocalDateTime.now();
+        String min = now.truncatedTo(ChronoUnit.MINUTES).toString().replace(":", "%3A");
+        String minFormatted = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(now);
         model.addAttribute("minDate", minFormatted);
         return "sales/fragments/reserve :: content";
     }
@@ -202,7 +216,7 @@ public class SalesController {
     public String reserveBanSubmit(@PathVariable("id") Long id,
                                    @RequestParam("tenKhach") String tenKhach,
                                    @RequestParam("sdt") String sdt,
-                                   @RequestParam("ngayGio") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime ngayGio) {
+                                   @RequestParam("ngayGio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime ngayGio) {
         try {
             salesService.reserveTable(id, tenKhach, sdt, ngayGio);
             return "OK";
@@ -211,18 +225,18 @@ public class SalesController {
         }
     }
 
-    // GET modal for move - returns fragment listing empty tables (excluding from)
+    
     @GetMapping("/ban/{fromBanId}/move")
     public String moveBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
         model.addAttribute("fromBanId", fromBanId);
-        java.util.List<com.example.demo.entity.Ban> empties = salesService.findEmptyTables();
-        // exclude source table if present
+        List<Ban> empties = salesService.findEmptyTables();
+        
         empties.removeIf(b -> b.getMaBan().equals(fromBanId));
         model.addAttribute("available", empties);
         return "sales/fragments/move-ban :: content";
     }
 
-    // JSON API to perform move
+    
     @PostMapping("/move")
     @ResponseBody
     public ResponseEntity<String> moveTableJson(@RequestBody Map<String, Object> payload) {
@@ -244,7 +258,7 @@ public class SalesController {
         }
     }
 
-    // GET modal for merge - returns fragment listing candidate source tables (excluding target)
+    
     @GetMapping("/ban/{targetBanId}/merge")
     public String mergeBanFragment(@PathVariable("targetBanId") Long targetBanId, Model model) {
         model.addAttribute("targetBanId", targetBanId);
@@ -252,10 +266,10 @@ public class SalesController {
         return "sales/fragments/merge-ban :: content";
     }
 
-    // GET modal for split - returns fragment for splitting a table
+    
     @GetMapping("/ban/{fromBanId}/split")
     public String splitBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
-        java.util.Optional<com.example.demo.entity.HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(fromBanId);
+        Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(fromBanId);
         if (hdOpt.isEmpty()) {
             model.addAttribute("error", "Bàn không có hóa đơn để tách");
             return "sales/fragments/view-ban :: content";
@@ -266,15 +280,15 @@ public class SalesController {
         return "sales/fragments/split-ban :: content";
     }
 
-    // POST split via form params (legacy)
+    
     @PostMapping("/ban/{fromBanId}/split")
     @ResponseBody
     public String splitTable(@PathVariable("fromBanId") Long fromBanId,
                              @RequestParam("toBanId") Long toBanId,
-                             @RequestParam java.util.Map<String, String> params) {
+                             @RequestParam Map<String, String> params) {
         try {
-            java.util.Map<Long, Integer> itemQuantities = new java.util.HashMap<>();
-            for (java.util.Map.Entry<String, String> entry : params.entrySet()) {
+            Map<Long, Integer> itemQuantities = new HashMap<>();
+            for (Map.Entry<String, String> entry : params.entrySet()) {
                 if (entry.getKey().startsWith("split_qty_")) {
                     Long itemId = Long.parseLong(entry.getKey().substring(10));
                     Integer qty = Integer.parseInt(entry.getValue());
@@ -288,7 +302,7 @@ public class SalesController {
         }
     }
 
-    // Cancel reservation
+    
     @PostMapping("/ban/{banId}/cancel-reservation")
     @ResponseBody
     public ResponseEntity<String> cancelReservation(@PathVariable("banId") Long banId) {
@@ -304,7 +318,7 @@ public class SalesController {
         }
     }
 
-    // JSON API for split
+    
     @PostMapping("/{fromBanId}/split")
     @ResponseBody
     public ResponseEntity<String> splitTableJson(@PathVariable("fromBanId") Long fromBanId, @RequestBody Map<String, Object> payload) {
@@ -313,8 +327,8 @@ public class SalesController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing toBanId or items");
             }
             Long toBanId = ((Number) payload.get("toBanId")).longValue();
-            java.util.List<?> items = (java.util.List<?>) payload.get("items");
-            java.util.Map<Long, Integer> itemQuantities = new java.util.HashMap<>();
+            List<?> items = (List<?>) payload.get("items");
+            Map<Long, Integer> itemQuantities = new HashMap<>();
             for (Object o : items) {
                 if (o instanceof Map) {
                     Map m = (Map) o;
@@ -334,7 +348,7 @@ public class SalesController {
         }
     }
 
-    // POST perform merge (form submit)
+    
     @PostMapping("/ban/{targetBanId}/merge")
     @ResponseBody
     public String mergeTable(@PathVariable Long targetBanId, @RequestParam("sourceBanId") Long sourceBanId) {
@@ -346,7 +360,7 @@ public class SalesController {
         }
     }
 
-    // JSON API to perform merge
+    
     @PostMapping("/merge")
     @ResponseBody
     public ResponseEntity<String> mergeTableJson(@RequestBody Map<String, Object> payload) {
@@ -368,5 +382,4 @@ public class SalesController {
         }
     }
 }
-
 

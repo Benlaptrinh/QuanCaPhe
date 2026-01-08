@@ -4,7 +4,6 @@ import com.example.demo.service.DataService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -29,7 +28,7 @@ public class DataServiceImpl implements DataService {
 
     private String parseDbName() {
         if (datasourceUrl == null) return "";
-        // example: jdbc:mysql://host:port/dbname?params
+        
         int idx = datasourceUrl.lastIndexOf('/');
         if (idx < 0) return datasourceUrl;
         String after = datasourceUrl.substring(idx + 1);
@@ -76,7 +75,7 @@ public class DataServiceImpl implements DataService {
     public void restoreFromFile(MultipartFile file) {
         String dbName = parseDbName();
         try {
-            // save uploaded file to temp
+            
             Path tmp = Files.createTempFile("restore-", ".sql");
             try (InputStream in = new BufferedInputStream(file.getInputStream());
                  BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(tmp.toFile()))) {
@@ -91,7 +90,7 @@ public class DataServiceImpl implements DataService {
             String cmd = String.format("mysql -u%s -p%s %s < %s", dbUser, dbPass, dbName, path);
             String[] command = isWindows() ? new String[]{"cmd.exe", "/c", cmd} : new String[]{"/bin/sh", "-c", cmd};
             execCommand(command);
-            // delete temp file
+            
             try { Files.deleteIfExists(tmp); } catch (Exception ignored) {}
         } catch (Exception e) {
             throw new RuntimeException("Failed to restore database", e);

@@ -4,8 +4,9 @@ import com.example.demo.entity.ThucDon;
 import com.example.demo.repository.ThucDonRepository;
 import com.example.demo.service.ThucDonService;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Optional;
+import java.math.BigDecimal;
 
 @Service
 public class ThucDonServiceImpl implements ThucDonService {
@@ -22,7 +23,7 @@ public class ThucDonServiceImpl implements ThucDonService {
     }
     
     @Override
-    public void create(String tenMon, java.math.BigDecimal giaTien) {
+    public void create(String tenMon, BigDecimal giaTien) {
         if (tenMon == null || tenMon.isBlank() || giaTien == null) {
             throw new IllegalArgumentException("Chưa nhập các trường bắt buộc");
         }
@@ -40,7 +41,7 @@ public class ThucDonServiceImpl implements ThucDonService {
     }
     
     @Override
-    public void update(Long id, String tenMon, java.math.BigDecimal giaTien) {
+    public void update(Long id, String tenMon, BigDecimal giaTien) {
         if (tenMon == null || tenMon.isBlank() || giaTien == null) {
             throw new IllegalArgumentException("Chưa nhập các trường bắt buộc");
         }
@@ -61,7 +62,7 @@ public class ThucDonServiceImpl implements ThucDonService {
     }
 
     @Override
-    public java.util.Optional<ThucDon> findById(Long id) {
+    public Optional<ThucDon> findById(Long id) {
         return thucDonRepository.findById(id);
     }
 
@@ -73,7 +74,7 @@ public class ThucDonServiceImpl implements ThucDonService {
     }
 
     @Override
-    public java.util.List<ThucDon> searchByTenMon(String keyword) {
+    public List<ThucDon> searchByTenMon(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return thucDonRepository.findAll();
         }

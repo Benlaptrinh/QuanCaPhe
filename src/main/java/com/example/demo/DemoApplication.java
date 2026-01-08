@@ -4,7 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.boot.CommandLineRunner;
-
 import com.example.demo.entity.TaiKhoan;
 import com.example.demo.enums.Role;
 import com.example.demo.repository.TaiKhoanRepository;

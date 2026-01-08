@@ -6,7 +6,6 @@ import com.example.demo.repository.TaiKhoanRepository;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.service.NhanVienService;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +20,7 @@ public class NhanVienServiceImpl implements NhanVienService {
         this.taiKhoanRepository = taiKhoanRepository;
     }
 
-    // save implemented below with automatic salary set from ChucVu
+    
 
     @Override
     public List<NhanVien> findAll() {
@@ -39,7 +38,7 @@ public class NhanVienServiceImpl implements NhanVienService {
     }
 
     @Override
-    public java.util.List<NhanVien> findByHoTenContaining(String keyword) {
+    public List<NhanVien> findByHoTenContaining(String keyword) {
         return nhanVienRepository.findByHoTenContainingIgnoreCase(keyword);
     }
 

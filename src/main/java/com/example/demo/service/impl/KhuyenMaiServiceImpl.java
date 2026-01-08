@@ -4,8 +4,9 @@ import com.example.demo.entity.KhuyenMai;
 import com.example.demo.repository.KhuyenMaiRepository;
 import com.example.demo.service.KhuyenMaiService;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import com.example.demo.dto.KhuyenMaiForm;
+import java.math.BigDecimal;
 
 @Service
 public class KhuyenMaiServiceImpl implements KhuyenMaiService {
@@ -22,7 +23,7 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
     }
     
     @Override
-    public void createKhuyenMai(com.example.demo.dto.KhuyenMaiForm form) {
+    public void createKhuyenMai(KhuyenMaiForm form) {
         if (form == null) {
             throw new IllegalArgumentException("Dữ liệu không hợp lệ");
         }
@@ -44,18 +45,18 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
         km.setTenKhuyenMai(form.getTenKhuyenMai());
         km.setNgayBatDau(form.getNgayBatDau());
         km.setNgayKetThuc(form.getNgayKetThuc());
-        // convert integer percent to BigDecimal to match entity
-        km.setGiaTriGiam(java.math.BigDecimal.valueOf(form.getGiaTriGiam()));
+        
+        km.setGiaTriGiam(BigDecimal.valueOf(form.getGiaTriGiam()));
 
         khuyenMaiRepository.save(km);
     }
     
     @Override
-    public com.example.demo.dto.KhuyenMaiForm getFormById(Long id) {
+    public KhuyenMaiForm getFormById(Long id) {
         KhuyenMai km = khuyenMaiRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Khuyến mãi không tồn tại"));
 
-        com.example.demo.dto.KhuyenMaiForm form = new com.example.demo.dto.KhuyenMaiForm();
+        KhuyenMaiForm form = new KhuyenMaiForm();
         form.setTenKhuyenMai(km.getTenKhuyenMai());
         form.setNgayBatDau(km.getNgayBatDau());
         form.setNgayKetThuc(km.getNgayKetThuc());
@@ -66,7 +67,7 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
     }
 
     @Override
-    public void updateKhuyenMai(Long id, com.example.demo.dto.KhuyenMaiForm form) {
+    public void updateKhuyenMai(Long id, KhuyenMaiForm form) {
         KhuyenMai km = khuyenMaiRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Khuyến mãi không tồn tại"));
 
@@ -90,7 +91,7 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
         km.setTenKhuyenMai(form.getTenKhuyenMai());
         km.setNgayBatDau(form.getNgayBatDau());
         km.setNgayKetThuc(form.getNgayKetThuc());
-        km.setGiaTriGiam(java.math.BigDecimal.valueOf(form.getGiaTriGiam()));
+        km.setGiaTriGiam(BigDecimal.valueOf(form.getGiaTriGiam()));
 
         khuyenMaiRepository.save(km);
     }

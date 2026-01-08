@@ -18,8 +18,23 @@ import java.security.Principal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.format.annotation.DateTimeFormat;
 import com.example.demo.repository.HangHoaRepository;
 import com.example.demo.service.NganSachService;
+import com.example.demo.dto.ChiTieuForm;
+import com.example.demo.dto.EditHangHoaForm;
+import com.example.demo.dto.HangHoaNhapForm;
+import com.example.demo.dto.XuatHangForm;
+import com.example.demo.entity.HangHoa;
+import com.example.demo.entity.NhanVien;
+import com.example.demo.entity.TaiKhoan;
+import com.example.demo.entity.ThietBi;
+import com.example.demo.entity.ThucDon;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/admin")
@@ -73,24 +88,24 @@ public class AdminPagesController {
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/equipment");
         model.addAttribute("items", thietBiService.findAll());
-        // form backing object; prefer flash attribute if redirected from edit
+        
         if (!model.containsAttribute("thietBi")) {
-            model.addAttribute("thietBi", new com.example.demo.entity.ThietBi());
+            model.addAttribute("thietBi", new ThietBi());
         }
         return "layout/base";
     }
 
     @GetMapping("/warehouse")
-    public String warehouse(@org.springframework.web.bind.annotation.RequestParam(required = false) String keyword, Model model, Authentication auth) {
+    public String warehouse(@RequestParam(required = false) String keyword, Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/kho/list");
         model.addAttribute("items", hangHoaService.searchHangHoa(keyword));
         model.addAttribute("keyword", keyword);
-        model.addAttribute("form", new com.example.demo.dto.HangHoaNhapForm());
+        model.addAttribute("form", new HangHoaNhapForm());
         model.addAttribute("donViTinhs", donViTinhRepository.findAll());
         model.addAttribute("activeMenu", "warehouse");
-        model.addAttribute("xuatForm", new com.example.demo.dto.XuatHangForm());
+        model.addAttribute("xuatForm", new XuatHangForm());
         model.addAttribute("hangHoas", hangHoaService.getDanhSachKho());
         return "layout/base";
     }
@@ -100,19 +115,19 @@ public class AdminPagesController {
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/kho/form");
-        model.addAttribute("form", new com.example.demo.dto.HangHoaNhapForm());
+        model.addAttribute("form", new HangHoaNhapForm());
         model.addAttribute("donViTinhs", donViTinhRepository.findAll());
         model.addAttribute("activeMenu", "warehouse");
         return "layout/base";
     }
 
     @PostMapping("/warehouse/create")
-    public String warehouseCreateSubmit(@ModelAttribute("form") com.example.demo.dto.HangHoaNhapForm form,
+    public String warehouseCreateSubmit(@ModelAttribute("form") HangHoaNhapForm form,
                                         Principal principal, RedirectAttributes ra) {
         String username = principal == null ? null : principal.getName();
-        com.example.demo.entity.NhanVien nv = null;
+        NhanVien nv = null;
         if (username != null) {
-            com.example.demo.entity.TaiKhoan tk = taiKhoanRepository.findByTenDangNhap(username).orElse(null);
+            TaiKhoan tk = taiKhoanRepository.findByTenDangNhap(username).orElse(null);
             if (tk != null) {
                 nv = nhanVienService.findByTaiKhoanId(tk.getMaTaiKhoan()).orElse(null);
             }
@@ -124,12 +139,12 @@ public class AdminPagesController {
     }
 
     @PostMapping("/warehouse/export")
-    public String warehouseExportSubmit(@ModelAttribute("xuatForm") com.example.demo.dto.XuatHangForm xuatForm,
+    public String warehouseExportSubmit(@ModelAttribute("xuatForm") XuatHangForm xuatForm,
                                         Principal principal, RedirectAttributes ra) {
         String username = principal == null ? null : principal.getName();
-        com.example.demo.entity.NhanVien nv = null;
+        NhanVien nv = null;
         if (username != null) {
-            com.example.demo.entity.TaiKhoan tk = taiKhoanRepository.findByTenDangNhap(username).orElse(null);
+            TaiKhoan tk = taiKhoanRepository.findByTenDangNhap(username).orElse(null);
             if (tk != null) {
                 nv = nhanVienService.findByTaiKhoanId(tk.getMaTaiKhoan()).orElse(null);
             }
@@ -142,12 +157,12 @@ public class AdminPagesController {
 
     @GetMapping("/warehouse/edit/{id}")
     public String warehouseEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
-        com.example.demo.entity.HangHoa hh = hangHoaRepository.findById(id).orElse(null);
+        HangHoa hh = hangHoaRepository.findById(id).orElse(null);
         if (hh == null) {
             ra.addFlashAttribute("error", "Không tìm thấy hàng hóa");
             return "redirect:/admin/warehouse";
         }
-        com.example.demo.dto.EditHangHoaForm form = new com.example.demo.dto.EditHangHoaForm();
+        EditHangHoaForm form = new EditHangHoaForm();
         form.setId(hh.getMaHangHoa());
         form.setTenHangHoa(hh.getTenHangHoa());
         form.setSoLuong(hh.getSoLuong());
@@ -164,7 +179,7 @@ public class AdminPagesController {
     }
 
     @PostMapping("/warehouse/edit")
-    public String warehouseEditSubmit(@ModelAttribute("editForm") com.example.demo.dto.EditHangHoaForm form,
+    public String warehouseEditSubmit(@ModelAttribute("editForm") EditHangHoaForm form,
                                       RedirectAttributes ra) {
         hangHoaService.updateHangHoa(form);
         ra.addFlashAttribute("success", "Cập nhật hàng hóa thành công");
@@ -192,12 +207,12 @@ public class AdminPagesController {
     }
 
     @GetMapping("/menu/search")
-    public String menuSearch(@org.springframework.web.bind.annotation.RequestParam(required = false) String keyword,
+    public String menuSearch(@RequestParam(required = false) String keyword,
                               Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/menu");
-        java.util.List<com.example.demo.entity.ThucDon> list = thucDonService.searchByTenMon(keyword);
+        List<ThucDon> list = thucDonService.searchByTenMon(keyword);
         if (list.isEmpty()) {
             model.addAttribute("error", "Không có trong cơ sở dữ liệu");
         }
@@ -217,8 +232,8 @@ public class AdminPagesController {
     }
 
     @PostMapping("/menu/create")
-    public String menuCreateSubmit(@org.springframework.web.bind.annotation.RequestParam String tenMon,
-                                   @org.springframework.web.bind.annotation.RequestParam java.math.BigDecimal giaTien,
+    public String menuCreateSubmit(@RequestParam String tenMon,
+                                   @RequestParam BigDecimal giaTien,
                                    RedirectAttributes redirect) {
         try {
             thucDonService.create(tenMon, giaTien);
@@ -232,7 +247,7 @@ public class AdminPagesController {
 
     @GetMapping("/menu/edit/{id}")
     public String menuEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
-        java.util.Optional<com.example.demo.entity.ThucDon> opt = thucDonService.findById(id);
+        Optional<ThucDon> opt = thucDonService.findById(id);
         if (opt.isEmpty()) {
             ra.addFlashAttribute("error", "Không tìm thấy món");
             return "redirect:/admin/menu";
@@ -245,9 +260,9 @@ public class AdminPagesController {
     }
 
     @PostMapping("/menu/edit")
-    public String menuEditSubmit(@org.springframework.web.bind.annotation.RequestParam Long id,
-                                 @org.springframework.web.bind.annotation.RequestParam String tenMon,
-                                 @org.springframework.web.bind.annotation.RequestParam java.math.BigDecimal giaTien,
+    public String menuEditSubmit(@RequestParam Long id,
+                                 @RequestParam String tenMon,
+                                 @RequestParam BigDecimal giaTien,
                                  RedirectAttributes redirect) {
         try {
             thucDonService.update(id, tenMon, giaTien);
@@ -281,8 +296,8 @@ public class AdminPagesController {
     }
 
     @GetMapping("/budget")
-    public String budget(@org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate from,
-                         @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate to,
+    public String budget(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                          Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
@@ -290,14 +305,14 @@ public class AdminPagesController {
         if (from != null && to != null) {
             model.addAttribute("thuChiList", nganSachService.xemThuChi(from, to));
         }
-        model.addAttribute("chiTieuForm", new com.example.demo.dto.ChiTieuForm());
+        model.addAttribute("chiTieuForm", new ChiTieuForm());
         model.addAttribute("activeMenu", "budget");
         return "layout/base";
     }
 
-    @org.springframework.web.bind.annotation.PostMapping("/budget/expense")
-    public String themChi(@org.springframework.web.bind.annotation.ModelAttribute com.example.demo.dto.ChiTieuForm form,
-                          java.security.Principal principal, org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+    @PostMapping("/budget/expense")
+    public String themChi(@ModelAttribute ChiTieuForm form,
+                          Principal principal, RedirectAttributes ra) {
         String username = principal == null ? null : principal.getName();
         nganSachService.themChiTieu(form, username);
         ra.addFlashAttribute("success", "Thêm chi tiêu thành công");
