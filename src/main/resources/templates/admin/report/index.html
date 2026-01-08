@@ -1,4 +1,4 @@
-<div th:fragment="content">
+<!-- <div th:fragment="content">
   <h2>Thống kê - báo cáo</h2>
 
   <div th:if="${error}" style="color:red">
@@ -26,5 +26,89 @@
       </p>
   </div>
 
-  <!-- Bảng kết quả sẽ thêm sau -->
-</div>
+  <table border="1" cellpadding="8" cellspacing="0" style="width:600px;" th:if="${reportData != null and !reportData.isEmpty()}">
+      <thead>
+          <tr>
+              <th>Ngày</th>
+              <th>Thu</th>
+              <th>Chi</th>
+          </tr>
+      </thead>
+
+      <tbody>
+          <tr th:each="row : ${reportData}">
+              <td th:text="${row.ngay}"></td>
+              <td th:text="${#numbers.formatDecimal(row.thu,0,'COMMA',0,'POINT')}"></td>
+              <td th:text="${#numbers.formatDecimal(row.chi,0,'COMMA',0,'POINT')}"></td>
+          </tr>
+      </tbody>
+
+      <tfoot>
+          <tr>
+              <th>Tổng</th>
+              <th th:text="${#numbers.formatDecimal(
+                  reportData.?sum(thu), 0,'COMMA',0,'POINT')}">
+              </th>
+              <th th:text="${#numbers.formatDecimal(
+                  reportData.?sum(chi), 0,'COMMA',0,'POINT')}">
+              </th>
+          </tr>
+      </tfoot>
+  </table>
+
+  <p th:if="${reportData != null and reportData.isEmpty()}">
+      Chưa có dữ liệu
+  </p>
+</div> -->
+<div th:fragment="content">
+    <h2>Thống kê - báo cáo</h2>
+  
+    <div th:if="${error}" style="color:red">
+      <p th:text="${error}"></p>
+    </div>
+  
+    <form th:action="@{/admin/report}" method="post" th:object="${filter}">
+      <div>
+        <label>Từ ngày:</label>
+        <input type="date" th:field="*{fromDate}" required>
+      </div>
+      <div>
+        <label>Đến ngày:</label>
+        <input type="date" th:field="*{toDate}" required>
+      </div>
+      <button type="submit">Xem</button>
+    </form>
+  
+    <!-- TABLE -->
+    <table border="1" cellpadding="8" cellspacing="0" style="width:600px;"
+           th:if="${reportData != null and !reportData.isEmpty()}">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Thu</th>
+          <th>Chi</th>
+        </tr>
+      </thead>
+  
+      <tbody>
+        <tr th:each="row : ${reportData}">
+          <td th:text="${#temporals.format(row.ngay,'dd/MM')}"></td>
+          <td th:text="${#numbers.formatDecimal(row.thu,0,'COMMA',0,'POINT')}"></td>
+          <td th:text="${#numbers.formatDecimal(row.chi,0,'COMMA',0,'POINT')}"></td>
+        </tr>
+      </tbody>
+  
+      <tfoot>
+        <tr>
+          <th>Tổng</th>
+          <th th:text="${#numbers.formatDecimal(#aggregates.sum(reportData.![thu]),0,'COMMA',0,'POINT')}"></th>
+          <th th:text="${#numbers.formatDecimal(#aggregates.sum(reportData.![chi]),0,'COMMA',0,'POINT')}"></th>
+        </tr>
+      </tfoot>
+    </table>
+  
+    <p th:if="${reportData == null or reportData.isEmpty()}">
+      Chưa có dữ liệu
+    </p>
+  </div>
+  

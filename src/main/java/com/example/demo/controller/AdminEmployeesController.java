@@ -148,7 +148,6 @@ public class AdminEmployeesController {
                         com.example.demo.enums.Role r = (role == null || role.isBlank()) ? tk.getQuyenHan() : com.example.demo.enums.Role.valueOf(role);
                         tk.setQuyenHan(r);
                     } catch (IllegalArgumentException ex) {
-                        // ignore invalid role and keep existing
                     }
                     taiKhoanService.save(tk);
                 }

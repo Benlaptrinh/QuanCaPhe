@@ -12,9 +12,7 @@ public class TomcatConfig implements WebServerFactoryCustomizer<TomcatServletWeb
     @Override
     public void customize(TomcatServletWebServerFactory factory) {
         factory.addContextCustomizers((Context context) -> {
-            // Disable Tomcat session persistence to avoid deserialization issues
             StandardManager manager = new StandardManager();
-            // empty pathname disables saving sessions to disk
             manager.setPathname("");
             context.setManager(manager);
         });
