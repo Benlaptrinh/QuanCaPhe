@@ -1,0 +1,28 @@
+<h2>Thống kê - báo cáo</h2>
+
+<div th:if="${error}" style="color:red">
+    <p th:text="${error}"></p>
+</div>
+
+<form th:action="@{/admin/report}" method="post" th:object="${filter}">
+    <div>
+        <label>Từ ngày:</label>
+        <input type="date" th:field="*{fromDate}" required>
+    </div>
+    <div>
+        <label>Đến ngày:</label>
+        <input type="date" th:field="*{toDate}" required>
+    </div>
+    <button type="submit">Xem</button>
+</form>
+
+<div th:if="${filter.fromDate != null}">
+    <p>
+        Thống kê từ
+        <b th:text="${filter.fromDate}"></b>
+        đến
+        <b th:text="${filter.toDate}"></b>
+    </p>
+</div>
+
+<!-- Bảng kết quả sẽ thêm sau -->
