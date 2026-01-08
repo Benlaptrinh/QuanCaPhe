@@ -24,6 +24,22 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
         @Param("from") LocalDateTime from,
         @Param("to") LocalDateTime to
     );
+    
+    @Query(value = """
+        SELECT
+            DATE(h.ngay_gio_tao) AS ngay,
+            SUM(h.tong_tien) AS thu,
+            0 AS chi
+        FROM hoa_don h
+        WHERE h.ngay_gio_tao BETWEEN :from AND :to
+          AND h.trang_thai = 'DA_THANH_TOAN'
+        GROUP BY DATE(h.ngay_gio_tao)
+        ORDER BY DATE(h.ngay_gio_tao)
+    """, nativeQuery = true)
+    List<Object[]> thongKeThuRaw(
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
+    );
 }
 
 

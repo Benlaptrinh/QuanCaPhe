@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.ArrayList;
+import java.math.BigDecimal;
 
 import com.example.demo.entity.HoaDon;
 
@@ -29,27 +30,17 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime fromTime = from.atStartOfDay();
         LocalDateTime toTime = to.atTime(23, 59, 59);
     
-        List<HoaDon> hoaDons =
-                hoaDonRepository.findHoaDonDaThanhToan(fromTime, toTime);
-    
-        Map<LocalDate, Long> tongThuTheoNgay = new LinkedHashMap<>();
-    
-        for (HoaDon hd : hoaDons) {
-            LocalDate ngay = hd.getNgayThanhToan().toLocalDate();
-            long tien = hd.getTongTien() == null ? 0L : hd.getTongTien().longValue();
-    
-            tongThuTheoNgay.merge(ngay, tien, Long::sum);
-        }
-    
-        List<ReportRowDTO> result = new ArrayList<>();
-        for (var e : tongThuTheoNgay.entrySet()) {
-            result.add(new ReportRowDTO(
-                    e.getKey(),
-                    e.getValue(),
-                    0L
-            ));
-        }
-    
+        // Use native query that aggregates by date and map results to DTO
+        List<Object[]> rows = hoaDonRepository.thongKeThuRaw(fromTime, toTime);
+
+        List<ReportRowDTO> result = rows.stream()
+                .map(r -> new ReportRowDTO(
+                        (java.sql.Date) r[0],
+                        (BigDecimal) r[1],
+                        (Number) r[2]
+                ))
+                .toList();
+
         return result;
     }
     
