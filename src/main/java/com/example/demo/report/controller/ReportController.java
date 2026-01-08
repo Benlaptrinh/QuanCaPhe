@@ -1,10 +1,9 @@
 package com.example.demo.report.controller;
 
 import com.example.demo.report.dto.ReportFilterDTO;
-import com.example.demo.report.dto.ReportRowDTO;
-import com.example.demo.report.dto.StaffReportRowDTO;
-import com.example.demo.report.dto.SalesByDayRowDTO;
-import com.example.demo.report.service.ReportService;
+import com.example.demo.report.service.FinanceReportService;
+import com.example.demo.report.service.SalesReportService;
+import com.example.demo.report.service.StaffReportService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,10 +19,16 @@ import java.util.List;
 public class ReportController {
 
     private String sidebar = "fragments/sidebar-admin";
-    private final ReportService reportService;
+    private final FinanceReportService financeReportService;
+    private final SalesReportService salesReportService;
+    private final StaffReportService staffReportService;
 
-    public ReportController(ReportService reportService) {
-        this.reportService = reportService;
+    public ReportController(FinanceReportService financeReportService,
+                            SalesReportService salesReportService,
+                            StaffReportService staffReportService) {
+        this.financeReportService = financeReportService;
+        this.salesReportService = salesReportService;
+        this.staffReportService = staffReportService;
     }
 
     private String usernameFromAuth(Authentication auth) {
@@ -39,13 +43,10 @@ public class ReportController {
         filter.setFromDate(now.withDayOfMonth(1));
         filter.setToDate(now);
         filter.setType("FINANCE");
-
         model.addAttribute("filter", filter);
-
-        model.addAttribute("reportData", reportService.thongKeThuChi(filter.getFromDate(), filter.getToDate()));
-        model.addAttribute("salesByDay", reportService.reportSalesByDay(filter.getFromDate(), filter.getToDate()));
-        model.addAttribute("staffReport", reportService.thongKeNhanVien());
-
+        model.addAttribute("reportData", financeReportService.getFinanceReport(filter.getFromDate(), filter.getToDate()));
+        model.addAttribute("salesByDay", salesReportService.getSalesByDay(filter.getFromDate(), filter.getToDate()));
+        model.addAttribute("staffReport", staffReportService.getStaffSummary());
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/report/index");
@@ -72,9 +73,9 @@ public class ReportController {
             model.addAttribute("salesByDay", List.of());
             model.addAttribute("staffReport", List.of());
         } else {
-            model.addAttribute("reportData", reportService.thongKeThuChi(filter.getFromDate(), filter.getToDate()));
-            model.addAttribute("salesByDay", reportService.reportSalesByDay(filter.getFromDate(), filter.getToDate()));
-            model.addAttribute("staffReport", reportService.thongKeNhanVien());
+            model.addAttribute("reportData", financeReportService.getFinanceReport(filter.getFromDate(), filter.getToDate()));
+            model.addAttribute("salesByDay", salesReportService.getSalesByDay(filter.getFromDate(), filter.getToDate()));
+            model.addAttribute("staffReport", staffReportService.getStaffSummary());
         }
 
         model.addAttribute("filter", filter);

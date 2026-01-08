@@ -7,14 +7,11 @@ import com.example.demo.repository.HoaDonRepository;
 import com.example.demo.repository.NhanVienRepository;
 import com.example.demo.report.service.ReportService;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 import java.math.BigDecimal;
-
-import com.example.demo.entity.HoaDon;
 
 @Service
 public class ReportServiceImpl implements ReportService {
