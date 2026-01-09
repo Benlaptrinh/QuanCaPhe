@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 09-01-2026  Việt    Create
  */
 @Service
+@Transactional
 public class SalesServiceImpl implements SalesService {
 
     private static final Logger logger = LoggerFactory.getLogger(SalesServiceImpl.class);
@@ -127,34 +128,11 @@ public class SalesServiceImpl implements SalesService {
      * @param quantity quantity
      */
     @Override
-    /**
-     * Add item to invoice.
-     *
-     * @param tableId tableId
-     * @param itemId itemId
-     * @param quantity quantity
-     */
-    @Transactional
     public void addItemToInvoice(Long tableId, Long itemId, Integer quantity) {
-        HoaDon hd = hoaDonRepository.findChuaThanhToanByBan(tableId).orElseGet(() -> {
-            HoaDon n = new HoaDon();
-            banRepository.findById(tableId).ifPresent(b -> {
-                n.setBan(b);
-                
-                b.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
-                banRepository.save(b);
-            });
-            n.setNgayGioTao(LocalDateTime.now());
-            n.setTrangThai(TrangThaiHoaDon.MOI_TAO);
-            return hoaDonRepository.save(n);
-        });
-
+        HoaDon hd = getOrCreateInvoice(tableId, true);
         ThucDon item = thucDonRepository.findById(itemId).orElseThrow();
-        
-        ChiTietHoaDon existing = hd.getChiTietHoaDons() == null ? null :
-                hd.getChiTietHoaDons().stream()
-                        .filter(ct -> ct.getThucDon().getMaThucDon().equals(item.getMaThucDon()))
-                        .findFirst().orElse(null);
+
+        ChiTietHoaDon existing = findExistingDetail(hd, item.getMaThucDon());
         if (existing != null) {
             int newQty = (existing.getSoLuong() == null ? 0 : existing.getSoLuong()) + (quantity == null ? 1 : quantity);
             existing.setSoLuong(newQty);
@@ -170,18 +148,14 @@ public class SalesServiceImpl implements SalesService {
             ct.setGiaTaiThoiDiemBan(item.getGiaHienTai());
             ct.setThanhTien(item.getGiaHienTai().multiply(new BigDecimal(qty)));
             chiTietHoaDonRepository.save(ct);
-            
-            if (hd.getChiTietHoaDons() == null) hd.setChiTietHoaDons(new ArrayList<>());
+
+            if (hd.getChiTietHoaDons() == null) {
+                hd.setChiTietHoaDons(new ArrayList<>());
+            }
             hd.getChiTietHoaDons().add(ct);
         }
-        
-        BigDecimal total = hd.getChiTietHoaDons() == null ? BigDecimal.ZERO :
-                hd.getChiTietHoaDons().stream()
-                        .map(ChiTietHoaDon::getThanhTien)
-                        .filter(Objects::nonNull)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-        hd.setTongTien(total);
-        hoaDonRepository.save(hd);
+
+        updateInvoiceTotal(hd);
     }
 
     /**
@@ -192,36 +166,25 @@ public class SalesServiceImpl implements SalesService {
      * @param releaseTable releaseTable
      */
     @Override
-    /**
-     * Pay invoice.
-     *
-     * @param tableId tableId
-     * @param tienKhach tienKhach
-     * @param releaseTable releaseTable
-     */
-    @Transactional
     public void payInvoice(Long tableId, BigDecimal tienKhach, boolean releaseTable) {
-        hoaDonRepository.findChuaThanhToanByBan(tableId).ifPresent(hd -> {
-            BigDecimal total = hd.getChiTietHoaDons() == null ? BigDecimal.ZERO :
-                    hd.getChiTietHoaDons().stream()
-                            .map(ChiTietHoaDon::getThanhTien)
-                            .filter(Objects::nonNull)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-            hd.setTongTien(total);
-            
-            if (tienKhach.compareTo(total) < 0) {
-                throw new IllegalArgumentException("Tiền khách đưa nhỏ hơn tổng");
-            }
-            
-            hd.setTrangThai(TrangThaiHoaDon.DA_THANH_TOAN);
-            hd.setNgayThanhToan(LocalDateTime.now());
-            hoaDonRepository.save(hd);
+        Optional<HoaDon> hdOpt = hoaDonRepository.findChuaThanhToanByBan(tableId);
+        if (hdOpt.isEmpty()) {
+            return;
+        }
+        HoaDon hd = hdOpt.get();
 
-            if (releaseTable && hd.getBan() != null) {
-                hd.getBan().setTinhTrang(TinhTrangBan.TRONG);
-                banRepository.save(hd.getBan());
-            }
-        });
+        BigDecimal total = calculateTotal(hd);
+        hd.setTongTien(total);
+        validatePayment(tienKhach, total);
+
+        hd.setTrangThai(TrangThaiHoaDon.DA_THANH_TOAN);
+        hd.setNgayThanhToan(LocalDateTime.now());
+        hoaDonRepository.save(hd);
+
+        if (releaseTable && hd.getBan() != null) {
+            hd.getBan().setTinhTrang(TinhTrangBan.TRONG);
+            banRepository.save(hd.getBan());
+        }
     }
 
     /**
@@ -233,15 +196,6 @@ public class SalesServiceImpl implements SalesService {
      * @param ngayGioDat ngayGioDat
      */
     @Override
-    /**
-     * Reserve table.
-     *
-     * @param banId banId
-     * @param tenKhach tenKhach
-     * @param sdt sdt
-     * @param ngayGioDat ngayGioDat
-     */
-    @Transactional
     public void reserveTable(Long banId, String tenKhach, String sdt, LocalDateTime ngayGioDat) {
         Ban ban = banRepository.findById(banId).orElseThrow();
         if (ban.getTinhTrang() == TinhTrangBan.DANG_SU_DUNG) {
@@ -255,33 +209,8 @@ public class SalesServiceImpl implements SalesService {
         d.setTenKhach(tenKhach);
         d.setSdt(sdt);
         d.setNgayGioDat(ngayGioDat);
-        
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new IllegalStateException("Không xác định người dùng đang đăng nhập");
-        }
-        String username = auth.getName();
-        logger.info("reserveTable invoked by username={}", username);
-        Optional<TaiKhoan> tkOpt = taiKhoanRepository.findByTenDangNhap(username);
-        if (tkOpt.isEmpty()) {
-            throw new IllegalStateException("Không tìm thấy tài khoản cho user " + username);
-        }
-        TaiKhoan tk = tkOpt.get();
-        logger.info("Found TaiKhoan ma={} for username={}", tk.getMaTaiKhoan(), username);
-        Optional<NhanVien> nvOpt = nhanVienRepository.findByTaiKhoan_MaTaiKhoan(tk.getMaTaiKhoan());
-        NhanVien nv;
-        if (nvOpt.isEmpty()) {
-            logger.warn("No NhanVien linked to TaiKhoan ma={}, will create placeholder NhanVien", tk.getMaTaiKhoan());
-            nv = new NhanVien();
-            nv.setHoTen(username);
-            nv.setSoDienThoai(null);
-            nv.setDiaChi(null);
-            nv.setTaiKhoan(tk);
-            nv = nhanVienRepository.save(nv);
-            logger.info("Created placeholder NhanVien ma={} for TaiKhoan ma={}", nv.getMaNhanVien(), tk.getMaTaiKhoan());
-        } else {
-            nv = nvOpt.get();
-        }
+
+        NhanVien nv = getOrCreateCurrentNhanVien();
         d.setNhanVien(nv);
         logger.info("Reserve will be saved with NhanVien ma={}", nv.getMaNhanVien());
         chiTietDatBanRepository.save(d);
@@ -296,35 +225,10 @@ public class SalesServiceImpl implements SalesService {
      * @param params params
      */
     @Override
-    /**
-     * Save selected menu.
-     *
-     * @param banId banId
-     * @param params params
-     */
-    @Transactional
     public void saveSelectedMenu(Long banId, Map<String,String> params) {
-        
-        HoaDon hd = hoaDonRepository.findChuaThanhToanByBan(banId).orElseGet(() -> {
-            HoaDon n = new HoaDon();
-            banRepository.findById(banId).ifPresent(n::setBan);
-            n.setNgayGioTao(LocalDateTime.now());
-            n.setTrangThai(TrangThaiHoaDon.MOI_TAO);
-            return hoaDonRepository.save(n);
-        });
+        HoaDon hd = getOrCreateInvoice(banId, false);
+        findCurrentNhanVien().ifPresent(hd::setNhanVien);
 
-        
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated()) {
-            String username = auth.getName();
-            taiKhoanRepository.findByTenDangNhap(username).ifPresent(tk -> {
-                nhanVienRepository.findByTaiKhoan_MaTaiKhoan(tk.getMaTaiKhoan()).ifPresent(nv -> {
-                    hd.setNhanVien(nv);
-                });
-            });
-        }
-
-        BigDecimal total = BigDecimal.ZERO;
         List<ThucDon> menu = thucDonRepository.findAll();
 
         if (hd.getChiTietHoaDons() == null) {
@@ -369,16 +273,8 @@ public class SalesServiceImpl implements SalesService {
             }
         }
 
-        
-        for (ChiTietHoaDon ct : hd.getChiTietHoaDons()) {
-            if (ct.getThanhTien() != null) {
-                total = total.add(ct.getThanhTien());
-            }
-        }
+        BigDecimal total = updateInvoiceTotal(hd);
 
-        hd.setTongTien(total);
-        hoaDonRepository.save(hd);
-        
         if (total.compareTo(BigDecimal.ZERO) > 0 && hd.getBan() != null) {
             Ban b = hd.getBan();
             b.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
@@ -392,12 +288,6 @@ public class SalesServiceImpl implements SalesService {
      * @param banId banId
      */
     @Override
-    /**
-     * Cancel invoice.
-     *
-     * @param banId banId
-     */
-    @Transactional
     public void cancelInvoice(Long banId) {
         Optional<HoaDon> hdOpt = hoaDonRepository.findChuaThanhToanByBan(banId);
         if (hdOpt.isEmpty()) {
@@ -439,13 +329,6 @@ public class SalesServiceImpl implements SalesService {
      * @param toBanId toBanId
      */
     @Override
-    /**
-     * Move table.
-     *
-     * @param fromBanId fromBanId
-     * @param toBanId toBanId
-     */
-    @Transactional
     public void moveTable(Long fromBanId, Long toBanId) {
         if (fromBanId.equals(toBanId)) {
             throw new IllegalArgumentException("Không thể chuyển bàn với chính nó");
@@ -512,13 +395,6 @@ public class SalesServiceImpl implements SalesService {
      * @param sourceBanId sourceBanId
      */
     @Override
-    /**
-     * Merge tables.
-     *
-     * @param targetBanId targetBanId
-     * @param sourceBanId sourceBanId
-     */
-    @Transactional
     public void mergeTables(Long targetBanId, Long sourceBanId) {
         if (targetBanId.equals(sourceBanId)) {
             throw new IllegalArgumentException("Không thể gộp bàn vào chính nó");
@@ -573,15 +449,8 @@ public class SalesServiceImpl implements SalesService {
             }
         }
 
-        
-        BigDecimal total = targetHd.getChiTietHoaDons() == null ? BigDecimal.ZERO :
-                targetHd.getChiTietHoaDons().stream()
-                        .map(ChiTietHoaDon::getThanhTien)
-                        .filter(Objects::nonNull)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-        targetHd.setTongTien(total);
         targetHd.setTrangThai(TrangThaiHoaDon.MOI_TAO);
-        hoaDonRepository.save(targetHd);
+        updateInvoiceTotal(targetHd);
 
         
         sourceHd.setTrangThai(TrangThaiHoaDon.DA_GOP);
@@ -602,14 +471,6 @@ public class SalesServiceImpl implements SalesService {
      * @param itemQuantities itemQuantities
      */
     @Override
-    /**
-     * Split table.
-     *
-     * @param fromBanId fromBanId
-     * @param toBanId toBanId
-     * @param itemQuantities itemQuantities
-     */
-    @Transactional
     public void splitTable(Long fromBanId, Long toBanId, Map<Long, Integer> itemQuantities) {
         if (fromBanId.equals(toBanId)) {
             throw new IllegalArgumentException("Không thể tách bàn với chính nó");
@@ -718,12 +579,6 @@ public class SalesServiceImpl implements SalesService {
      * @param banId banId
      */
     @Override
-    /**
-     * Cancel reservation.
-     *
-     * @param banId banId
-     */
-    @Transactional
     public void cancelReservation(Long banId) {
         Ban ban = banRepository.findById(banId).orElseThrow(() -> new IllegalArgumentException("Bàn không tồn tại"));
 
@@ -742,7 +597,92 @@ public class SalesServiceImpl implements SalesService {
         ban.setTinhTrang(TinhTrangBan.TRONG);
         banRepository.save(ban);
     }
-}
 
+    private BigDecimal calculateTotal(HoaDon hoaDon) {
+        if (hoaDon.getChiTietHoaDons() == null) {
+            return BigDecimal.ZERO;
+        }
+        return hoaDon.getChiTietHoaDons().stream()
+                .map(ChiTietHoaDon::getThanhTien)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal updateInvoiceTotal(HoaDon hoaDon) {
+        BigDecimal total = calculateTotal(hoaDon);
+        hoaDon.setTongTien(total);
+        hoaDonRepository.save(hoaDon);
+        return total;
+    }
+
+    private HoaDon getOrCreateInvoice(Long tableId, boolean markTableInUse) {
+        return hoaDonRepository.findChuaThanhToanByBan(tableId).orElseGet(() -> {
+            HoaDon invoice = new HoaDon();
+            banRepository.findById(tableId).ifPresent(ban -> {
+                invoice.setBan(ban);
+                if (markTableInUse) {
+                    ban.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
+                    banRepository.save(ban);
+                }
+            });
+            invoice.setNgayGioTao(LocalDateTime.now());
+            invoice.setTrangThai(TrangThaiHoaDon.MOI_TAO);
+            return hoaDonRepository.save(invoice);
+        });
+    }
+
+    private void validatePayment(BigDecimal tienKhach, BigDecimal total) {
+        if (tienKhach.compareTo(total) < 0) {
+            throw new IllegalArgumentException("Tiền khách đưa nhỏ hơn tổng");
+        }
+    }
+
+    private Optional<NhanVien> findCurrentNhanVien() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return Optional.empty();
+        }
+        return taiKhoanRepository.findByTenDangNhap(auth.getName())
+                .flatMap(tk -> nhanVienRepository.findByTaiKhoan_MaTaiKhoan(tk.getMaTaiKhoan()));
+    }
+
+    private NhanVien getOrCreateCurrentNhanVien() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new IllegalStateException("Không xác định người dùng đang đăng nhập");
+        }
+        String username = auth.getName();
+        logger.info("reserveTable invoked by username={}", username);
+        Optional<TaiKhoan> tkOpt = taiKhoanRepository.findByTenDangNhap(username);
+        if (tkOpt.isEmpty()) {
+            throw new IllegalStateException("Không tìm thấy tài khoản cho user " + username);
+        }
+        TaiKhoan tk = tkOpt.get();
+        logger.info("Found TaiKhoan ma={} for username={}", tk.getMaTaiKhoan(), username);
+        Optional<NhanVien> nvOpt = nhanVienRepository.findByTaiKhoan_MaTaiKhoan(tk.getMaTaiKhoan());
+        if (nvOpt.isPresent()) {
+            return nvOpt.get();
+        }
+        logger.warn("No NhanVien linked to TaiKhoan ma={}, will create placeholder NhanVien", tk.getMaTaiKhoan());
+        NhanVien nv = new NhanVien();
+        nv.setHoTen(username);
+        nv.setSoDienThoai(null);
+        nv.setDiaChi(null);
+        nv.setTaiKhoan(tk);
+        nv = nhanVienRepository.save(nv);
+        logger.info("Created placeholder NhanVien ma={} for TaiKhoan ma={}", nv.getMaNhanVien(), tk.getMaTaiKhoan());
+        return nv;
+    }
+
+    private ChiTietHoaDon findExistingDetail(HoaDon hoaDon, Long thucDonId) {
+        if (hoaDon.getChiTietHoaDons() == null) {
+            return null;
+        }
+        return hoaDon.getChiTietHoaDons().stream()
+                .filter(ct -> ct.getThucDon().getMaThucDon().equals(thucDonId))
+                .findFirst()
+                .orElse(null);
+    }
+}
 
 

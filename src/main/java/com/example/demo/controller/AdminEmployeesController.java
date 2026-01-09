@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import java.util.List;
 
+import com.example.demo.controller.base.BaseController;
 import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
 import com.example.demo.enums.Role;
@@ -35,7 +36,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  */
 @Controller
 @RequestMapping("/admin/employees")
-public class AdminEmployeesController {
+public class AdminEmployeesController extends BaseController {
 
     private final NhanVienService nhanVienService;
     private final TaiKhoanService taiKhoanService;
@@ -71,9 +72,7 @@ public class AdminEmployeesController {
             list = nhanVienService.findAll();
         }
         model.addAttribute("nhanViens", list);
-        model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
-        model.addAttribute("contentFragment", "admin/employees_list");
-        model.addAttribute("username", auth == null ? "anonymous" : auth.getName());
+        setupAdminLayout(model, "admin/employees_list", auth);
         return "layout/base";
     }
 
@@ -88,9 +87,7 @@ public class AdminEmployeesController {
     public String createForm(Model model, Authentication auth) {
         model.addAttribute("nhanVien", new NhanVien());
         model.addAttribute("chucVus", chucVuRepository.findAll());
-        model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
-        model.addAttribute("contentFragment", "admin/employees_create");
-        model.addAttribute("username", auth == null ? "anonymous" : auth.getName());
+        setupAdminLayout(model, "admin/employees_create", auth);
         return "layout/base";
     }
 
@@ -155,9 +152,7 @@ public class AdminEmployeesController {
         NhanVien nv = nhanVienService.findById(id).orElse(new NhanVien());
         model.addAttribute("nhanVien", nv);
         model.addAttribute("chucVus", chucVuRepository.findAll());
-        model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
-        model.addAttribute("contentFragment", "admin/employees_edit");
-        model.addAttribute("username", auth == null ? "anonymous" : auth.getName());
+        setupAdminLayout(model, "admin/employees_edit", auth);
         return "layout/base";
     }
 
@@ -246,5 +241,4 @@ public class AdminEmployeesController {
         return "redirect:/admin/employees";
     }
 }
-
 
