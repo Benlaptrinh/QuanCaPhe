@@ -9,6 +9,7 @@ Tài liệu này gồm:
 - Danh sách tính năng và luồng nghiệp vụ
 - Cách chạy local (quickstart + cấu hình)
 - Quy ước dev, lộ trình refactor và gợi ý testing
+- Hướng dẫn cài đặt chi tiết cho người mới
 
 Hãy giữ file này luôn cập nhật — đây là nguồn thông tin duy nhất cho việc onboarding.
 
@@ -162,6 +163,8 @@ server.port=8080
 
 Lưu ý:
 - `ddl-auto=update` chỉ dùng cho dev. Production nên dùng Flyway/Liquibase.
+
+Xem hướng dẫn cài đặt chi tiết (từng bước cho người mới): `INSTALL.md`.
 
 ---
 
