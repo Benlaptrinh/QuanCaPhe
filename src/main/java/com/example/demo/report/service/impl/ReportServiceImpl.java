@@ -1,29 +1,57 @@
 package com.example.demo.report.service.impl;
 
-import com.example.demo.report.dto.ReportRowDTO;
-import com.example.demo.report.dto.StaffReportRowDTO;
-import com.example.demo.report.dto.SalesByDayRowDTO;
-import com.example.demo.repository.HoaDonRepository;
-import com.example.demo.repository.NhanVienRepository;
-import com.example.demo.report.service.ReportService;
-import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.ArrayList;
-import java.math.BigDecimal;
+import java.util.List;
 
+import com.example.demo.report.dto.ReportRowDTO;
+import com.example.demo.report.dto.SalesByDayRowDTO;
+import com.example.demo.report.dto.StaffReportRowDTO;
+import com.example.demo.report.service.ReportService;
+import com.example.demo.repository.HoaDonRepository;
+import com.example.demo.repository.NhanVienRepository;
+import org.springframework.stereotype.Service;
+
+/**
+ * ReportServiceImpl
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Service
 public class ReportServiceImpl implements ReportService {
 
     private final HoaDonRepository hoaDonRepository;
     private final NhanVienRepository nhanVienRepository;
 
+    /**
+     * Creates ReportServiceImpl.
+     *
+     * @param hoaDonRepository hoaDonRepository
+     * @param nhanVienRepository nhanVienRepository
+     */
     public ReportServiceImpl(HoaDonRepository hoaDonRepository, NhanVienRepository nhanVienRepository) {
         this.hoaDonRepository = hoaDonRepository;
         this.nhanVienRepository = nhanVienRepository;
     }
 
+    /**
+     * Thong ke thu chi.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     @Override
     public List<ReportRowDTO> thongKeThuChi(LocalDate from, LocalDate to) {
         LocalDateTime fromTime = from.atStartOfDay();
@@ -41,6 +69,11 @@ public class ReportServiceImpl implements ReportService {
         return result;
     }
 
+    /**
+     * Thong ke nhan vien.
+     *
+     * @return result
+     */
     @Override
     public List<StaffReportRowDTO> thongKeNhanVien() {
         List<Object[]> rows = nhanVienRepository.thongKeNhanVienRaw();
@@ -57,6 +90,13 @@ public class ReportServiceImpl implements ReportService {
     }
     
 
+    /**
+     * Report sales by day.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     @Override
     public List<SalesByDayRowDTO> reportSalesByDay(LocalDate from, LocalDate to) {
         LocalDateTime fromTime = from.atStartOfDay();

@@ -11,17 +11,44 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * ProfileController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 public class ProfileController {
 
     private final TaiKhoanService taiKhoanService;
     private final NhanVienService nhanVienService;
 
+    /**
+     * Creates ProfileController.
+     *
+     * @param taiKhoanService taiKhoanService
+     * @param nhanVienService nhanVienService
+     */
     public ProfileController(TaiKhoanService taiKhoanService, NhanVienService nhanVienService) {
         this.taiKhoanService = taiKhoanService;
         this.nhanVienService = nhanVienService;
     }
 
+    /**
+     * View profile.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/profile")
     public String viewProfile(Model model, Authentication auth) {
         String username = auth.getName();
@@ -39,6 +66,13 @@ public class ProfileController {
         return "layout/base";
     }
 
+    /**
+     * Edit profile.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/profile/edit")
     public String editProfile(Model model, Authentication auth) {
         String username = auth.getName();
@@ -55,6 +89,16 @@ public class ProfileController {
         return "layout/base";
     }
 
+    /**
+     * Update profile.
+     *
+     * @param auth auth
+     * @param hoTen hoTen
+     * @param diaChi diaChi
+     * @param soDienThoai soDienThoai
+     * @param anh anh
+     * @return result
+     */
     @PostMapping("/profile/edit")
     public String updateProfile(Authentication auth,
                                 @RequestParam String hoTen,

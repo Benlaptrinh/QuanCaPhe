@@ -1,9 +1,24 @@
 package com.example.demo.entity;
 
 import java.math.BigDecimal;
-import lombok.*;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
+import lombok.*;
+
+/**
+ * ThucDon
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Entity
 @Table(name = "thuc_don")
 @Getter @Setter

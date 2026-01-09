@@ -10,16 +10,41 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * AdminMarketingController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 @RequestMapping("/admin/marketing")
 public class AdminMarketingController {
 
     private final KhuyenMaiService khuyenMaiService;
 
+    /**
+     * Creates AdminMarketingController.
+     *
+     * @param khuyenMaiService khuyenMaiService
+     */
     public AdminMarketingController(KhuyenMaiService khuyenMaiService) {
         this.khuyenMaiService = khuyenMaiService;
     }
 
+    /**
+     * Show add form.
+     *
+     * @param model model
+     * @return result
+     */
     @GetMapping("/add")
     public String showAddForm(Model model) {
         if (!model.containsAttribute("khuyenMaiForm")) {
@@ -31,6 +56,14 @@ public class AdminMarketingController {
         return "layout/base";
     }
 
+    /**
+     * Add khuyen mai.
+     *
+     * @param khuyenMaiForm khuyenMaiForm
+     * @param redirectAttributes redirectAttributes
+     * @param model model
+     * @return result
+     */
     @PostMapping("/add")
     public String addKhuyenMai(KhuyenMaiForm khuyenMaiForm, RedirectAttributes redirectAttributes, Model model) {
         try {
@@ -47,6 +80,14 @@ public class AdminMarketingController {
         }
     }
 
+    /**
+     * Show edit form.
+     *
+     * @param id id
+     * @param model model
+     * @param ra ra
+     * @return result
+     */
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
         try {
@@ -63,6 +104,15 @@ public class AdminMarketingController {
         }
     }
 
+    /**
+     * Update khuyen mai.
+     *
+     * @param id id
+     * @param khuyenMaiForm khuyenMaiForm
+     * @param redirectAttributes redirectAttributes
+     * @param model model
+     * @return result
+     */
     @PostMapping("/edit/{id}")
     public String updateKhuyenMai(@PathVariable Long id,
                                   KhuyenMaiForm khuyenMaiForm,
@@ -83,6 +133,13 @@ public class AdminMarketingController {
         }
     }
 
+    /**
+     * Delete khuyen mai.
+     *
+     * @param id id
+     * @param redirectAttributes redirectAttributes
+     * @return result
+     */
     @GetMapping("/delete/{id}")
     public String deleteKhuyenMai(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {

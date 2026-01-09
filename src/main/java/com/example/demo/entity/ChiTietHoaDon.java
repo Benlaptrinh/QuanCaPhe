@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,6 +17,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * ChiTietHoaDon
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Entity
 @Table(name = "chi_tiet_hoa_don")
 @Getter @Setter

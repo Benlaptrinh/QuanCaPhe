@@ -1,9 +1,5 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.service.DataService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -14,6 +10,25 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.example.demo.service.DataService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+/**
+ * DataServiceImpl
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Service
 public class DataServiceImpl implements DataService {
 
@@ -56,6 +71,11 @@ public class DataServiceImpl implements DataService {
         }
     }
 
+    /**
+     * Create backup file.
+     *
+     * @return result
+     */
     @Override
     public File createBackupFile() {
         String dbName = parseDbName();
@@ -71,6 +91,11 @@ public class DataServiceImpl implements DataService {
         }
     }
 
+    /**
+     * Restore from file.
+     *
+     * @param file file
+     */
     @Override
     public void restoreFromFile(MultipartFile file) {
         String dbName = parseDbName();

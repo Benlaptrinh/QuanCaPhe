@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import java.util.List;
+
 import com.example.demo.entity.ChucVu;
 import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
@@ -8,15 +10,28 @@ import com.example.demo.service.NhanVienService;
 import com.example.demo.service.TaiKhoanService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * AdminUserController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 @RequestMapping("/admin/users")
 public class AdminUserController {
@@ -25,6 +40,13 @@ public class AdminUserController {
     private final NhanVienService nhanVienService;
     private final ChucVuRepository chucVuRepository;
 
+    /**
+     * Creates AdminUserController.
+     *
+     * @param taiKhoanService taiKhoanService
+     * @param nhanVienService nhanVienService
+     * @param chucVuRepository chucVuRepository
+     */
     public AdminUserController(TaiKhoanService taiKhoanService,
                                NhanVienService nhanVienService,
                                ChucVuRepository chucVuRepository) {
@@ -33,12 +55,24 @@ public class AdminUserController {
         this.chucVuRepository = chucVuRepository;
     }
 
+    /**
+     * List.
+     *
+     * @param model model
+     * @return result
+     */
     @GetMapping
     public String list(Model model) {
         model.addAttribute("users", taiKhoanService.findAll());
         return "admin/users/list";
     }
 
+    /**
+     * Create form.
+     *
+     * @param model model
+     * @return result
+     */
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("taiKhoan", new TaiKhoan());
@@ -48,6 +82,15 @@ public class AdminUserController {
         return "admin/users/create";
     }
 
+    /**
+     * Create.
+     *
+     * @param taiKhoan taiKhoan
+     * @param nhanVien nhanVien
+     * @param chucVuId chucVuId
+     * @param redirectAttributes redirectAttributes
+     * @return result
+     */
     @PostMapping("/create")
     public String create(@ModelAttribute TaiKhoan taiKhoan,
                          @ModelAttribute NhanVien nhanVien,
@@ -69,6 +112,13 @@ public class AdminUserController {
         }
     }
 
+    /**
+     * Edit form.
+     *
+     * @param id id
+     * @param model model
+     * @return result
+     */
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         TaiKhoan tk = taiKhoanService.findById(id).orElse(null);
@@ -83,6 +133,16 @@ public class AdminUserController {
         return "admin/users/edit";
     }
 
+    /**
+     * Edit.
+     *
+     * @param id id
+     * @param taiKhoan taiKhoan
+     * @param nhanVien nhanVien
+     * @param chucVuId chucVuId
+     * @param redirectAttributes redirectAttributes
+     * @return result
+     */
     @PostMapping("/{id}/edit")
     public String edit(@PathVariable Long id,
                        @ModelAttribute TaiKhoan taiKhoan,
@@ -116,12 +176,25 @@ public class AdminUserController {
         return "redirect:/admin/users";
     }
 
+    /**
+     * Disable.
+     *
+     * @param id id
+     * @return result
+     */
     @PostMapping("/{id}/disable")
     public String disable(@PathVariable Long id) {
         taiKhoanService.disable(id);
         return "redirect:/admin/users";
     }
 
+    /**
+     * Delete.
+     *
+     * @param id id
+     * @param redirectAttributes redirectAttributes
+     * @return result
+     */
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         

@@ -1,8 +1,23 @@
 package com.example.demo.report.dto;
 
-import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+/**
+ * ReportFilterDTO
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 public class ReportFilterDTO {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate fromDate;

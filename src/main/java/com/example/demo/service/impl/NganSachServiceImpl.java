@@ -1,5 +1,9 @@
 package com.example.demo.service.impl;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
 import com.example.demo.dto.ChiTieuForm;
 import com.example.demo.dto.ThuChiDTO;
 import com.example.demo.entity.ChiTieu;
@@ -11,10 +15,21 @@ import com.example.demo.repository.TaiKhoanRepository;
 import com.example.demo.service.NganSachService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.*;
 
+/**
+ * NganSachServiceImpl
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Service
 @Transactional
 public class NganSachServiceImpl implements NganSachService {
@@ -23,6 +38,13 @@ public class NganSachServiceImpl implements NganSachService {
     private final HoaDonRepository hoaDonRepo;
     private final TaiKhoanRepository taiKhoanRepo;
 
+    /**
+     * Creates NganSachServiceImpl.
+     *
+     * @param chiTieuRepo chiTieuRepo
+     * @param hoaDonRepo hoaDonRepo
+     * @param taiKhoanRepo taiKhoanRepo
+     */
     public NganSachServiceImpl(ChiTieuRepository chiTieuRepo,
                                HoaDonRepository hoaDonRepo,
                                TaiKhoanRepository taiKhoanRepo) {
@@ -31,6 +53,13 @@ public class NganSachServiceImpl implements NganSachService {
         this.taiKhoanRepo = taiKhoanRepo;
     }
 
+    /**
+     * Xem thu chi.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     @Override
     public List<ThuChiDTO> xemThuChi(LocalDate from, LocalDate to) {
         Map<LocalDate, BigDecimal> thuMap = new HashMap<>();
@@ -70,6 +99,12 @@ public class NganSachServiceImpl implements NganSachService {
         return result;
     }
 
+    /**
+     * Them chi tieu.
+     *
+     * @param form form
+     * @param username username
+     */
     @Override
     public void themChiTieu(ChiTieuForm form, String username) {
         if (form.getTenKhoanChi() == null || form.getTenKhoanChi().isBlank()) {

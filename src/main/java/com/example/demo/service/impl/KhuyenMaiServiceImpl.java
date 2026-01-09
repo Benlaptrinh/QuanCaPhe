@@ -1,27 +1,57 @@
 package com.example.demo.service.impl;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import com.example.demo.dto.KhuyenMaiForm;
 import com.example.demo.entity.KhuyenMai;
 import com.example.demo.repository.KhuyenMaiRepository;
 import com.example.demo.service.KhuyenMaiService;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import com.example.demo.dto.KhuyenMaiForm;
-import java.math.BigDecimal;
 
+/**
+ * KhuyenMaiServiceImpl
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Service
 public class KhuyenMaiServiceImpl implements KhuyenMaiService {
 
     private final KhuyenMaiRepository khuyenMaiRepository;
 
+    /**
+     * Creates KhuyenMaiServiceImpl.
+     *
+     * @param khuyenMaiRepository khuyenMaiRepository
+     */
     public KhuyenMaiServiceImpl(KhuyenMaiRepository khuyenMaiRepository) {
         this.khuyenMaiRepository = khuyenMaiRepository;
     }
 
+    /**
+     * Get all khuyen mai.
+     *
+     * @return result
+     */
     @Override
     public List<KhuyenMai> getAllKhuyenMai() {
         return khuyenMaiRepository.findAll();
     }
     
+    /**
+     * Create khuyen mai.
+     *
+     * @param form form
+     */
     @Override
     public void createKhuyenMai(KhuyenMaiForm form) {
         if (form == null) {
@@ -51,6 +81,12 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
         khuyenMaiRepository.save(km);
     }
     
+    /**
+     * Get form by id.
+     *
+     * @param id id
+     * @return result
+     */
     @Override
     public KhuyenMaiForm getFormById(Long id) {
         KhuyenMai km = khuyenMaiRepository.findById(id)
@@ -66,6 +102,12 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
         return form;
     }
 
+    /**
+     * Update khuyen mai.
+     *
+     * @param id id
+     * @param form form
+     */
     @Override
     public void updateKhuyenMai(Long id, KhuyenMaiForm form) {
         KhuyenMai km = khuyenMaiRepository.findById(id)
@@ -96,6 +138,11 @@ public class KhuyenMaiServiceImpl implements KhuyenMaiService {
         khuyenMaiRepository.save(km);
     }
 
+    /**
+     * Delete by id.
+     *
+     * @param id id
+     */
     @Override
     public void deleteById(Long id) {
         khuyenMaiRepository.deleteById(id);

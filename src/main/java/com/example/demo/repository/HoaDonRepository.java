@@ -1,21 +1,63 @@
 package com.example.demo.repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import com.example.demo.entity.Ban;
 import com.example.demo.entity.HoaDon;
+import com.example.demo.enums.TrangThaiHoaDon;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.util.Optional;
-import java.time.LocalDateTime;
-import java.util.List;
-import com.example.demo.entity.Ban;
-import com.example.demo.enums.TrangThaiHoaDon;
 
+/**
+ * HoaDonRepository
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
+    /**
+     * Find chua thanh toan by ban.
+     *
+     * @param maBan maBan
+     * @return result
+     */
     @Query("select h from HoaDon h where h.ban.maBan = :maBan and h.trangThai = 'MOI_TAO'")
     Optional<HoaDon> findChuaThanhToanByBan(@Param("maBan") Long maBan);
 
+    /**
+     * Exists by ban and trang thai.
+     *
+     * @param ban ban
+     * @param trangThai trangThai
+     * @return result
+     */
     boolean existsByBanAndTrangThai(Ban ban, TrangThaiHoaDon trangThai);
+    /**
+     * Find by ngay thanh toan between.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     List<HoaDon> findByNgayThanhToanBetween(LocalDateTime from, LocalDateTime to);
+    /**
+     * Find hoa don da thanh toan.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     @Query("""
         SELECT h
         FROM HoaDon h
@@ -27,6 +69,13 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
         @Param("to") LocalDateTime to
     );
     
+    /**
+     * Thong ke thu raw.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     @Query(value = """
         SELECT
             DATE(h.ngay_gio_tao) AS ngay,
@@ -43,6 +92,13 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
         @Param("to") LocalDateTime to
     );
     
+    /**
+     * Thong ke ban hang theo ngay raw.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     @Query(value = """
         SELECT 
             DATE(h.ngay_thanh_toan) AS ngay,

@@ -1,23 +1,50 @@
 package com.example.demo.report.service.impl;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import com.example.demo.report.dto.SalesByDayRowDTO;
 import com.example.demo.report.service.SalesReportService;
 import com.example.demo.repository.HoaDonRepository;
 import org.springframework.stereotype.Service;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.math.BigDecimal;
 
+/**
+ * SalesReportServiceImpl
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Service
 public class SalesReportServiceImpl implements SalesReportService {
 
     private final HoaDonRepository hoaDonRepository;
 
+    /**
+     * Creates SalesReportServiceImpl.
+     *
+     * @param hoaDonRepository hoaDonRepository
+     */
     public SalesReportServiceImpl(HoaDonRepository hoaDonRepository) {
         this.hoaDonRepository = hoaDonRepository;
     }
 
+    /**
+     * Get sales by day.
+     *
+     * @param from from
+     * @param to to
+     * @return result
+     */
     @Override
     public List<SalesByDayRowDTO> getSalesByDay(LocalDate from, LocalDate to) {
         LocalDateTime fromTime = from.atStartOfDay();

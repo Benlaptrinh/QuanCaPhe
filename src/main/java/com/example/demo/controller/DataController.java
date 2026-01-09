@@ -14,16 +14,41 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * DataController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 @RequestMapping("/admin/data")
 public class DataController {
 
     private final DataService dataService;
 
+    /**
+     * Creates DataController.
+     *
+     * @param dataService dataService
+     */
     public DataController(DataService dataService) {
         this.dataService = dataService;
     }
 
+    /**
+     * Backup page.
+     *
+     * @param model model
+     * @return result
+     */
     @GetMapping("/backup")
     public String backupPage(Model model) {
         model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
@@ -35,6 +60,12 @@ public class DataController {
     
 
 
+    /**
+     * Backup.
+     *
+     * @param ra ra
+     * @return result
+     */
     @PostMapping("/backup")
     public Object backup(RedirectAttributes ra) {
         java.io.File f = null;
@@ -53,6 +84,12 @@ public class DataController {
         }
     }
 
+    /**
+     * Restore page.
+     *
+     * @param model model
+     * @return result
+     */
     @GetMapping("/restore")
     public String restorePage(Model model) {
         model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
@@ -64,6 +101,13 @@ public class DataController {
     
 
 
+    /**
+     * Restore.
+     *
+     * @param file file
+     * @param ra ra
+     * @return result
+     */
     @PostMapping(value = "/restore", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String restore(@RequestPart("file") MultipartFile file, RedirectAttributes ra) {
         if (file == null || file.isEmpty()) {

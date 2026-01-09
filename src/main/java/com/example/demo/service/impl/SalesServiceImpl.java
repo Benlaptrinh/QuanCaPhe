@@ -1,38 +1,53 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.entity.Ban;
-import com.example.demo.entity.HoaDon;
-import com.example.demo.entity.ThucDon;
-import com.example.demo.repository.BanRepository;
-import com.example.demo.repository.HoaDonRepository;
-import com.example.demo.repository.ThucDonRepository;
-import com.example.demo.repository.ChiTietHoaDonRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import com.example.demo.service.SalesService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.List;
-import java.util.Optional;
-import com.example.demo.entity.ChiTietDatBan;
-import com.example.demo.entity.ChiTietHoaDon;
-import com.example.demo.entity.NhanVien;
-import com.example.demo.entity.TaiKhoan;
-import com.example.demo.enums.TinhTrangBan;
-import com.example.demo.enums.TrangThaiHoaDon;
-import com.example.demo.repository.ChiTietDatBanRepository;
-import com.example.demo.repository.NhanVienRepository;
-import com.example.demo.repository.TaiKhoanRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import com.example.demo.entity.Ban;
+import com.example.demo.entity.ChiTietDatBan;
+import com.example.demo.entity.ChiTietHoaDon;
+import com.example.demo.entity.HoaDon;
+import com.example.demo.entity.NhanVien;
+import com.example.demo.entity.TaiKhoan;
+import com.example.demo.entity.ThucDon;
+import com.example.demo.enums.TinhTrangBan;
+import com.example.demo.enums.TrangThaiHoaDon;
+import com.example.demo.repository.BanRepository;
+import com.example.demo.repository.ChiTietDatBanRepository;
+import com.example.demo.repository.ChiTietHoaDonRepository;
+import com.example.demo.repository.HoaDonRepository;
+import com.example.demo.repository.NhanVienRepository;
+import com.example.demo.repository.TaiKhoanRepository;
+import com.example.demo.repository.ThucDonRepository;
+import com.example.demo.service.SalesService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * SalesServiceImpl
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Service
 public class SalesServiceImpl implements SalesService {
 
@@ -46,6 +61,17 @@ public class SalesServiceImpl implements SalesService {
     private final TaiKhoanRepository taiKhoanRepository;
     private final NhanVienRepository nhanVienRepository;
 
+    /**
+     * Creates SalesServiceImpl.
+     *
+     * @param banRepository banRepository
+     * @param hoaDonRepository hoaDonRepository
+     * @param thucDonRepository thucDonRepository
+     * @param chiTietHoaDonRepository chiTietHoaDonRepository
+     * @param chiTietDatBanRepository chiTietDatBanRepository
+     * @param taiKhoanRepository taiKhoanRepository
+     * @param nhanVienRepository nhanVienRepository
+     */
     public SalesServiceImpl(BanRepository banRepository,
                             HoaDonRepository hoaDonRepository,
                             ThucDonRepository thucDonRepository,
@@ -62,22 +88,52 @@ public class SalesServiceImpl implements SalesService {
         this.nhanVienRepository = nhanVienRepository;
     }
 
+    /**
+     * Find all tables.
+     *
+     * @return result
+     */
     @Override
     public List<Ban> findAllTables() {
         return banRepository.findAll();
     }
 
+    /**
+     * Find unpaid invoice by table.
+     *
+     * @param tableId tableId
+     * @return result
+     */
     @Override
     public Optional<HoaDon> findUnpaidInvoiceByTable(Long tableId) {
         return hoaDonRepository.findChuaThanhToanByBan(tableId);
     }
 
+    /**
+     * Find menu items.
+     *
+     * @return result
+     */
     @Override
     public List<ThucDon> findMenuItems() {
         return thucDonRepository.findAll();
     }
 
+    /**
+     * Add item to invoice.
+     *
+     * @param tableId tableId
+     * @param itemId itemId
+     * @param quantity quantity
+     */
     @Override
+    /**
+     * Add item to invoice.
+     *
+     * @param tableId tableId
+     * @param itemId itemId
+     * @param quantity quantity
+     */
     @Transactional
     public void addItemToInvoice(Long tableId, Long itemId, Integer quantity) {
         HoaDon hd = hoaDonRepository.findChuaThanhToanByBan(tableId).orElseGet(() -> {
@@ -128,7 +184,21 @@ public class SalesServiceImpl implements SalesService {
         hoaDonRepository.save(hd);
     }
 
+    /**
+     * Pay invoice.
+     *
+     * @param tableId tableId
+     * @param tienKhach tienKhach
+     * @param releaseTable releaseTable
+     */
     @Override
+    /**
+     * Pay invoice.
+     *
+     * @param tableId tableId
+     * @param tienKhach tienKhach
+     * @param releaseTable releaseTable
+     */
     @Transactional
     public void payInvoice(Long tableId, BigDecimal tienKhach, boolean releaseTable) {
         hoaDonRepository.findChuaThanhToanByBan(tableId).ifPresent(hd -> {
@@ -154,7 +224,23 @@ public class SalesServiceImpl implements SalesService {
         });
     }
 
+    /**
+     * Reserve table.
+     *
+     * @param banId banId
+     * @param tenKhach tenKhach
+     * @param sdt sdt
+     * @param ngayGioDat ngayGioDat
+     */
     @Override
+    /**
+     * Reserve table.
+     *
+     * @param banId banId
+     * @param tenKhach tenKhach
+     * @param sdt sdt
+     * @param ngayGioDat ngayGioDat
+     */
     @Transactional
     public void reserveTable(Long banId, String tenKhach, String sdt, LocalDateTime ngayGioDat) {
         Ban ban = banRepository.findById(banId).orElseThrow();
@@ -203,7 +289,19 @@ public class SalesServiceImpl implements SalesService {
         banRepository.save(ban);
     }
 
+    /**
+     * Save selected menu.
+     *
+     * @param banId banId
+     * @param params params
+     */
     @Override
+    /**
+     * Save selected menu.
+     *
+     * @param banId banId
+     * @param params params
+     */
     @Transactional
     public void saveSelectedMenu(Long banId, Map<String,String> params) {
         
@@ -288,7 +386,17 @@ public class SalesServiceImpl implements SalesService {
         }
     }
 
+    /**
+     * Cancel invoice.
+     *
+     * @param banId banId
+     */
     @Override
+    /**
+     * Cancel invoice.
+     *
+     * @param banId banId
+     */
     @Transactional
     public void cancelInvoice(Long banId) {
         Optional<HoaDon> hdOpt = hoaDonRepository.findChuaThanhToanByBan(banId);
@@ -313,12 +421,30 @@ public class SalesServiceImpl implements SalesService {
         }
     }
 
+    /**
+     * Find invoice by id.
+     *
+     * @param id id
+     * @return result
+     */
     @Override
     public Optional<HoaDon> findInvoiceById(Long id) {
         return hoaDonRepository.findById(id);
     }
 
+    /**
+     * Move table.
+     *
+     * @param fromBanId fromBanId
+     * @param toBanId toBanId
+     */
     @Override
+    /**
+     * Move table.
+     *
+     * @param fromBanId fromBanId
+     * @param toBanId toBanId
+     */
     @Transactional
     public void moveTable(Long fromBanId, Long toBanId) {
         if (fromBanId.equals(toBanId)) {
@@ -352,6 +478,11 @@ public class SalesServiceImpl implements SalesService {
         banRepository.save(toBan);
     }
 
+    /**
+     * Find empty tables.
+     *
+     * @return result
+     */
     @Override
     public List<Ban> findEmptyTables() {
         return banRepository.findAll().stream()
@@ -359,6 +490,12 @@ public class SalesServiceImpl implements SalesService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Find merge candidates.
+     *
+     * @param excludeBanId excludeBanId
+     * @return result
+     */
     @Override
     public List<Ban> findMergeCandidates(Long excludeBanId) {
         return banRepository.findAll().stream()
@@ -368,7 +505,19 @@ public class SalesServiceImpl implements SalesService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Merge tables.
+     *
+     * @param targetBanId targetBanId
+     * @param sourceBanId sourceBanId
+     */
     @Override
+    /**
+     * Merge tables.
+     *
+     * @param targetBanId targetBanId
+     * @param sourceBanId sourceBanId
+     */
     @Transactional
     public void mergeTables(Long targetBanId, Long sourceBanId) {
         if (targetBanId.equals(sourceBanId)) {
@@ -445,7 +594,21 @@ public class SalesServiceImpl implements SalesService {
         banRepository.save(targetBan);
     }
 
+    /**
+     * Split table.
+     *
+     * @param fromBanId fromBanId
+     * @param toBanId toBanId
+     * @param itemQuantities itemQuantities
+     */
     @Override
+    /**
+     * Split table.
+     *
+     * @param fromBanId fromBanId
+     * @param toBanId toBanId
+     * @param itemQuantities itemQuantities
+     */
     @Transactional
     public void splitTable(Long fromBanId, Long toBanId, Map<Long, Integer> itemQuantities) {
         if (fromBanId.equals(toBanId)) {
@@ -549,7 +712,17 @@ public class SalesServiceImpl implements SalesService {
         banRepository.save(toBan);
     }
 
+    /**
+     * Cancel reservation.
+     *
+     * @param banId banId
+     */
     @Override
+    /**
+     * Cancel reservation.
+     *
+     * @param banId banId
+     */
     @Transactional
     public void cancelReservation(Long banId) {
         Ban ban = banRepository.findById(banId).orElseThrow(() -> new IllegalArgumentException("Bàn không tồn tại"));

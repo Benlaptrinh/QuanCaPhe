@@ -1,27 +1,11 @@
 package com.example.demo.controller;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import com.example.demo.service.SalesService;
-import com.example.demo.service.ThietBiService;
-import com.example.demo.service.ThucDonService;
-import com.example.demo.service.HangHoaService;
-import com.example.demo.service.KhuyenMaiService;
-import com.example.demo.repository.DonViTinhRepository;
-import com.example.demo.service.NhanVienService;
-import com.example.demo.repository.TaiKhoanRepository;
+import java.math.BigDecimal;
 import java.security.Principal;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.format.annotation.DateTimeFormat;
-import com.example.demo.repository.HangHoaRepository;
-import com.example.demo.service.NganSachService;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 import com.example.demo.dto.ChiTieuForm;
 import com.example.demo.dto.EditHangHoaForm;
 import com.example.demo.dto.HangHoaNhapForm;
@@ -31,11 +15,42 @@ import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
 import com.example.demo.entity.ThietBi;
 import com.example.demo.entity.ThucDon;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.math.BigDecimal;
+import com.example.demo.repository.DonViTinhRepository;
+import com.example.demo.repository.HangHoaRepository;
+import com.example.demo.repository.TaiKhoanRepository;
+import com.example.demo.service.HangHoaService;
+import com.example.demo.service.KhuyenMaiService;
+import com.example.demo.service.NganSachService;
+import com.example.demo.service.NhanVienService;
+import com.example.demo.service.SalesService;
+import com.example.demo.service.ThietBiService;
+import com.example.demo.service.ThucDonService;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * AdminPagesController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 @RequestMapping("/admin")
 public class AdminPagesController {
@@ -52,6 +67,20 @@ public class AdminPagesController {
     private final KhuyenMaiService khuyenMaiService;
     private String sidebar = "fragments/sidebar-admin";
 
+    /**
+     * Creates AdminPagesController.
+     *
+     * @param salesService salesService
+     * @param thietBiService thietBiService
+     * @param hangHoaService hangHoaService
+     * @param donViTinhRepository donViTinhRepository
+     * @param nhanVienService nhanVienService
+     * @param taiKhoanRepository taiKhoanRepository
+     * @param hangHoaRepository hangHoaRepository
+     * @param thucDonService thucDonService
+     * @param khuyenMaiService khuyenMaiService
+     * @param nganSachService nganSachService
+     */
     public AdminPagesController(SalesService salesService, ThietBiService thietBiService, HangHoaService hangHoaService,
                                 DonViTinhRepository donViTinhRepository, NhanVienService nhanVienService,
                                 TaiKhoanRepository taiKhoanRepository, HangHoaRepository hangHoaRepository,
@@ -73,6 +102,13 @@ public class AdminPagesController {
         return auth == null ? "anonymous" : auth.getName();
     }
 
+    /**
+     * Sales.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/sales")
     public String sales(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
@@ -82,6 +118,13 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Equipment.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/equipment")
     public String equipment(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
@@ -95,6 +138,14 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Warehouse.
+     *
+     * @param keyword keyword
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/warehouse")
     public String warehouse(@RequestParam(required = false) String keyword, Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
@@ -110,6 +161,13 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Warehouse create form.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/warehouse/create")
     public String warehouseCreateForm(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
@@ -121,6 +179,14 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Warehouse create submit.
+     *
+     * @param form form
+     * @param principal principal
+     * @param ra ra
+     * @return result
+     */
     @PostMapping("/warehouse/create")
     public String warehouseCreateSubmit(@ModelAttribute("form") HangHoaNhapForm form,
                                         Principal principal, RedirectAttributes ra) {
@@ -138,6 +204,14 @@ public class AdminPagesController {
         return "redirect:/admin/warehouse";
     }
 
+    /**
+     * Warehouse export submit.
+     *
+     * @param xuatForm xuatForm
+     * @param principal principal
+     * @param ra ra
+     * @return result
+     */
     @PostMapping("/warehouse/export")
     public String warehouseExportSubmit(@ModelAttribute("xuatForm") XuatHangForm xuatForm,
                                         Principal principal, RedirectAttributes ra) {
@@ -155,6 +229,14 @@ public class AdminPagesController {
         return "redirect:/admin/warehouse";
     }
 
+    /**
+     * Warehouse edit form.
+     *
+     * @param id id
+     * @param model model
+     * @param ra ra
+     * @return result
+     */
     @GetMapping("/warehouse/edit/{id}")
     public String warehouseEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
         HangHoa hh = hangHoaRepository.findById(id).orElse(null);
@@ -178,6 +260,13 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Warehouse edit submit.
+     *
+     * @param form form
+     * @param ra ra
+     * @return result
+     */
     @PostMapping("/warehouse/edit")
     public String warehouseEditSubmit(@ModelAttribute("editForm") EditHangHoaForm form,
                                       RedirectAttributes ra) {
@@ -186,6 +275,13 @@ public class AdminPagesController {
         return "redirect:/admin/warehouse";
     }
 
+    /**
+     * Warehouse delete.
+     *
+     * @param id id
+     * @param ra ra
+     * @return result
+     */
     @GetMapping("/warehouse/delete/{id}")
     public String warehouseDelete(@PathVariable Long id, RedirectAttributes ra) {
         try {
@@ -197,6 +293,13 @@ public class AdminPagesController {
         return "redirect:/admin/warehouse";
     }
 
+    /**
+     * Menu.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/menu")
     public String menu(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
@@ -206,6 +309,14 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Menu search.
+     *
+     * @param keyword keyword
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/menu/search")
     public String menuSearch(@RequestParam(required = false) String keyword,
                               Model model, Authentication auth) {
@@ -222,6 +333,13 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Menu create form.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/menu/create")
     public String menuCreateForm(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
@@ -231,6 +349,14 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Menu create submit.
+     *
+     * @param tenMon tenMon
+     * @param giaTien giaTien
+     * @param redirect redirect
+     * @return result
+     */
     @PostMapping("/menu/create")
     public String menuCreateSubmit(@RequestParam String tenMon,
                                    @RequestParam BigDecimal giaTien,
@@ -245,6 +371,14 @@ public class AdminPagesController {
         }
     }
 
+    /**
+     * Menu edit form.
+     *
+     * @param id id
+     * @param model model
+     * @param ra ra
+     * @return result
+     */
     @GetMapping("/menu/edit/{id}")
     public String menuEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
         Optional<ThucDon> opt = thucDonService.findById(id);
@@ -259,6 +393,15 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Menu edit submit.
+     *
+     * @param id id
+     * @param tenMon tenMon
+     * @param giaTien giaTien
+     * @param redirect redirect
+     * @return result
+     */
     @PostMapping("/menu/edit")
     public String menuEditSubmit(@RequestParam Long id,
                                  @RequestParam String tenMon,
@@ -274,6 +417,13 @@ public class AdminPagesController {
         }
     }
 
+    /**
+     * Menu delete.
+     *
+     * @param id id
+     * @param redirect redirect
+     * @return result
+     */
     @GetMapping("/menu/delete/{id}")
     public String menuDelete(@PathVariable Long id, RedirectAttributes redirect) {
         try {
@@ -285,6 +435,13 @@ public class AdminPagesController {
         return "redirect:/admin/menu";
     }
 
+    /**
+     * Marketing.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/marketing")
     public String marketing(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));
@@ -295,6 +452,15 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Budget.
+     *
+     * @param from from
+     * @param to to
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/budget")
     public String budget(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
@@ -310,6 +476,14 @@ public class AdminPagesController {
         return "layout/base";
     }
 
+    /**
+     * Them chi.
+     *
+     * @param form form
+     * @param principal principal
+     * @param ra ra
+     * @return result
+     */
     @PostMapping("/budget/expense")
     public String themChi(@ModelAttribute ChiTieuForm form,
                           Principal principal, RedirectAttributes ra) {
@@ -319,6 +493,13 @@ public class AdminPagesController {
         return "redirect:/admin/budget";
     }
 
+    /**
+     * Reports.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/reports")
     public String reports(Model model, Authentication auth) {
         model.addAttribute("username", usernameFromAuth(auth));

@@ -1,5 +1,8 @@
 package com.example.demo.report.controller;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import com.example.demo.report.dto.ReportFilterDTO;
 import com.example.demo.report.service.FinanceReportService;
 import com.example.demo.report.service.SalesReportService;
@@ -11,9 +14,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import java.time.LocalDate;
-import java.util.List;
 
+/**
+ * ReportController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 @RequestMapping("/admin/report")
 public class ReportController {
@@ -23,6 +38,13 @@ public class ReportController {
     private final SalesReportService salesReportService;
     private final StaffReportService staffReportService;
 
+    /**
+     * Creates ReportController.
+     *
+     * @param financeReportService financeReportService
+     * @param salesReportService salesReportService
+     * @param staffReportService staffReportService
+     */
     public ReportController(FinanceReportService financeReportService,
                             SalesReportService salesReportService,
                             StaffReportService staffReportService) {
@@ -35,6 +57,13 @@ public class ReportController {
         return auth == null ? null : auth.getName();
     }
 
+    /**
+     * Show report page.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping
     public String showReportPage(Model model, Authentication auth) {
         LocalDate now = LocalDate.now();
@@ -54,6 +83,14 @@ public class ReportController {
         return "layout/base";
     }
 
+    /**
+     * View report.
+     *
+     * @param filter filter
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @PostMapping
     public String viewReport(
             @ModelAttribute("filter") ReportFilterDTO filter,

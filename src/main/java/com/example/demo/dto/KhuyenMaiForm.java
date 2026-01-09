@@ -1,9 +1,24 @@
 package com.example.demo.dto;
 
-import lombok.Getter;
-import lombok.Setter;
 import java.time.LocalDate;
 
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * KhuyenMaiForm
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Getter
 @Setter
 public class KhuyenMaiForm {

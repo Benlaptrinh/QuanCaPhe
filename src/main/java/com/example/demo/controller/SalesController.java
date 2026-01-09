@@ -1,47 +1,80 @@
 package com.example.demo.controller;
 
-import com.example.demo.service.SalesService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.format.annotation.DateTimeFormat;
-import java.util.Map;
-import com.example.demo.entity.Ban;
-import com.example.demo.entity.ChiTietHoaDon;
-import com.example.demo.entity.HoaDon;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.math.BigDecimal;
+
+import com.example.demo.entity.Ban;
+import com.example.demo.entity.ChiTietHoaDon;
+import com.example.demo.entity.HoaDon;
+import com.example.demo.service.SalesService;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * SalesController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 @RequestMapping("/sales")
 public class SalesController {
 
     private final SalesService salesService;
 
+    /**
+     * Creates SalesController.
+     *
+     * @param salesService salesService
+     */
     public SalesController(SalesService salesService) {
         this.salesService = salesService;
     }
 
+    /**
+     * Index.
+     *
+     * @param model model
+     * @return result
+     */
     @GetMapping
     public String index(Model model) {
         model.addAttribute("tables", salesService.findAllTables());
         return "sales/index";
     }
 
+    /**
+     * View ban.
+     *
+     * @param id id
+     * @param model model
+     * @return result
+     */
     @GetMapping("/ban/{id}")
     public String viewBan(@PathVariable Long id, Model model) {
         model.addAttribute("hoaDon", salesService.findUnpaidInvoiceByTable(id).orElse(null));
@@ -49,6 +82,13 @@ public class SalesController {
         return "sales/view-ban";
     }
 
+    /**
+     * Select menu form.
+     *
+     * @param banId banId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/{banId}/menu")
     public String selectMenuForm(@PathVariable Long banId, Model model) {
         model.addAttribute("menu", salesService.findMenuItems());
@@ -69,6 +109,13 @@ public class SalesController {
         return "sales/fragments/select-menu :: content";
     }
 
+    /**
+     * Select menu modal.
+     *
+     * @param banId banId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/{banId}/menu/modal")
     public String selectMenuModal(@PathVariable Long banId, Model model) {
         
@@ -90,11 +137,24 @@ public class SalesController {
         return "sales/fragments/select-menu :: content";
     }
 
+    /**
+     * Menu redirect.
+     *
+     * @param banId banId
+     * @return result
+     */
     @GetMapping("/menu")
     public String menuRedirect(@RequestParam("banId") Long banId) {
         return "redirect:/sales/" + banId + "/menu";
     }
 
+    /**
+     * Select menu submit.
+     *
+     * @param banId banId
+     * @param params params
+     * @return result
+     */
     @PostMapping("/{banId}/menu")
     public String selectMenuSubmit(@PathVariable Long banId,
                                    @RequestParam Map<String,String> params) {
@@ -102,6 +162,13 @@ public class SalesController {
         return "redirect:/admin/sales";
     }
 
+    /**
+     * Payment form.
+     *
+     * @param banId banId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/{banId}/payment")
     public String paymentForm(@PathVariable Long banId, Model model) {
         model.addAttribute("hoaDon", salesService.findUnpaidInvoiceByTable(banId).orElse(null));
@@ -109,11 +176,25 @@ public class SalesController {
         return "sales/payment";
     }
 
+    /**
+     * Payment redirect.
+     *
+     * @param banId banId
+     * @return result
+     */
     @GetMapping("/payment")
     public String paymentRedirect(@RequestParam("banId") Long banId) {
         return "redirect:/sales/" + banId + "/payment";
     }
 
+    /**
+     * Thanh toan.
+     *
+     * @param banId banId
+     * @param tienKhach tienKhach
+     * @param print print
+     * @return result
+     */
     @PostMapping("/thanh-toan/{banId}")
     public String thanhToan(@PathVariable Long banId,
                             @RequestParam("tienKhach") String tienKhach,
@@ -136,6 +217,13 @@ public class SalesController {
         return "redirect:/admin/sales";
     }
 
+    /**
+     * Payment modal.
+     *
+     * @param banId banId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/{banId}/payment/modal")
     public String paymentModal(@PathVariable Long banId, Model model) {
         model.addAttribute("tableId", banId);
@@ -143,7 +231,23 @@ public class SalesController {
         return "sales/fragments/payment :: content";
     }
 
+    /**
+     * Payment submit.
+     *
+     * @param banId banId
+     * @param tienKhach tienKhach
+     * @param print print
+     * @return result
+     */
     @PostMapping("/{banId}/payment")
+    /**
+     * Payment submit.
+     *
+     * @param banId banId
+     * @param tienKhach tienKhach
+     * @param print print
+     * @return result
+     */
     @ResponseBody
     public String paymentSubmit(@PathVariable Long banId,
                                 @RequestParam("tienKhach") String tienKhach,
@@ -174,6 +278,13 @@ public class SalesController {
         }
     }
 
+    /**
+     * Cancel invoice.
+     *
+     * @param banId banId
+     * @param ra ra
+     * @return result
+     */
     @PostMapping("/{banId}/cancel")
     public String cancelInvoice(@PathVariable Long banId, RedirectAttributes ra) {
         salesService.cancelInvoice(banId);
@@ -181,11 +292,25 @@ public class SalesController {
         return "redirect:/admin/sales";
     }
 
+    /**
+     * View redirect.
+     *
+     * @param banId banId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/view")
     public String viewRedirect(@RequestParam("banId") Long banId, Model model) {
         return viewBan(banId, model);
     }
 
+    /**
+     * View ban fragment.
+     *
+     * @param id id
+     * @param model model
+     * @return result
+     */
     @GetMapping("/ban/{id}/view")
     public String viewBanFragment(@PathVariable("id") Long id, Model model) {
         Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
@@ -201,6 +326,13 @@ public class SalesController {
         return "sales/fragments/view-ban :: content";
     }
 
+    /**
+     * Reserve ban fragment.
+     *
+     * @param id id
+     * @param model model
+     * @return result
+     */
     @GetMapping("/ban/{id}/reserve")
     public String reserveBanFragment(@PathVariable("id") Long id, Model model) {
         model.addAttribute("banId", id);
@@ -211,7 +343,25 @@ public class SalesController {
         return "sales/fragments/reserve :: content";
     }
 
+    /**
+     * Reserve ban submit.
+     *
+     * @param id id
+     * @param tenKhach tenKhach
+     * @param sdt sdt
+     * @param ngayGio ngayGio
+     * @return result
+     */
     @PostMapping("/ban/{id}/reserve")
+    /**
+     * Reserve ban submit.
+     *
+     * @param id id
+     * @param tenKhach tenKhach
+     * @param sdt sdt
+     * @param ngayGio ngayGio
+     * @return result
+     */
     @ResponseBody
     public String reserveBanSubmit(@PathVariable("id") Long id,
                                    @RequestParam("tenKhach") String tenKhach,
@@ -226,6 +376,13 @@ public class SalesController {
     }
 
     
+    /**
+     * Move ban fragment.
+     *
+     * @param fromBanId fromBanId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/ban/{fromBanId}/move")
     public String moveBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
         model.addAttribute("fromBanId", fromBanId);
@@ -237,7 +394,19 @@ public class SalesController {
     }
 
     
+    /**
+     * Move table json.
+     *
+     * @param payload payload
+     * @return result
+     */
     @PostMapping("/move")
+    /**
+     * Move table json.
+     *
+     * @param payload payload
+     * @return result
+     */
     @ResponseBody
     public ResponseEntity<String> moveTableJson(@RequestBody Map<String, Object> payload) {
         try {
@@ -259,6 +428,13 @@ public class SalesController {
     }
 
     
+    /**
+     * Merge ban fragment.
+     *
+     * @param targetBanId targetBanId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/ban/{targetBanId}/merge")
     public String mergeBanFragment(@PathVariable("targetBanId") Long targetBanId, Model model) {
         model.addAttribute("targetBanId", targetBanId);
@@ -267,6 +443,13 @@ public class SalesController {
     }
 
     
+    /**
+     * Split ban fragment.
+     *
+     * @param fromBanId fromBanId
+     * @param model model
+     * @return result
+     */
     @GetMapping("/ban/{fromBanId}/split")
     public String splitBanFragment(@PathVariable("fromBanId") Long fromBanId, Model model) {
         Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(fromBanId);
@@ -281,7 +464,23 @@ public class SalesController {
     }
 
     
+    /**
+     * Split table.
+     *
+     * @param fromBanId fromBanId
+     * @param toBanId toBanId
+     * @param params params
+     * @return result
+     */
     @PostMapping("/ban/{fromBanId}/split")
+    /**
+     * Split table.
+     *
+     * @param fromBanId fromBanId
+     * @param toBanId toBanId
+     * @param params params
+     * @return result
+     */
     @ResponseBody
     public String splitTable(@PathVariable("fromBanId") Long fromBanId,
                              @RequestParam("toBanId") Long toBanId,
@@ -303,7 +502,19 @@ public class SalesController {
     }
 
     
+    /**
+     * Cancel reservation.
+     *
+     * @param banId banId
+     * @return result
+     */
     @PostMapping("/ban/{banId}/cancel-reservation")
+    /**
+     * Cancel reservation.
+     *
+     * @param banId banId
+     * @return result
+     */
     @ResponseBody
     public ResponseEntity<String> cancelReservation(@PathVariable("banId") Long banId) {
         try {
@@ -319,7 +530,21 @@ public class SalesController {
     }
 
     
+    /**
+     * Split table json.
+     *
+     * @param fromBanId fromBanId
+     * @param payload payload
+     * @return result
+     */
     @PostMapping("/{fromBanId}/split")
+    /**
+     * Split table json.
+     *
+     * @param fromBanId fromBanId
+     * @param payload payload
+     * @return result
+     */
     @ResponseBody
     public ResponseEntity<String> splitTableJson(@PathVariable("fromBanId") Long fromBanId, @RequestBody Map<String, Object> payload) {
         try {
@@ -349,7 +574,21 @@ public class SalesController {
     }
 
     
+    /**
+     * Merge table.
+     *
+     * @param targetBanId targetBanId
+     * @param sourceBanId sourceBanId
+     * @return result
+     */
     @PostMapping("/ban/{targetBanId}/merge")
+    /**
+     * Merge table.
+     *
+     * @param targetBanId targetBanId
+     * @param sourceBanId sourceBanId
+     * @return result
+     */
     @ResponseBody
     public String mergeTable(@PathVariable Long targetBanId, @RequestParam("sourceBanId") Long sourceBanId) {
         try {
@@ -361,7 +600,19 @@ public class SalesController {
     }
 
     
+    /**
+     * Merge table json.
+     *
+     * @param payload payload
+     * @return result
+     */
     @PostMapping("/merge")
+    /**
+     * Merge table json.
+     *
+     * @param payload payload
+     * @return result
+     */
     @ResponseBody
     public ResponseEntity<String> mergeTableJson(@RequestBody Map<String, Object> payload) {
         try {

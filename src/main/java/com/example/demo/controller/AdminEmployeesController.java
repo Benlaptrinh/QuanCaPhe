@@ -1,23 +1,38 @@
 package com.example.demo.controller;
 
+import java.util.List;
+
 import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
+import com.example.demo.enums.Role;
 import com.example.demo.repository.ChucVuRepository;
 import com.example.demo.service.NhanVienService;
 import com.example.demo.service.TaiKhoanService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.List;
-import com.example.demo.enums.Role;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * AdminEmployeesController
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Controller
 @RequestMapping("/admin/employees")
 public class AdminEmployeesController {
@@ -26,12 +41,27 @@ public class AdminEmployeesController {
     private final TaiKhoanService taiKhoanService;
     private final ChucVuRepository chucVuRepository;
 
+    /**
+     * Creates AdminEmployeesController.
+     *
+     * @param nhanVienService nhanVienService
+     * @param taiKhoanService taiKhoanService
+     * @param chucVuRepository chucVuRepository
+     */
     public AdminEmployeesController(NhanVienService nhanVienService, TaiKhoanService taiKhoanService, ChucVuRepository chucVuRepository) {
         this.nhanVienService = nhanVienService;
         this.taiKhoanService = taiKhoanService;
         this.chucVuRepository = chucVuRepository;
     }
 
+    /**
+     * List.
+     *
+     * @param q q
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String q, Model model, Authentication auth) {
         List<NhanVien> list;
@@ -47,6 +77,13 @@ public class AdminEmployeesController {
         return "layout/base";
     }
 
+    /**
+     * Create form.
+     *
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/create")
     public String createForm(Model model, Authentication auth) {
         model.addAttribute("nhanVien", new NhanVien());
@@ -57,6 +94,17 @@ public class AdminEmployeesController {
         return "layout/base";
     }
 
+    /**
+     * Create.
+     *
+     * @param nhanVien nhanVien
+     * @param chucVuId chucVuId
+     * @param tenDangNhap tenDangNhap
+     * @param matKhau matKhau
+     * @param role role
+     * @param redirectAttributes redirectAttributes
+     * @return result
+     */
     @PostMapping("/create")
     public String create(@ModelAttribute NhanVien nhanVien,
                          @RequestParam(value = "chucVuId", required = false) Long chucVuId,
@@ -94,6 +142,14 @@ public class AdminEmployeesController {
         }
     }
 
+    /**
+     * Edit form.
+     *
+     * @param id id
+     * @param model model
+     * @param auth auth
+     * @return result
+     */
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model, Authentication auth) {
         NhanVien nv = nhanVienService.findById(id).orElse(new NhanVien());
@@ -105,6 +161,18 @@ public class AdminEmployeesController {
         return "layout/base";
     }
 
+    /**
+     * Edit.
+     *
+     * @param id id
+     * @param nhanVien nhanVien
+     * @param chucVuId chucVuId
+     * @param tenDangNhap tenDangNhap
+     * @param matKhau matKhau
+     * @param role role
+     * @param redirectAttributes redirectAttributes
+     * @return result
+     */
     @PostMapping("/{id}/edit")
     public String edit(@PathVariable Long id,
                        @ModelAttribute NhanVien nhanVien,
@@ -164,6 +232,13 @@ public class AdminEmployeesController {
         return "redirect:/admin/employees";
     }
 
+    /**
+     * Delete.
+     *
+     * @param id id
+     * @param redirectAttributes redirectAttributes
+     * @return result
+     */
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         nhanVienService.deleteById(id);

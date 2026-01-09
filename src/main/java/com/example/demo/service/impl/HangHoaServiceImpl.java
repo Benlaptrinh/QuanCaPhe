@@ -1,24 +1,39 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.HangHoaKhoDTO;
-import com.example.demo.entity.HangHoa;
-import com.example.demo.repository.DonNhapRepository;
-import com.example.demo.repository.DonXuatRepository;
-import com.example.demo.repository.HangHoaRepository;
-import com.example.demo.service.HangHoaService;
-import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import com.example.demo.dto.EditHangHoaForm;
+import com.example.demo.dto.HangHoaKhoDTO;
 import com.example.demo.dto.HangHoaNhapForm;
 import com.example.demo.entity.DonNhap;
 import com.example.demo.entity.DonViTinh;
 import com.example.demo.entity.DonXuat;
+import com.example.demo.entity.HangHoa;
 import com.example.demo.entity.NhanVien;
+import com.example.demo.repository.DonNhapRepository;
 import com.example.demo.repository.DonViTinhRepository;
-import java.time.LocalDateTime;
+import com.example.demo.repository.DonXuatRepository;
+import com.example.demo.repository.HangHoaRepository;
+import com.example.demo.service.HangHoaService;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * HangHoaServiceImpl
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Service
 public class HangHoaServiceImpl implements HangHoaService {
 
@@ -27,6 +42,14 @@ public class HangHoaServiceImpl implements HangHoaService {
     private final DonXuatRepository donXuatRepo;
     private final DonViTinhRepository donViTinhRepo;
 
+    /**
+     * Creates HangHoaServiceImpl.
+     *
+     * @param hangHoaRepo hangHoaRepo
+     * @param donNhapRepo donNhapRepo
+     * @param donXuatRepo donXuatRepo
+     * @param donViTinhRepo donViTinhRepo
+     */
     public HangHoaServiceImpl(HangHoaRepository hangHoaRepo,
                               DonNhapRepository donNhapRepo,
                               DonXuatRepository donXuatRepo,
@@ -37,6 +60,11 @@ public class HangHoaServiceImpl implements HangHoaService {
         this.donViTinhRepo = donViTinhRepo;
     }
 
+    /**
+     * Get danh sach kho.
+     *
+     * @return result
+     */
     @Override
     public List<HangHoaKhoDTO> getDanhSachKho() {
         List<HangHoa> list = hangHoaRepo.findAll();
@@ -59,6 +87,12 @@ public class HangHoaServiceImpl implements HangHoaService {
 
         return result;
     }
+    /**
+     * Search hang hoa.
+     *
+     * @param keyword keyword
+     * @return result
+     */
     @Override
     public List<HangHoaKhoDTO> searchHangHoa(String keyword) {
         List<HangHoa> list;
@@ -81,7 +115,19 @@ public class HangHoaServiceImpl implements HangHoaService {
         }
         return result;
     }
+    /**
+     * Nhap hang.
+     *
+     * @param form form
+     * @param nhanVien nhanVien
+     */
     @Override
+    /**
+     * Nhap hang.
+     *
+     * @param form form
+     * @param nhanVien nhanVien
+     */
     @Transactional
     public void nhapHang(HangHoaNhapForm form, NhanVien nhanVien) {
         if (form.getSoLuong() == null || form.getSoLuong() <= 0) {
@@ -117,7 +163,23 @@ public class HangHoaServiceImpl implements HangHoaService {
         donNhapRepo.save(dn);
     }
 
+    /**
+     * Xuat hang.
+     *
+     * @param hangHoaId hangHoaId
+     * @param soLuong soLuong
+     * @param ngayXuat ngayXuat
+     * @param nhanVien nhanVien
+     */
     @Override
+    /**
+     * Xuat hang.
+     *
+     * @param hangHoaId hangHoaId
+     * @param soLuong soLuong
+     * @param ngayXuat ngayXuat
+     * @param nhanVien nhanVien
+     */
     @Transactional
     public void xuatHang(Long hangHoaId, Integer soLuong, LocalDateTime ngayXuat, NhanVien nhanVien) {
         if (soLuong == null || soLuong <= 0) {
@@ -142,7 +204,17 @@ public class HangHoaServiceImpl implements HangHoaService {
         donXuatRepo.save(dx);
     }
 
+    /**
+     * Update hang hoa.
+     *
+     * @param form form
+     */
     @Override
+    /**
+     * Update hang hoa.
+     *
+     * @param form form
+     */
     @Transactional
     public void updateHangHoa(EditHangHoaForm form) {
         HangHoa hh = hangHoaRepo.findById(form.getId())
@@ -162,7 +234,17 @@ public class HangHoaServiceImpl implements HangHoaService {
         hangHoaRepo.save(hh);
     }
 
+    /**
+     * Delete hang hoa.
+     *
+     * @param id id
+     */
     @Override
+    /**
+     * Delete hang hoa.
+     *
+     * @param id id
+     */
     @Transactional
     public void deleteHangHoa(Long id) {
         HangHoa hh = hangHoaRepo.findById(id)
