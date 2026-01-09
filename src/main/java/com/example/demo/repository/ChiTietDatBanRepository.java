@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.entity.Ban;
 import com.example.demo.entity.ChiTietDatBan;
+import com.example.demo.entity.id.ChiTietDatBanId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -18,8 +19,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * -----------------------------------
  * 09-01-2026  Việt    Create
  */
-import com.example.demo.entity.id.ChiTietDatBanId;
-
 public interface ChiTietDatBanRepository extends JpaRepository<ChiTietDatBan, ChiTietDatBanId> {
     /**
      * Delete by ban.
@@ -28,5 +27,4 @@ public interface ChiTietDatBanRepository extends JpaRepository<ChiTietDatBan, Ch
      */
     void deleteByBan(Ban ban);
 }
-
 
