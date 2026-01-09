@@ -73,7 +73,7 @@ Kiểm tra MySQL đang chạy:
 
 ### Cách A: Clone bằng Git
 ```bash
-git clone <LINK_GITHUB_CUA_BAN>
+git clone https://github.com/Benlaptrinh/QuanCaPhe
 cd demo
 ```
 
