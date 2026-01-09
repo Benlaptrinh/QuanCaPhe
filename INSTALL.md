@@ -91,7 +91,7 @@ Hibernate sẽ tự tạo bảng từ Entity khi chạy lần đầu.
 Mở MySQL Workbench hoặc command line và chạy:
 
 ```sql
-CREATE DATABASE tiemchung;
+CREATE DATABASE quancaphe;
 ```
 
 Lưu ý: Tên database đang được cấu hình trong `application.properties`.  
