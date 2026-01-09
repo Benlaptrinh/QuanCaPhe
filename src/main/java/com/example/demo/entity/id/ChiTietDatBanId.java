@@ -2,10 +2,29 @@ package com.example.demo.entity.id;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import lombok.*;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+/**
+ * ChiTietDatBanId
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Embeddable
 @Getter @Setter
 @NoArgsConstructor
@@ -19,5 +38,4 @@ public class ChiTietDatBanId implements Serializable {
     @Column(name = "ngay_gio_dat")
     private LocalDateTime ngayGioDat;
 }
-
 

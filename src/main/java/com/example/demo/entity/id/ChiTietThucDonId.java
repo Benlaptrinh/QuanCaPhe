@@ -1,10 +1,29 @@
 package com.example.demo.entity.id;
 
 import java.io.Serializable;
-import lombok.*;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+/**
+ * ChiTietThucDonId
+ *
+ * Version 1.0
+ *
+ * Date: 09-01-2026
+ *
+ * Copyright
+ *
+ * Modification Logs:
+ * DATE        AUTHOR      DESCRIPTION
+ * -----------------------------------
+ * 09-01-2026  Việt    Create
+ */
 @Embeddable
 @Getter @Setter
 @NoArgsConstructor
@@ -18,5 +37,4 @@ public class ChiTietThucDonId implements Serializable {
     @Column(name = "ma_hang_hoa")
     private Long maHangHoa;
 }
-
 

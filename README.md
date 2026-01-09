@@ -179,6 +179,9 @@ Lưu ý:
 - Controller mỏng; logic đặt ở Service.  
 - Repository chỉ trả dữ liệu; mapping nằm ở Service.  
 - Tránh JPQL dùng function phụ thuộc dialect trong constructor expression; ưu tiên native SQL.
+- Bắt buộc Javadoc cho class và public method (trừ getter/setter/private).  
+- Import chia nhóm, không dùng wildcard.  
+- Indent 4 spaces, không dùng tab.
 
 **Thymeleaf:**
 - Tránh SpEL phức tạp; dùng `#aggregates.sum(list.![field])`.  

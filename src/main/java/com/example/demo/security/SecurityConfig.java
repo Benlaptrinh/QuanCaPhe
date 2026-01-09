@@ -85,6 +85,15 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler roleBasedAuthSuccessHandler() {
         return new AuthenticationSuccessHandler() {
+            /**
+             * Handle successful authentication and redirect by role.
+             *
+             * @param request request
+             * @param response response
+             * @param authentication authentication
+             * @throws IOException if an I/O error occurs
+             * @throws ServletException if a servlet error occurs
+             */
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
                 boolean isAdmin = authentication.getAuthorities().stream()
@@ -104,5 +113,4 @@ public class SecurityConfig {
         };
     }
 }
-
 
