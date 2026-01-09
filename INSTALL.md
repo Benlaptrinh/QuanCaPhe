@@ -136,7 +136,7 @@ Ghi chú:
 2. Chọn JDK 17 cho Project SDK.
 3. Đợi IntelliJ tải dependencies.
 4. Mở file `src/main/java/com/example/demo/DemoApplication.java`
-5. Click Run ▶️
+5. Click Run 
 
 Nếu chạy thành công, console sẽ có dòng kiểu:
 ```
