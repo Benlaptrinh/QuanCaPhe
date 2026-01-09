@@ -3,13 +3,14 @@ package com.example.demo.entity;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,20 +38,29 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChiTietThucDon {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private com.example.demo.entity.id.ChiTietThucDonId id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_thuc_don")
+    @MapsId("maThucDon")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ma_thuc_don", nullable = false)
     private ThucDon thucDon;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_hang_hoa")
+    @MapsId("maHangHoa")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ma_hang_hoa", nullable = false)
     private HangHoa hangHoa;
 
     @Column(precision = 13, scale = 3)
     private BigDecimal khoiLuong;
+
+    @PrePersist
+    @PreUpdate
+    private void syncId() {
+        if (this.id == null) this.id = new com.example.demo.entity.id.ChiTietThucDonId();
+        this.id.setMaThucDon(this.thucDon != null ? this.thucDon.getMaThucDon() : null);
+        this.id.setMaHangHoa(this.hangHoa != null ? this.hangHoa.getMaHangHoa() : null);
+    }
 }
 
 

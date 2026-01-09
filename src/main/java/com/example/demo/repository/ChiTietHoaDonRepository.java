@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
  * -----------------------------------
  * 09-01-2026  Việt    Create
  */
-public interface ChiTietHoaDonRepository extends JpaRepository<ChiTietHoaDon, Long> {
+import com.example.demo.entity.id.ChiTietHoaDonId;
+
+public interface ChiTietHoaDonRepository extends JpaRepository<ChiTietHoaDon, ChiTietHoaDonId> {
     /**
      * Delete by hoa don id.
      *

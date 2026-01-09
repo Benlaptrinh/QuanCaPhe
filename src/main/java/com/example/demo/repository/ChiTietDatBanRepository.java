@@ -18,7 +18,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * -----------------------------------
  * 09-01-2026  Việt    Create
  */
-public interface ChiTietDatBanRepository extends JpaRepository<ChiTietDatBan, Long> {
+import com.example.demo.entity.id.ChiTietDatBanId;
+
+public interface ChiTietDatBanRepository extends JpaRepository<ChiTietDatBan, ChiTietDatBanId> {
     /**
      * Delete by ban.
      *
