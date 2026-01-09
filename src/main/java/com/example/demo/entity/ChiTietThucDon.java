@@ -13,6 +13,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,9 +37,11 @@ import lombok.Setter;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ChiTietThucDon {
 
     @EmbeddedId
+    @EqualsAndHashCode.Include
     private com.example.demo.entity.id.ChiTietThucDonId id;
 
     @MapsId("maThucDon")
@@ -62,5 +65,4 @@ public class ChiTietThucDon {
         this.id.setMaHangHoa(this.hangHoa != null ? this.hangHoa.getMaHangHoa() : null);
     }
 }
-
 
