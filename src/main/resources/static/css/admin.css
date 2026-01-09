@@ -662,10 +662,18 @@ a:hover {
     border: 1px solid #d1d5db;
 }
 
+#modal-body {
+    width: min(92vw, 760px);
+    max-height: 90vh;
+    overflow: auto;
+}
+
 #modal-body > div {
     box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     border-radius: 6px;
     background: white;
+    width: 100%;
+    max-width: 100% !important;
 }
 
 /* Profile */
@@ -719,4 +727,72 @@ a:hover {
 
 .info-row span:first-child {
     color: #4b5563;
+}
+
+@media (max-width: 720px) {
+    .content-wrapper {
+        padding: 16px;
+    }
+
+    .content-wrapper h1 {
+        font-size: 20px;
+    }
+
+    .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .action-bar > * {
+        width: 100%;
+    }
+
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .search-form input[type="text"] {
+        width: 100%;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        max-width: 100%;
+    }
+
+    .report-form {
+        padding: 12px;
+    }
+
+    .report-table,
+    .report-table--compact {
+        max-width: 100%;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .data-table,
+    .content-area table,
+    #modal-body table {
+        display: block;
+        width: 100% !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 }

@@ -1,57 +1,30 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-  <div th:fragment="content">
+  <div th:fragment="content" class="content-wrapper">
     <h2>Chỉnh sửa thông tin cá nhân</h2>
-    <form th:action="@{/profile/edit}" method="post">
-      <div>
+    <form class="form-box" th:action="@{/profile/edit}" method="post">
+      <div class="form-group">
         <label>Họ và tên</label>
         <input type="text" name="hoTen" th:value="${nhanVien.hoTen}" />
       </div>
-      <div>
+      <div class="form-group">
         <label>Địa chỉ</label>
         <input type="text" name="diaChi" th:value="${nhanVien.diaChi}" />
       </div>
-      <div>
+      <div class="form-group">
         <label>Số điện thoại</label>
         <input type="text" name="soDienThoai" th:value="${nhanVien.soDienThoai}" />
       </div>
-      <div>
+      <div class="form-group">
         <label>Ảnh (URL)</label>
         <input type="text" name="anh" th:value="${taiKhoan.anh}" />
       </div>
-      <div>
-        <button type="submit">Lưu</button>
-        <a th:href="@{/profile}">Hủy</a>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Lưu</button>
+        <a class="btn btn-secondary" th:href="@{/profile}">Hủy</a>
       </div>
     </form>
   </div>
 </body>
 </html>
-
-
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head"></head>
-<body>
-
-<main>
-  <div style="display:flex; height:100vh; box-sizing:border-box">
-
-    <!-- SIDEBAR -->
-    <div style="width:250px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box">
-      <div th:replace="~{${sidebarFragment} :: sidebar}"></div>
-    </div>
-
-    <!-- CONTENT -->
-    <div style="flex:1; padding:20px; box-sizing:border-box">
-      <div th:replace="~{${contentFragment} :: content}"></div>
-    </div>
-
-  </div>
-</main>
-
-1</body>
-</html>
-
-
