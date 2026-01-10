@@ -19,15 +19,11 @@
   min-width: 0;
 }
 
-/* Tables: allow horizontal scroll on small screens */
+/* Report table sizing */
 .report-table {
-  width: 100%;
-  overflow-x: auto;
-  display: block;
-}
-.report-table table {
-  width: 100%;
-  border-collapse: collapse;
+  width: 100% !important;
+  max-width: 100%;
+  table-layout: fixed;
 }
 
 /* Mobile: hide sidebar, show toggle button */
@@ -65,6 +61,11 @@
 
   .no-print {
     display: inline-block;
+  }
+
+  .report-table.data-table,
+  .report-table.report-table--compact {
+    min-width: 100% !important;
   }
 }
 
@@ -133,4 +134,3 @@
     padding: 12px;
   }
 }
-

@@ -965,8 +965,35 @@ a:hover {
         padding: 12px;
     }
 
+    .report-types {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .report-option {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .report-dates {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .report-date {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .report-date input[type="date"] {
+        width: 100%;
+    }
+
     .report-table,
     .report-table--compact {
+        min-width: 0;
         max-width: 100%;
     }
 
@@ -1007,6 +1034,21 @@ a:hover {
     .data-table .btn {
         padding: 6px 10px;
         font-size: 13px;
+    }
+
+    .data-table.report-table,
+    .data-table.report-table--compact {
+        min-width: 0;
+        width: 100% !important;
+        table-layout: fixed;
+        word-break: break-word;
+    }
+
+    .report-page .report-table,
+    .report-page .report-table--compact {
+        display: table !important;
+        max-width: none;
+        overflow-x: visible;
     }
 
     .data-table.table-actions th:last-child,
