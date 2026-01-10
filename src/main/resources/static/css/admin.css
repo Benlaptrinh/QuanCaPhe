@@ -86,6 +86,25 @@ a:hover {
     padding: 20px;
 }
 
+.sidebar-toggle {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+}
+
+.sidebar-toggle:hover {
+    background: var(--surface-muted);
+}
+
 .app-layout {
     display: flex;
     gap: 20px;
@@ -161,6 +180,10 @@ a:hover {
     min-width: 0;
 }
 
+.sidebar-overlay {
+    display: none;
+}
+
 .app-footer {
     padding: 16px 24px 28px;
     color: var(--muted);
@@ -194,20 +217,70 @@ a:hover {
         padding: 12px;
     }
 
+    .sidebar-toggle {
+        display: inline-flex;
+    }
+
     .app-layout {
         flex-direction: column;
         min-height: auto;
+        align-items: stretch;
     }
 
     .sidebar {
-        width: 100%;
-        position: static;
+        display: block;
+        width: auto;
+        position: fixed;
+        top: 76px;
+        left: 12px;
+        right: 12px;
+        max-height: calc(100vh - 96px);
+        overflow: auto;
+        z-index: 200;
+        opacity: 0;
+        transform: translateY(-12px) scale(0.98);
+        pointer-events: none;
+        transition: transform 0.25s ease, opacity 0.25s ease;
     }
 
     .sidebar-list {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 8px;
+    }
+
+    .content-area,
+    .content-wrapper,
+    .profile-card {
+        width: 100%;
+    }
+
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    body.sidebar-open .sidebar {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    body.sidebar-open .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(7, 18, 16, 0.45);
+        z-index: 150;
+        opacity: 1;
+        pointer-events: auto;
+        transition: opacity 0.2s ease;
+    }
+
+    .sidebar-overlay {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
     }
 }
 
@@ -747,6 +820,19 @@ a:hover {
         width: 100%;
     }
 
+    .profile-card .action-bar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .profile-card .action-bar > *,
+    .profile-card .action-bar .btn,
+    .profile-card .action-bar form {
+        width: auto;
+    }
+
     .search-form {
         flex-direction: column;
         align-items: stretch;
@@ -794,5 +880,56 @@ a:hover {
         width: 100% !important;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+        min-width: 520px;
+        font-size: 14px;
+    }
+
+    .data-table.table-wide {
+        min-width: 720px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 10px;
+    }
+
+    .data-table .btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .data-table.table-actions th:last-child,
+    .data-table.table-actions td:last-child {
+        position: sticky;
+        right: 0;
+        background-color: inherit;
+        box-shadow: -12px 0 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .data-table.table-actions th:last-child {
+        background: #f4f1e9;
+        z-index: 3;
+    }
+
+    .data-table.table-actions td:last-child {
+        z-index: 2;
+        white-space: nowrap;
+    }
+
+    .data-table.table-actions td.action-buttons {
+        flex-wrap: nowrap;
+        gap: 6px;
+    }
+
+    .action-buttons {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .content-wrapper {
+        padding: 16px 18px 18px;
     }
 }
