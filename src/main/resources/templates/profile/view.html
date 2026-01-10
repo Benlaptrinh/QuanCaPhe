@@ -7,11 +7,17 @@
     <div class="profile-card">
       <div class="profile-header">
         <div class="avatar">
-          <img th:src="${taiKhoan.anh != null} ? ${taiKhoan.anh} : @{/img/default-avatar.png}" alt="avatar">
+          <!-- Use explicit if/unless to avoid Thymeleaf rendering edge-cases -->
+          <img th:if="${taiKhoan.anh != null and taiKhoan.anh != ''}"
+               th:src="${taiKhoan.anh}"
+               alt="avatar" />
+          <img th:unless="${taiKhoan.anh != null and taiKhoan.anh != ''}"
+               th:src="@{/img/default-avatar.png}"
+               alt="avatar" />
         </div>
         <div class="profile-main">
           <h2 th:text="${nhanVien.hoTen}">Họ tên</h2>
-          <p class="muted" th:text="${nhanVien.chucVu != null ? nhanVien.chucVu.tenChucVu : 'N/A'}">Chức vụ</p>
+          <p class="muted" th:text="${nhanVien.chucVu != null ? nhanVien.chucVu.tenChucVu : ''}">Chức vụ</p>
         </div>
       </div>
 
@@ -19,15 +25,15 @@
         <h3>Thông tin cá nhân</h3>
         <div class="info-row">
           <span>Địa chỉ</span>
-          <span th:text="${nhanVien.diaChi != null ? nhanVien.diaChi : 'N/A'}"></span>
+          <span th:text="${nhanVien.diaChi != null ? nhanVien.diaChi : ''}"></span>
         </div>
         <div class="info-row">
           <span>Số điện thoại</span>
-          <span th:text="${nhanVien.soDienThoai != null ? nhanVien.soDienThoai : 'N/A'}"></span>
+          <span th:text="${nhanVien.soDienThoai != null ? nhanVien.soDienThoai : ''}"></span>
         </div>
         <div class="info-row">
           <span>Lương</span>
-          <span th:text="${nhanVien.luong != null ? nhanVien.luong : (nhanVien.chucVu != null ? nhanVien.chucVu.luong : 'N/A')}"></span>
+          <span th:text="${nhanVien.luong != null ? nhanVien.luong : (nhanVien.chucVu != null ? nhanVien.chucVu.luong : '')}"></span>
         </div>
       </div>
 
