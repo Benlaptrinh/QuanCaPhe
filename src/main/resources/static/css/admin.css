@@ -1018,12 +1018,13 @@ a:hover {
     }
 
     .data-table {
-        min-width: 520px;
+        /* allow table to shrink on very narrow screens */
+        min-width: 0;
         font-size: 14px;
     }
 
     .data-table.table-wide {
-        min-width: 720px;
+        min-width: 0;
     }
 
     .data-table th,
@@ -1053,10 +1054,11 @@ a:hover {
 
     .data-table.table-actions th:last-child,
     .data-table.table-actions td:last-child {
-        position: sticky;
-        right: 0;
+        /* Disable sticky action column on small screens to avoid overflow */
+        position: static;
+        right: auto;
         background-color: inherit;
-        box-shadow: -12px 0 12px rgba(0, 0, 0, 0.08);
+        box-shadow: none;
     }
 
     .data-table.table-actions th:last-child {
@@ -1066,7 +1068,18 @@ a:hover {
 
     .data-table.table-actions td:last-child {
         z-index: 2;
-        white-space: nowrap;
+        /* allow buttons to wrap instead of forcing nowrap */
+        white-space: normal;
+        overflow: visible;
+    }
+
+    /* Make action buttons wrap inside their cell and align right */
+    .data-table.table-actions td.action-buttons,
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .table-grid {
@@ -1081,8 +1094,10 @@ a:hover {
     }
 
     .data-table.table-actions td.action-buttons {
-        flex-wrap: nowrap;
+        /* ensure action buttons wrap and align right on small screens */
+        flex-wrap: wrap;
         gap: 6px;
+        justify-content: flex-end;
     }
 
     .action-buttons {

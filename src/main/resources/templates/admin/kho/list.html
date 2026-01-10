@@ -86,6 +86,7 @@
           <th class="text-right">Đơn giá</th>
           <th>Ngày nhập gần nhất</th>
           <th>Ngày xuất gần nhất</th>
+          <th class="text-center">Hành động</th>
         </tr>
       </thead>
       <tbody>
@@ -100,7 +101,7 @@
           <td th:text="${item.ngayXuatGanNhat != null
             ? #temporals.format(item.ngayXuatGanNhat,'dd/MM/yyyy HH:mm')
             : '-'}"></td>
-          <td>
+          <td class="action-buttons">
             <a th:href="@{/admin/warehouse/edit/{id}(id=${item.maHangHoa})}" class="btn btn-sm btn-warning">Sửa</a>
             <a th:href="@{/admin/warehouse/delete/{id}(id=${item.maHangHoa})}"
                class="btn btn-sm btn-danger"
