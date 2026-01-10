@@ -1,27 +1,26 @@
 <div th:fragment="content">
-  <div style="background:#fff;padding:16px;max-width:520px;">
+  <div class="modal-card modal-card--compact">
     <h3 th:text="'Đặt bàn ' + ${banId}">Đặt bàn</h3>
-    <form id="reserveForm">
-      <div>
-        <label>Tên khách</label><br/>
+    <form id="reserveForm" class="modal-form">
+      <div class="form-group">
+        <label>Tên khách</label>
         <input type="text" name="tenKhach" id="tenKhach" />
       </div>
-      <div>
-        <label>SĐT</label><br/>
+      <div class="form-group">
+        <label>SĐT</label>
         <input type="text" name="sdt" id="sdt" />
       </div>
-      <div>
-        <label>Ngày giờ đến</label><br/>
+      <div class="form-group">
+        <label>Ngày giờ đến</label>
         <input type="datetime-local" name="ngayGio" id="ngayGio"
                th:attr="min=${minDate}"
                required />
       </div>
-      <div style="margin-top:8px;">
-        <button type="button" onclick="submitReserve()">Đặt bàn</button>
-        <button type="button" onclick="closeModal()">Đóng</button>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-primary" onclick="submitReserve()">Đặt bàn</button>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="closeModal()">Đóng</button>
       </div>
     </form>
   </div>
 </div>
-
 
