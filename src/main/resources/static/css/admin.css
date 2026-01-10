@@ -1055,8 +1055,8 @@ a:hover {
         word-break: break-word;
     }
 
-    .report-page .report-table,
-    .report-page .report-table--compact {
+    .data-table.report-table,
+    .data-table.report-table--compact {
         display: table !important;
         max-width: none;
         overflow-x: visible;
