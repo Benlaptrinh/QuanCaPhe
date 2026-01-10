@@ -28,7 +28,7 @@
           <td th:text="${km.ngayKetThuc}"></td>
           <td class="text-right" th:text="${#numbers.formatDecimal(km.giaTriGiam, 0, 'COMMA', 0, 'POINT')} + '%'"></td>
           <td class="action-buttons">
-            <a th:href="@{/admin/marketing/edit/{id}(id=${km.maKhuyenMai})}" class="btn btn-sm btn-edit">Chỉnh sửa</a>
+            <a th:href="@{/admin/marketing/edit/{id}(id=${km.maKhuyenMai})}" class="btn btn-sm btn-edit">Sửa</a>
             <a th:href="@{/admin/marketing/delete/{id}(id=${km.maKhuyenMai})}"
                class="btn btn-sm btn-delete"
                onclick="return confirm('Bạn có chắc muốn xóa khuyến mãi này hay không?')">Xóa</a>

@@ -31,7 +31,7 @@
           <td th:text="${item.tenMon}"></td>
           <td class="text-right" th:text="${#numbers.formatDecimal(item.giaHienTai, 0, 'COMMA', 0, 'POINT')}"></td>
           <td class="action-buttons">
-            <a th:href="@{/admin/menu/edit/{id}(id=${item.maThucDon})}" class="btn btn-sm btn-edit">Chỉnh sửa</a>
+            <a th:href="@{/admin/menu/edit/{id}(id=${item.maThucDon})}" class="btn btn-sm btn-edit">Sửa</a>
             <a th:href="@{/admin/menu/delete/{id}(id=${item.maThucDon})}"
                class="btn btn-sm btn-delete"
                onclick="return confirm('Bạn có muốn xóa bản ghi này hay không?')">Xóa</a>
