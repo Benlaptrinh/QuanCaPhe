@@ -245,19 +245,27 @@ Hãy nói phần bạn muốn làm tiếp và mình sẽ triển khai.
 - **Table**:
   - Bảng có hành động bọc trong `.table-scroll` để cuộn ngang.
   - Cột “Hành động” sticky khi cuộn ngang (class `.action-col`).
+  - Bảng ngân sách dùng style `report-table` để full width như báo cáo.
 - **Sales modal**: chuẩn hóa khung modal (`.modal-card`) để co giãn đẹp trên mobile.
 - **Bố cục thẻ**: `table-grid` 2 cột cho danh sách bàn trên mobile.
 
 ### 11.5 Các file liên quan
 - CSS: `src/main/resources/static/css/admin.css`, `src/main/resources/static/css/responsive.css`
 - Layout: `src/main/resources/templates/layout/base.html`
-- Các trang đã chỉnh: menu, equipment, marketing, employees, sales modal fragments.
+- Các trang đã chỉnh:
+  - `src/main/resources/templates/admin/menu.html`
+  - `src/main/resources/templates/admin/equipment.html`
+  - `src/main/resources/templates/admin/marketing/list.html`
+  - `src/main/resources/templates/admin/employees_list.html`
+  - `src/main/resources/templates/admin/budget.html`
+  - `src/main/resources/templates/admin/report/index.html`
+  - `src/main/resources/templates/sales/fragments/*.html`
 
 ### 11.6 Checklist test nhanh (mobile)
 1. Mở trang bất kỳ -> bấm nút **Menu** -> sidebar hiện/ẩn có overlay.
 2. Trang danh sách (menu/nhân viên/thiết bị/khuyến mãi): bảng cuộn ngang, nút Sửa/Xóa luôn thấy.
 3. Trang bán hàng: danh sách bàn hiển thị 2 cột; modal xem bàn/chọn món/tách/gộp/đặt bàn hiển thị gọn.
-4. Trang báo cáo: form & bảng full width, không bị thu nhỏ.
+4. Trang báo cáo + ngân sách: form & bảng full width, không bị thu nhỏ.
 
 ### 11.7 Chỗ dán ảnh (tự thêm)
 > Gợi ý: lưu ảnh vào `docs/screenshots/` rồi dán link tương đối.
