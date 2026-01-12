@@ -221,3 +221,56 @@ Nếu bạn muốn, mình có thể:
 - Tách template report thành các fragment nhỏ.
 
 Hãy nói phần bạn muốn làm tiếp và mình sẽ triển khai.
+
+---
+
+## 11. Báo cáo Responsive UI
+
+### 11.1 Mục tiêu
+- Giao diện dùng tốt trên mobile/tablet, không vỡ layout.
+- Menu thu gọn bằng nút, dễ thao tác một tay.
+- Form, bảng, modal không bị tràn màn hình.
+
+### 11.2 Phạm vi
+- Admin + Staff UI (server-rendered Thymeleaf).
+- Các trang chính: Profile, Nhân viên, Thực đơn, Thiết bị, Kho, Marketing, Bán hàng, Báo cáo.
+
+### 11.3 Breakpoints
+- Mobile chính: `<= 720px`
+- Sidebar toggle: `<= 768px`
+
+### 11.4 Thay đổi chính (tóm tắt)
+- **Layout**: thêm nút toggle sidebar + overlay (mobile).
+- **Form**: chuyển 2 cột -> 1 cột, input full width.
+- **Table**:
+  - Bảng có hành động bọc trong `.table-scroll` để cuộn ngang.
+  - Cột “Hành động” sticky khi cuộn ngang (class `.action-col`).
+- **Sales modal**: chuẩn hóa khung modal (`.modal-card`) để co giãn đẹp trên mobile.
+- **Bố cục thẻ**: `table-grid` 2 cột cho danh sách bàn trên mobile.
+
+### 11.5 Các file liên quan
+- CSS: `src/main/resources/static/css/admin.css`, `src/main/resources/static/css/responsive.css`
+- Layout: `src/main/resources/templates/layout/base.html`
+- Các trang đã chỉnh: menu, equipment, marketing, employees, sales modal fragments.
+
+### 11.6 Checklist test nhanh (mobile)
+1. Mở trang bất kỳ -> bấm nút **Menu** -> sidebar hiện/ẩn có overlay.
+2. Trang danh sách (menu/nhân viên/thiết bị/khuyến mãi): bảng cuộn ngang, nút Sửa/Xóa luôn thấy.
+3. Trang bán hàng: danh sách bàn hiển thị 2 cột; modal xem bàn/chọn món/tách/gộp/đặt bàn hiển thị gọn.
+4. Trang báo cáo: form & bảng full width, không bị thu nhỏ.
+
+### 11.7 Chỗ dán ảnh (tự thêm)
+> Gợi ý: lưu ảnh vào `docs/screenshots/` rồi dán link tương đối.
+
+- Mobile – Profile view  
+  `![profile-mobile](docs/screenshots/01-profile-mobile.png)`
+- Mobile – Employees list  
+  `![employees-mobile](docs/screenshots/02-employees-mobile.png)`
+- Mobile – Menu list (table actions)  
+  `![menu-mobile](docs/screenshots/03-menu-mobile.png)`
+- Mobile – Equipment list  
+  `![equipment-mobile](docs/screenshots/04-equipment-mobile.png)`
+- Mobile – Sales table grid  
+  `![sales-mobile](docs/screenshots/05-sales-mobile.png)`
+- Mobile – Report  
+  `![report-mobile](docs/screenshots/06-report-mobile.png)`

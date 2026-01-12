@@ -61,7 +61,6 @@
         if(btnPayment) btnPayment.disabled = false;
         if(btnReserve) btnReserve.disabled = false;
 
-        // enable move & merge only for serving tables; reserve only for empty tables
         var selectedTableEl = document.querySelector('.table-card[data-id=\"' + id + '\"]');
         var isServing = selectedTableEl && selectedTableEl.classList.contains('table-busy');
         var isReserved = selectedTableEl && selectedTableEl.classList.contains('table-reserved');

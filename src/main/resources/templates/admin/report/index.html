@@ -34,7 +34,7 @@
       </div>
     </form>
   
-    <!-- TABLE (Thu - Chi) -->
+    
     <div th:if="${filter.type == 'FINANCE'}">
       <table class="data-table report-table"
              th:if="${reportData != null and !reportData.isEmpty()}">
@@ -68,7 +68,7 @@
       </p>
     </div>
 
-    <!-- SALES BY DAY -->
+    
     <div th:if="${filter.type == 'SALES'}">
       <h3 class="report-subtitle">Bán hàng theo ngày</h3>
       <table class="data-table report-table"
@@ -102,7 +102,7 @@
     </div>
 
 
-    <!-- STAFF REPORT -->
+    
     <div th:if="${filter.type == 'STAFF'}">
       <h3 class="report-subtitle">Báo cáo nhân viên</h3>
       <table class="data-table report-table report-table--compact"

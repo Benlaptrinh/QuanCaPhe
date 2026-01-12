@@ -22,16 +22,20 @@
       <thead>
         <tr>
           <th>Họ tên</th>
-          <th>Chức vụ</th>
-          <th>Lương</th>
+          <th>Số điện thoại</th>
+          <th>Tên đăng nhập</th>
+          <th>Vai trò</th>
+          <th>Trạng thái</th>
           <th>Hành động</th>
         </tr>
       </thead>
       <tbody>
         <tr th:each="nv : ${nhanViens}">
           <td th:text="${nv.hoTen}">HoTen</td>
-          <td th:text="${nv.chucVu != null ? nv.chucVu.tenChucVu : 'N/A'}">ChucVu</td>
-          <td th:text="${nv.luong != null ? nv.luong : '-'}">Luong</td>
+          <td th:text="${nv.soDienThoai != null ? nv.soDienThoai : '-'}">SDT</td>
+          <td th:text="${nv.taiKhoan != null ? nv.taiKhoan.tenDangNhap : '-'}">Username</td>
+          <td th:text="${nv.taiKhoan != null && nv.taiKhoan.quyenHan != null ? nv.taiKhoan.quyenHan.name() : 'N/A'}">Role</td>
+          <td th:text="${nv.enabled != null ? (nv.enabled ? 'Hoạt động' : 'Không hoạt động') : 'N/A'}">Status</td>
           <td class="action-buttons">
             <a class="btn btn-sm btn-edit" th:href="@{|/admin/employees/${nv.maNhanVien}/edit|}">Sửa</a>
             <form th:action="@{|/admin/employees/${nv.maNhanVien}/delete|}" method="post" onsubmit="return confirm('Xóa nhân viên này?')">

@@ -7,7 +7,7 @@
     <div class="profile-card">
       <div class="profile-header">
         <div class="avatar">
-          <!-- Use explicit if/unless to avoid Thymeleaf rendering edge-cases -->
+          
           <img th:if="${taiKhoan.anh != null and taiKhoan.anh != ''}"
                th:src="${taiKhoan.anh}"
                alt="avatar" />
