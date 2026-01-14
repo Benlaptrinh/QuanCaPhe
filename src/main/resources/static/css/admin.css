@@ -493,6 +493,18 @@ a:hover {
     resize: vertical;
 }
 
+.radio-group {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.radio-group input[type="radio"] {
+    width: auto;
+    margin-right: 6px;
+}
+
 .form-actions {
     display: flex;
     gap: 10px;

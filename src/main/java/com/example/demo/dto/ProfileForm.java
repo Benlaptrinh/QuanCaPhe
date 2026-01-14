@@ -32,7 +32,6 @@ public class ProfileForm {
     @Size(max = 10, message = "Dia chi toi da 10 ky tu")
     private String diaChi;
 
-    @NotBlank(message = "So dien thoai bat buoc")
     @Pattern(regexp = "^\\d{9,15}$", message = "So dien thoai chi duoc nhap so (9-15 chu so)")
     private String soDienThoai;
 }

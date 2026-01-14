@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -32,15 +33,16 @@ public class NhanVienForm {
     @Size(max = 10, message = "Dia chi toi da 10 ky tu")
     private String diaChi;
 
-    @NotBlank(message = "So dien thoai bat buoc")
     @Pattern(regexp = "^\\d{9,15}$", message = "So dien thoai chi duoc nhap so (9-15 chu so)")
     private String soDienThoai;
-
-    private Long chucVuId;
 
     private String tenDangNhap;
 
     private String matKhau;
 
+    @NotBlank(message = "Vai tro bat buoc")
     private String role;
+
+    @NotNull(message = "Trang thai bat buoc")
+    private Boolean enabled;
 }
