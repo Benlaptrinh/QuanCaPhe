@@ -26,14 +26,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class CustomUserDetails implements UserDetails {
 
     private final TaiKhoan taiKhoan;
+    private final boolean nhanVienEnabled;
 
     /**
      * Creates CustomUserDetails.
      *
      * @param taiKhoan taiKhoan
      */
-    public CustomUserDetails(TaiKhoan taiKhoan) {
+    public CustomUserDetails(TaiKhoan taiKhoan, boolean nhanVienEnabled) {
         this.taiKhoan = taiKhoan;
+        this.nhanVienEnabled = nhanVienEnabled;
     }
 
     /**
@@ -84,7 +86,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public boolean isAccountNonLocked() {
-        return taiKhoan.isEnabled();
+        return taiKhoan.isEnabled() && nhanVienEnabled;
     }
 
     /**
@@ -104,7 +106,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public boolean isEnabled() {
-        return taiKhoan.isEnabled();
+        return taiKhoan.isEnabled() && nhanVienEnabled;
     }
 
     /**
@@ -140,5 +142,4 @@ public class CustomUserDetails implements UserDetails {
         return Objects.hash(getUsername());
     }
 }
-
 

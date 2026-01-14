@@ -55,7 +55,7 @@ public class TaiKhoanServiceImpl implements TaiKhoanService {
                     .ifPresent(existing -> {
                         
                         if (taiKhoan.getMaTaiKhoan() == null || !existing.getMaTaiKhoan().equals(taiKhoan.getMaTaiKhoan())) {
-                            throw new IllegalArgumentException("Username already exists");
+                            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
                         }
                     });
         }
@@ -63,7 +63,7 @@ public class TaiKhoanServiceImpl implements TaiKhoanService {
         
         if (taiKhoan.getMaTaiKhoan() == null) {
             if (taiKhoan.getMatKhau() == null || taiKhoan.getMatKhau().isBlank()) {
-                throw new IllegalArgumentException("Password required when creating account");
+                throw new IllegalArgumentException("Mật khẩu bắt buộc khi tạo tài khoản");
             }
         }
 
@@ -122,5 +122,4 @@ public class TaiKhoanServiceImpl implements TaiKhoanService {
         });
     }
 }
-
 

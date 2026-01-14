@@ -22,9 +22,9 @@ import lombok.Setter;
 @Setter
 public class LoginForm {
 
-    @NotBlank(message = "Ten dang nhap bat buoc")
+    @NotBlank(message = "Tên đăng nhập bắt buộc")
     private String username;
 
-    @NotBlank(message = "Mat khau bat buoc")
+    @NotBlank(message = "Mật khẩu bắt buộc")
     private String password;
 }

@@ -24,14 +24,14 @@ import lombok.Setter;
 @Setter
 public class ProfileForm {
 
-    @NotBlank(message = "Ho ten bat buoc")
-    @Size(max = 100, message = "Ho ten toi da 100 ky tu")
+    @NotBlank(message = "Họ tên bắt buộc")
+    @Size(max = 100, message = "Họ tên tối đa 100 ký tự")
     private String hoTen;
 
-    @NotBlank(message = "Dia chi bat buoc")
-    @Size(max = 10, message = "Dia chi toi da 10 ky tu")
+    @NotBlank(message = "Địa chỉ bắt buộc")
+    @Size(max = 10, message = "Địa chỉ tối đa 10 ký tự")
     private String diaChi;
 
-    @Pattern(regexp = "^\\d{9,15}$", message = "So dien thoai chi duoc nhap so (9-15 chu so)")
+    @Pattern(regexp = "^\\d{9,15}$", message = "Số điện thoại chỉ được nhập số (9-15 chữ số)")
     private String soDienThoai;
 }

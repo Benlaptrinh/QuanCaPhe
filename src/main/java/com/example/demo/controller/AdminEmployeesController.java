@@ -110,7 +110,7 @@ public class AdminEmployeesController extends BaseController {
                          RedirectAttributes redirectAttributes) {
         if (form.getTenDangNhap() != null && !form.getTenDangNhap().isBlank()) {
             taiKhoanService.findByUsername(form.getTenDangNhap())
-                    .ifPresent(tk -> bindingResult.rejectValue("tenDangNhap", "duplicate", "Username da ton tai"));
+                    .ifPresent(tk -> bindingResult.rejectValue("tenDangNhap", "duplicate", "Tên đăng nhập đã tồn tại"));
         }
         if (bindingResult.hasErrors()) {
             setupAdminLayout(model, "admin/employees_create", auth);
@@ -124,7 +124,7 @@ public class AdminEmployeesController extends BaseController {
         try {
             if (form.getTenDangNhap() != null && !form.getTenDangNhap().isBlank()) {
                 if (form.getMatKhau() == null || form.getMatKhau().isBlank()) {
-                    bindingResult.rejectValue("matKhau", "required", "Password required when creating account");
+                    bindingResult.rejectValue("matKhau", "required", "Mật khẩu bắt buộc khi tạo tài khoản");
                     setupAdminLayout(model, "admin/employees_create", auth);
                     return "layout/base";
                 }
@@ -195,7 +195,7 @@ public class AdminEmployeesController extends BaseController {
             taiKhoanService.findByUsername(form.getTenDangNhap())
                     .ifPresent(tk -> {
                         if (existing.getTaiKhoan() == null || !tk.getMaTaiKhoan().equals(existing.getTaiKhoan().getMaTaiKhoan())) {
-                            bindingResult.rejectValue("tenDangNhap", "duplicate", "Username da ton tai");
+                            bindingResult.rejectValue("tenDangNhap", "duplicate", "Tên đăng nhập đã tồn tại");
                         }
                     });
         }
@@ -213,7 +213,7 @@ public class AdminEmployeesController extends BaseController {
             if (form.getTenDangNhap() != null && !form.getTenDangNhap().isBlank()) {
                 if (existing.getTaiKhoan() == null) {
                     if (form.getMatKhau() == null || form.getMatKhau().isBlank()) {
-                        bindingResult.rejectValue("matKhau", "required", "Password required when creating account");
+                        bindingResult.rejectValue("matKhau", "required", "Mật khẩu bắt buộc khi tạo tài khoản");
                         model.addAttribute("employeeId", id);
                         setupAdminLayout(model, "admin/employees_edit", auth);
                         return "layout/base";
@@ -281,7 +281,16 @@ public class AdminEmployeesController extends BaseController {
      * @return result
      */
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable Long id, Authentication auth, RedirectAttributes redirectAttributes) {
+        if (auth != null) {
+            var current = taiKhoanService.findByUsername(auth.getName())
+                    .flatMap(tk -> nhanVienService.findByTaiKhoanId(tk.getMaTaiKhoan()));
+            if (current.isPresent() && current.get().getMaNhanVien() != null
+                    && current.get().getMaNhanVien().equals(id)) {
+                redirectAttributes.addFlashAttribute("error", "Không thể xóa chính mình");
+                return "redirect:/admin/employees";
+            }
+        }
         nhanVienService.deleteById(id);
         redirectAttributes.addFlashAttribute("message", "Đã xóa (nếu tồn tại)");
         return "redirect:/admin/employees";

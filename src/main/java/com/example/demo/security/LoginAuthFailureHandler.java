@@ -67,24 +67,24 @@ public class LoginAuthFailureHandler implements AuthenticationFailureHandler {
         Map<String, String> fieldErrors = new HashMap<>();
 
         if (username == null || username.isBlank()) {
-            fieldErrors.put("username", "Ten dang nhap bat buoc");
+            fieldErrors.put("username", "Tên đăng nhập bắt buộc");
         } else if (password == null || password.isBlank()) {
-            fieldErrors.put("password", "Mat khau bat buoc");
+            fieldErrors.put("password", "Mật khẩu bắt buộc");
         } else {
             if (exception instanceof DisabledException || exception instanceof LockedException) {
-                fieldErrors.put("username", "Tai khoan bi khoa");
+                fieldErrors.put("username", "Tài khoản không hoạt động");
             } else {
                 try {
                     UserDetails user = userDetailsService.loadUserByUsername(username);
                     if (!user.isEnabled()) {
-                        fieldErrors.put("username", "Tai khoan bi khoa");
+                        fieldErrors.put("username", "Tài khoản không hoạt động");
                     } else if (!passwordEncoder.matches(password, user.getPassword())) {
-                        fieldErrors.put("password", "Mat khau khong dung");
+                        fieldErrors.put("password", "Mật khẩu không đúng");
                     } else {
-                        fieldErrors.put("password", "Dang nhap that bai");
+                        fieldErrors.put("password", "Đăng nhập thất bại");
                     }
                 } catch (UsernameNotFoundException ex) {
-                    fieldErrors.put("username", "Ten dang nhap khong ton tai");
+                    fieldErrors.put("username", "Tên đăng nhập không tồn tại");
                 }
             }
         }
