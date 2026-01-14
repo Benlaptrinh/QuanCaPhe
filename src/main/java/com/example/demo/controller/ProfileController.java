@@ -1,15 +1,18 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ProfileForm;
 import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
 import com.example.demo.service.NhanVienService;
 import com.example.demo.service.TaiKhoanService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * ProfileController
@@ -79,8 +82,11 @@ public class ProfileController {
         TaiKhoan tk = taiKhoanService.findByUsername(username).orElse(null);
         if (tk == null) return "redirect:/login";
         NhanVien nv = nhanVienService.findByTaiKhoanId(tk.getMaTaiKhoan()).orElse(new NhanVien());
-        model.addAttribute("taiKhoan", tk);
-        model.addAttribute("nhanVien", nv);
+        ProfileForm form = new ProfileForm();
+        form.setHoTen(nv.getHoTen());
+        form.setDiaChi(nv.getDiaChi());
+        form.setSoDienThoai(nv.getSoDienThoai());
+        model.addAttribute("form", form);
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         model.addAttribute("sidebarFragment", isAdmin ? "fragments/sidebar-admin" : "fragments/sidebar-staff");
@@ -93,33 +99,33 @@ public class ProfileController {
      * Update profile.
      *
      * @param auth auth
-     * @param hoTen hoTen
-     * @param diaChi diaChi
-     * @param soDienThoai soDienThoai
-     * @param anh anh
+     * @param form form
+     * @param bindingResult bindingResult
+     * @param model model
      * @return result
      */
     @PostMapping("/profile/edit")
     public String updateProfile(Authentication auth,
-                                @RequestParam String hoTen,
-                                @RequestParam String diaChi,
-                                @RequestParam String soDienThoai,
-                                @RequestParam(required = false) String anh) {
+                                @Valid @ModelAttribute("form") ProfileForm form,
+                                BindingResult bindingResult,
+                                Model model) {
         String username = auth.getName();
         TaiKhoan tk = taiKhoanService.findByUsername(username).orElse(null);
         if (tk == null) return "redirect:/login";
+        if (bindingResult.hasErrors()) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+            model.addAttribute("sidebarFragment", isAdmin ? "fragments/sidebar-admin" : "fragments/sidebar-staff");
+            model.addAttribute("contentFragment", "profile/edit");
+            model.addAttribute("username", username);
+            return "layout/base";
+        }
         NhanVien nv = nhanVienService.findByTaiKhoanId(tk.getMaTaiKhoan()).orElse(new NhanVien());
-        nv.setHoTen(hoTen);
-        nv.setDiaChi(diaChi);
-        nv.setSoDienThoai(soDienThoai);
+        nv.setHoTen(form.getHoTen());
+        nv.setDiaChi(form.getDiaChi());
+        nv.setSoDienThoai(form.getSoDienThoai());
         nv.setTaiKhoan(tk);
         nhanVienService.save(nv);
-        if (anh != null) {
-            tk.setAnh(anh);
-            taiKhoanService.save(tk);
-        }
         return "redirect:/profile";
     }
 }
-
-

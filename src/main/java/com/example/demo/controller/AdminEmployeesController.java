@@ -3,15 +3,18 @@ package com.example.demo.controller;
 import java.util.List;
 
 import com.example.demo.controller.base.BaseController;
+import com.example.demo.dto.NhanVienForm;
 import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
 import com.example.demo.enums.Role;
 import com.example.demo.repository.ChucVuRepository;
 import com.example.demo.service.NhanVienService;
 import com.example.demo.service.TaiKhoanService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,7 +88,7 @@ public class AdminEmployeesController extends BaseController {
      */
     @GetMapping("/create")
     public String createForm(Model model, Authentication auth) {
-        model.addAttribute("nhanVien", new NhanVien());
+        model.addAttribute("form", new NhanVienForm());
         model.addAttribute("chucVus", chucVuRepository.findAll());
         setupAdminLayout(model, "admin/employees_create", auth);
         return "layout/base";
@@ -103,25 +106,33 @@ public class AdminEmployeesController extends BaseController {
      * @return result
      */
     @PostMapping("/create")
-    public String create(@ModelAttribute NhanVien nhanVien,
-                         @RequestParam(value = "chucVuId", required = false) Long chucVuId,
-                         @RequestParam(value = "tenDangNhap", required = false) String tenDangNhap,
-                         @RequestParam(value = "matKhau", required = false) String matKhau,
-                         @RequestParam(value = "role", required = false) String role,
+    public String create(@Valid @ModelAttribute("form") NhanVienForm form,
+                         BindingResult bindingResult,
+                         Model model,
+                         Authentication auth,
                          RedirectAttributes redirectAttributes) {
-        if (chucVuId != null) {
-            chucVuRepository.findById(chucVuId).ifPresent(nhanVien::setChucVu);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("chucVus", chucVuRepository.findAll());
+            setupAdminLayout(model, "admin/employees_create", auth);
+            return "layout/base";
+        }
+        NhanVien nhanVien = new NhanVien();
+        nhanVien.setHoTen(form.getHoTen());
+        nhanVien.setDiaChi(form.getDiaChi());
+        nhanVien.setSoDienThoai(form.getSoDienThoai());
+        if (form.getChucVuId() != null) {
+            chucVuRepository.findById(form.getChucVuId()).ifPresent(nhanVien::setChucVu);
         }
         try {
-            if (tenDangNhap != null && !tenDangNhap.isBlank()) {
-                if (matKhau == null || matKhau.isBlank()) {
+            if (form.getTenDangNhap() != null && !form.getTenDangNhap().isBlank()) {
+                if (form.getMatKhau() == null || form.getMatKhau().isBlank()) {
                     throw new IllegalArgumentException("Password required when creating account");
                 }
                 TaiKhoan tk = new TaiKhoan();
-                tk.setTenDangNhap(tenDangNhap);
-                tk.setMatKhau(matKhau);
+                tk.setTenDangNhap(form.getTenDangNhap());
+                tk.setMatKhau(form.getMatKhau());
                 try {
-                    Role r = (role == null || role.isBlank()) ? Role.NHANVIEN : Role.valueOf(role);
+                    Role r = (form.getRole() == null || form.getRole().isBlank()) ? Role.NHANVIEN : Role.valueOf(form.getRole());
                     tk.setQuyenHan(r);
                 } catch (IllegalArgumentException ex) {
                     tk.setQuyenHan(Role.NHANVIEN);
@@ -134,8 +145,10 @@ public class AdminEmployeesController extends BaseController {
             redirectAttributes.addFlashAttribute("message", "Thêm nhân viên thành công");
             return "redirect:/admin/employees";
         } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            return "redirect:/admin/employees/create";
+            model.addAttribute("error", ex.getMessage());
+            model.addAttribute("chucVus", chucVuRepository.findAll());
+            setupAdminLayout(model, "admin/employees_create", auth);
+            return "layout/base";
         }
     }
 
@@ -150,7 +163,8 @@ public class AdminEmployeesController extends BaseController {
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model, Authentication auth) {
         NhanVien nv = nhanVienService.findById(id).orElse(new NhanVien());
-        model.addAttribute("nhanVien", nv);
+        model.addAttribute("form", toForm(nv));
+        model.addAttribute("employeeId", id);
         model.addAttribute("chucVus", chucVuRepository.findAll());
         setupAdminLayout(model, "admin/employees_edit", auth);
         return "layout/base";
@@ -170,35 +184,40 @@ public class AdminEmployeesController extends BaseController {
      */
     @PostMapping("/{id}/edit")
     public String edit(@PathVariable Long id,
-                       @ModelAttribute NhanVien nhanVien,
-                       @RequestParam(value = "chucVuId", required = false) Long chucVuId,
-                       @RequestParam(value = "tenDangNhap", required = false) String tenDangNhap,
-                       @RequestParam(value = "matKhau", required = false) String matKhau,
-                       @RequestParam(value = "role", required = false) String role,
+                       @Valid @ModelAttribute("form") NhanVienForm form,
+                       BindingResult bindingResult,
+                       Model model,
+                       Authentication auth,
                        RedirectAttributes redirectAttributes) {
         NhanVien existing = nhanVienService.findById(id).orElse(null);
         if (existing == null) {
             redirectAttributes.addFlashAttribute("error", "Nhân viên không tồn tại");
             return "redirect:/admin/employees";
         }
-        existing.setHoTen(nhanVien.getHoTen());
-        existing.setDiaChi(nhanVien.getDiaChi());
-        existing.setSoDienThoai(nhanVien.getSoDienThoai());
-        if (chucVuId != null) {
-            chucVuRepository.findById(chucVuId).ifPresent(existing::setChucVu);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("employeeId", id);
+            model.addAttribute("chucVus", chucVuRepository.findAll());
+            setupAdminLayout(model, "admin/employees_edit", auth);
+            return "layout/base";
+        }
+        existing.setHoTen(form.getHoTen());
+        existing.setDiaChi(form.getDiaChi());
+        existing.setSoDienThoai(form.getSoDienThoai());
+        if (form.getChucVuId() != null) {
+            chucVuRepository.findById(form.getChucVuId()).ifPresent(existing::setChucVu);
         }
         
         try {
-            if (tenDangNhap != null && !tenDangNhap.isBlank()) {
+            if (form.getTenDangNhap() != null && !form.getTenDangNhap().isBlank()) {
                 if (existing.getTaiKhoan() == null) {
-                    if (matKhau == null || matKhau.isBlank()) {
+                    if (form.getMatKhau() == null || form.getMatKhau().isBlank()) {
                         throw new IllegalArgumentException("Password required when creating account");
                     }
                     TaiKhoan tk = new TaiKhoan();
-                    tk.setTenDangNhap(tenDangNhap);
-                    tk.setMatKhau(matKhau);
+                    tk.setTenDangNhap(form.getTenDangNhap());
+                    tk.setMatKhau(form.getMatKhau());
                     try {
-                        Role r = (role == null || role.isBlank()) ? Role.NHANVIEN : Role.valueOf(role);
+                        Role r = (form.getRole() == null || form.getRole().isBlank()) ? Role.NHANVIEN : Role.valueOf(form.getRole());
                         tk.setQuyenHan(r);
                     } catch (IllegalArgumentException ex) {
                         tk.setQuyenHan(Role.NHANVIEN);
@@ -208,10 +227,10 @@ public class AdminEmployeesController extends BaseController {
                     existing.setTaiKhoan(saved);
                 } else {
                     TaiKhoan tk = existing.getTaiKhoan();
-                    tk.setTenDangNhap(tenDangNhap);
-                    if (matKhau != null && !matKhau.isBlank()) tk.setMatKhau(matKhau);
+                    tk.setTenDangNhap(form.getTenDangNhap());
+                    if (form.getMatKhau() != null && !form.getMatKhau().isBlank()) tk.setMatKhau(form.getMatKhau());
                     try {
-                        Role r = (role == null || role.isBlank()) ? tk.getQuyenHan() : Role.valueOf(role);
+                        Role r = (form.getRole() == null || form.getRole().isBlank()) ? tk.getQuyenHan() : Role.valueOf(form.getRole());
                         tk.setQuyenHan(r);
                     } catch (IllegalArgumentException ex) {
                     }
@@ -221,10 +240,30 @@ public class AdminEmployeesController extends BaseController {
             nhanVienService.save(existing);
             redirectAttributes.addFlashAttribute("message", "Cập nhật thành công");
         } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            return "redirect:/admin/employees/" + id + "/edit";
+            model.addAttribute("error", ex.getMessage());
+            model.addAttribute("employeeId", id);
+            model.addAttribute("chucVus", chucVuRepository.findAll());
+            setupAdminLayout(model, "admin/employees_edit", auth);
+            return "layout/base";
         }
         return "redirect:/admin/employees";
+    }
+
+    private NhanVienForm toForm(NhanVien nv) {
+        NhanVienForm form = new NhanVienForm();
+        form.setHoTen(nv.getHoTen());
+        form.setDiaChi(nv.getDiaChi());
+        form.setSoDienThoai(nv.getSoDienThoai());
+        if (nv.getChucVu() != null) {
+            form.setChucVuId(nv.getChucVu().getMaChucVu());
+        }
+        if (nv.getTaiKhoan() != null) {
+            form.setTenDangNhap(nv.getTaiKhoan().getTenDangNhap());
+            if (nv.getTaiKhoan().getQuyenHan() != null) {
+                form.setRole(nv.getTaiKhoan().getQuyenHan().name());
+            }
+        }
+        return form;
     }
 
     /**
@@ -241,4 +280,3 @@ public class AdminEmployeesController extends BaseController {
         return "redirect:/admin/employees";
     }
 }
-
