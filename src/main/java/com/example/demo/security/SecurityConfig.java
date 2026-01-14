@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * SecurityConfig
@@ -53,7 +54,9 @@ public class SecurityConfig {
      * @throws Exception if an error occurs
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           LoginValidationFilter loginValidationFilter,
+                                           LoginAuthFailureHandler loginAuthFailureHandler) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/login", "/").permitAll()
@@ -61,10 +64,12 @@ public class SecurityConfig {
                 .requestMatchers("/staff/**").hasRole("NHANVIEN")
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(loginValidationFilter, UsernamePasswordAuthenticationFilter.class)
             .formLogin(form -> form
                 .loginPage("/login")
                 .permitAll()
                 .successHandler(roleBasedAuthSuccessHandler())
+                .failureHandler(loginAuthFailureHandler)
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
@@ -113,4 +118,3 @@ public class SecurityConfig {
         };
     }
 }
-
