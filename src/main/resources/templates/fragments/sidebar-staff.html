@@ -2,9 +2,24 @@
     <h4 class="sidebar-title">Trang chủ</h4>
     <nav class="sidebar-nav">
         <ul class="sidebar-list">
-            <li><a class="sidebar-link" th:href="@{/staff/home}">Trang chủ</a></li>
-            <li><a class="sidebar-link" th:href="@{/profile}">Trang cá nhân</a></li>
-            <li><a class="sidebar-link" th:href="@{/staff/sales}">Quản lý bán hàng</a></li>
+            <li>
+                <a class="sidebar-link" th:href="@{/staff/home}"
+                   th:classappend="${#strings.startsWith(currentPath, '/staff/home') ? ' active' : ''}">
+                    Trang chủ
+                </a>
+            </li>
+            <li>
+                <a class="sidebar-link" th:href="@{/profile}"
+                   th:classappend="${#strings.startsWith(currentPath, '/profile') ? ' active' : ''}">
+                    Trang cá nhân
+                </a>
+            </li>
+            <li>
+                <a class="sidebar-link" th:href="@{/staff/sales}"
+                   th:classappend="${#strings.startsWith(currentPath, '/staff/sales') ? ' active' : ''}">
+                    Quản lý bán hàng
+                </a>
+            </li>
         </ul>
     </nav>
 
@@ -12,4 +27,3 @@
         <button class="sidebar-logout-btn" type="submit">Logout</button>
     </form>
 </div>
-
