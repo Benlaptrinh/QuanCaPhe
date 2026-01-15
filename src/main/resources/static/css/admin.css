@@ -652,6 +652,23 @@ a:hover {
     max-width: 420px;
 }
 
+.report-chart {
+    width: 100%;
+    max-width: 680px;
+    height: 280px;
+    margin: 8px 0 12px;
+}
+
+.report-chart--compact {
+    max-width: 420px;
+    height: 240px;
+}
+
+.report-chart canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .report-empty {
     color: var(--muted);
     margin: 0;

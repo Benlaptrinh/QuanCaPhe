@@ -36,6 +36,9 @@
   
     
     <div th:if="${filter.type == 'FINANCE'}">
+      <div class="report-chart" th:if="${reportData != null and !reportData.isEmpty()}">
+        <canvas id="financeChart"></canvas>
+      </div>
       <table class="data-table report-table"
              th:if="${reportData != null and !reportData.isEmpty()}">
       <thead>
@@ -71,6 +74,9 @@
     
     <div th:if="${filter.type == 'SALES'}">
       <h3 class="report-subtitle">Bán hàng theo ngày</h3>
+      <div class="report-chart" th:if="${salesByDay != null and !salesByDay.isEmpty()}">
+        <canvas id="salesChart"></canvas>
+      </div>
       <table class="data-table report-table"
              th:if="${salesByDay != null and !salesByDay.isEmpty()}">
       <thead>
@@ -105,6 +111,9 @@
     
     <div th:if="${filter.type == 'STAFF'}">
       <h3 class="report-subtitle">Báo cáo nhân viên</h3>
+      <div class="report-chart report-chart--compact" th:if="${staffReport != null and !staffReport.isEmpty()}">
+        <canvas id="staffChart"></canvas>
+      </div>
       <table class="data-table report-table report-table--compact"
              th:if="${staffReport != null and !staffReport.isEmpty()}">
       <thead>
@@ -125,5 +134,130 @@
         Chưa có dữ liệu nhân viên
       </p>
     </div>
+
+    <script th:src="@{/js/chart.umd.min.js}" src="/js/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      var reportLabels = /*[[${reportLabels}]]*/ [];
+      var reportThuData = /*[[${reportThuData}]]*/ [];
+      var reportChiData = /*[[${reportChiData}]]*/ [];
+      var salesLabels = /*[[${salesLabels}]]*/ [];
+      var salesDoanhThuData = /*[[${salesDoanhThuData}]]*/ [];
+      var salesHoaDonData = /*[[${salesHoaDonData}]]*/ [];
+      var staffLabels = /*[[${staffLabels}]]*/ [];
+      var staffCounts = /*[[${staffCounts}]]*/ [];
+
+      function buildFinanceChart() {
+        var canvas = document.getElementById('financeChart');
+        if (!canvas || !reportLabels.length) return;
+        new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: reportLabels,
+            datasets: [
+              {
+                label: 'Thu',
+                data: reportThuData,
+                borderColor: '#16a34a',
+                backgroundColor: 'rgba(22, 163, 74, 0.15)',
+                tension: 0.2
+              },
+              {
+                label: 'Chi',
+                data: reportChiData,
+                borderColor: '#dc2626',
+                backgroundColor: 'rgba(220, 38, 38, 0.15)',
+                tension: 0.2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
+
+      function buildSalesChart() {
+        var canvas = document.getElementById('salesChart');
+        if (!canvas || !salesLabels.length) return;
+        new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: salesLabels,
+            datasets: [
+              {
+                label: 'Doanh thu',
+                data: salesDoanhThuData,
+                backgroundColor: 'rgba(14, 116, 144, 0.55)',
+                borderColor: '#0e7490',
+                borderWidth: 1
+              },
+              {
+                label: 'Số hóa đơn',
+                data: salesHoaDonData,
+                type: 'line',
+                borderColor: '#f97316',
+                backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                yAxisID: 'y1',
+                tension: 0.2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            },
+            scales: {
+              y: { beginAtZero: true },
+              y1: {
+                beginAtZero: true,
+                position: 'right',
+                grid: { drawOnChartArea: false }
+              }
+            }
+          }
+        });
+      }
+
+      function buildStaffChart() {
+        var canvas = document.getElementById('staffChart');
+        if (!canvas || !staffLabels.length) return;
+        new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: staffLabels,
+            datasets: [
+              {
+                data: staffCounts,
+                backgroundColor: ['#22c55e', '#f97316', '#0ea5e9', '#a855f7']
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        buildFinanceChart();
+        buildSalesChart();
+        buildStaffChart();
+      });
+      /*]]>*/
+    </script>
   </div>
   
