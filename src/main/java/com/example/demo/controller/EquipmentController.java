@@ -1,11 +1,16 @@
 package com.example.demo.controller;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
+import com.example.demo.dto.ThietBiForm;
 import com.example.demo.entity.ThietBi;
 import com.example.demo.service.ThietBiService;
+import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,8 +55,15 @@ public class EquipmentController {
      * @return result
      */
     @PostMapping
-    public String create(@ModelAttribute ThietBi thietBi, RedirectAttributes ra) {
-        thietBiService.save(thietBi);
+    public String create(@Valid @ModelAttribute("thietBi") ThietBiForm form,
+                         BindingResult bindingResult,
+                         Model model,
+                         Authentication auth,
+                         RedirectAttributes ra) {
+        if (bindingResult.hasErrors()) {
+            return renderEquipmentPage(model, auth);
+        }
+        thietBiService.save(toEntity(form));
         ra.addFlashAttribute("success", "Thêm thiết bị thành công");
         return "redirect:/admin/equipment";
     }
@@ -71,7 +83,7 @@ public class EquipmentController {
             ra.addFlashAttribute("error", "Thiết bị không tồn tại");
             return "redirect:/admin/equipment";
         }
-        ra.addFlashAttribute("thietBi", opt.get());
+        ra.addFlashAttribute("thietBi", toForm(opt.get()));
         return "redirect:/admin/equipment";
     }
 
@@ -84,21 +96,60 @@ public class EquipmentController {
      * @return result
      */
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute ThietBi thietBi, RedirectAttributes ra) {
+    public String update(@PathVariable Long id,
+                         @Valid @ModelAttribute("thietBi") ThietBiForm form,
+                         BindingResult bindingResult,
+                         Model model,
+                         Authentication auth,
+                         RedirectAttributes ra) {
         Optional<ThietBi> opt = thietBiService.findById(id);
         if (opt.isEmpty()) {
             ra.addFlashAttribute("error", "Thiết bị không tồn tại");
             return "redirect:/admin/equipment";
         }
+        if (bindingResult.hasErrors()) {
+            return renderEquipmentPage(model, auth);
+        }
         ThietBi existing = opt.get();
-        existing.setTenThietBi(thietBi.getTenThietBi());
-        existing.setSoLuong(thietBi.getSoLuong());
-        existing.setDonGiaMua(thietBi.getDonGiaMua());
-        existing.setNgayMua(thietBi.getNgayMua());
-        existing.setGhiChu(thietBi.getGhiChu());
+        existing.setTenThietBi(form.getTenThietBi());
+        existing.setSoLuong(form.getSoLuong());
+        existing.setDonGiaMua(form.getDonGiaMua());
+        existing.setNgayMua(form.getNgayMua());
+        existing.setGhiChu(form.getGhiChu());
         thietBiService.save(existing);
         ra.addFlashAttribute("success", "Cập nhật thiết bị thành công");
         return "redirect:/admin/equipment";
+    }
+
+    private ThietBi toEntity(ThietBiForm form) {
+        ThietBi thietBi = new ThietBi();
+        thietBi.setMaThietBi(form.getMaThietBi());
+        thietBi.setTenThietBi(form.getTenThietBi());
+        thietBi.setSoLuong(form.getSoLuong());
+        thietBi.setDonGiaMua(form.getDonGiaMua());
+        thietBi.setNgayMua(form.getNgayMua());
+        thietBi.setGhiChu(form.getGhiChu());
+        return thietBi;
+    }
+
+    private ThietBiForm toForm(ThietBi entity) {
+        ThietBiForm form = new ThietBiForm();
+        form.setMaThietBi(entity.getMaThietBi());
+        form.setTenThietBi(entity.getTenThietBi());
+        form.setSoLuong(entity.getSoLuong());
+        form.setDonGiaMua(entity.getDonGiaMua());
+        form.setNgayMua(entity.getNgayMua());
+        form.setGhiChu(entity.getGhiChu());
+        return form;
+    }
+
+    private String renderEquipmentPage(Model model, Authentication auth) {
+        model.addAttribute("username", auth == null ? "anonymous" : auth.getName());
+        model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
+        model.addAttribute("contentFragment", "admin/equipment");
+        model.addAttribute("items", thietBiService.findAll());
+        model.addAttribute("minDate", LocalDate.now().toString());
+        return "layout/base";
     }
 
     /**
@@ -115,4 +166,3 @@ public class EquipmentController {
         return "redirect:/admin/equipment";
     }
 }
-

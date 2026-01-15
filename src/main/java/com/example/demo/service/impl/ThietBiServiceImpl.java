@@ -76,13 +76,22 @@ public class ThietBiServiceImpl implements ThietBiService {
     public ThietBi save(ThietBi thietBi) {
         
         if (thietBi.getTenThietBi() == null || thietBi.getTenThietBi().trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên thiết bị là bắt buộc");
+            throw new IllegalArgumentException("Tên thiết bị bắt buộc");
         }
         if (thietBi.getSoLuong() == null || thietBi.getSoLuong() <= 0) {
             throw new IllegalArgumentException("Số lượng phải lớn hơn 0");
         }
+        if (thietBi.getSoLuong() != null && thietBi.getSoLuong() > 10) {
+            throw new IllegalArgumentException("Số lượng tối đa 10");
+        }
         if (thietBi.getDonGiaMua() == null || thietBi.getDonGiaMua().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Đơn giá phải >= 0");
+            throw new IllegalArgumentException("Đơn giá mua phải lớn hơn hoặc bằng 0");
+        }
+        if (thietBi.getNgayMua() == null) {
+            throw new IllegalArgumentException("Ngày mua bắt buộc");
+        }
+        if (thietBi.getNgayMua().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("Ngày mua không được trước hôm nay");
         }
         return thietBiRepository.save(thietBi);
     }
@@ -103,5 +112,4 @@ public class ThietBiServiceImpl implements ThietBiService {
         thietBiRepository.deleteById(id);
     }
 }
-
 

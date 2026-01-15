@@ -3,12 +3,14 @@ package com.example.demo.controller;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 import com.example.demo.dto.ChiTieuForm;
 import com.example.demo.dto.EditHangHoaForm;
 import com.example.demo.dto.HangHoaNhapForm;
+import com.example.demo.dto.ThietBiForm;
 import com.example.demo.dto.XuatHangForm;
 import com.example.demo.entity.HangHoa;
 import com.example.demo.entity.NhanVien;
@@ -133,8 +135,9 @@ public class AdminPagesController {
         model.addAttribute("items", thietBiService.findAll());
         
         if (!model.containsAttribute("thietBi")) {
-            model.addAttribute("thietBi", new ThietBi());
+            model.addAttribute("thietBi", new ThietBiForm());
         }
+        model.addAttribute("minDate", LocalDate.now().format(DateTimeFormatter.ISO_DATE));
         return "layout/base";
     }
 
