@@ -249,7 +249,7 @@ public class AdminEmployeesController extends BaseController {
             redirectAttributes.addFlashAttribute("message", "Cập nhật thành công");
         } catch (IllegalArgumentException ex) {
             model.addAttribute("error", ex.getMessage());
-            model.addAttribute("employeeId", id);
+            model.addAttribute("empl    oyeeId", id);
             setupAdminLayout(model, "admin/employees_edit", auth);
             return "layout/base";
         }

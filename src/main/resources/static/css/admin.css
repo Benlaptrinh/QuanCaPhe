@@ -760,6 +760,15 @@ a:hover {
     font-size: 13px;
 }
 
+.sales-action-bar .btn {
+    min-width: 120px;
+    min-height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
+}
+
 .legend-item {
     display: inline-flex;
     align-items: center;

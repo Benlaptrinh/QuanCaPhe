@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.example.demo.entity.Ban;
+import com.example.demo.entity.ChiTietDatBan;
 import com.example.demo.entity.HoaDon;
 import com.example.demo.entity.ThucDon;
 
@@ -31,6 +32,20 @@ public interface SalesService {
      * @return result
      */
     List<Ban> findAllTables();
+    /**
+     * Find table by id.
+     *
+     * @param tableId tableId
+     * @return result
+     */
+    Optional<Ban> findTableById(Long tableId);
+    /**
+     * Find latest reservation for table.
+     *
+     * @param banId banId
+     * @return result
+     */
+    Optional<ChiTietDatBan> findLatestReservation(Long banId);
     /**
      * Find unpaid invoice by table.
      *
@@ -133,5 +148,4 @@ public interface SalesService {
      */
     void cancelReservation(Long banId);
 }
-
 

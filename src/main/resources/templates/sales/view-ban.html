@@ -23,11 +23,31 @@
       <a th:href="@{|/sales/${tableId}/payment|}">Thanh toán</a>
     </div>
     <div th:if="${hoaDon == null}">
-      <p>Bàn trống</p>
-      <a th:href="@{|/sales/${tableId}/menu|}">Tạo hóa đơn và chọn món</a>
+      <div th:if="${reserved}">
+        <p>Bàn đã đặt</p>
+        <table border="1" style="width:70%" th:if="${reservation != null}">
+          <tbody>
+            <tr>
+              <th>Khách</th>
+              <td th:text="${reservation.tenKhach != null ? reservation.tenKhach : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Số điện thoại</th>
+              <td th:text="${reservation.sdt != null ? reservation.sdt : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Giờ đến</th>
+              <td th:text="${reservation.ngayGioDat != null ? #temporals.format(reservation.ngayGioDat, 'dd/MM/yyyy HH:mm') : ''}"></td>
+            </tr>
+          </tbody>
+        </table>
+        <p th:if="${reservation == null}">Chưa có thông tin đặt bàn</p>
+      </div>
+      <div th:if="${!reserved}">
+        <p>Chưa gọi món</p>
+        <a th:href="@{|/sales/${tableId}/menu|}">Tạo hóa đơn và chọn món</a>
+      </div>
     </div>
   </div>
 </body>
 </html>
-
-

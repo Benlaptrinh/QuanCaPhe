@@ -100,6 +100,29 @@ public class SalesServiceImpl implements SalesService {
     }
 
     /**
+     * Find table by id.
+     *
+     * @param tableId tableId
+     * @return result
+     */
+    @Override
+    public Optional<Ban> findTableById(Long tableId) {
+        return banRepository.findById(tableId);
+    }
+
+    /**
+     * Find latest reservation for table.
+     *
+     * @param banId banId
+     * @return result
+     */
+    @Override
+    public Optional<ChiTietDatBan> findLatestReservation(Long banId) {
+        return banRepository.findById(banId)
+                .flatMap(ban -> chiTietDatBanRepository.findTopByBanOrderById_NgayGioDatDesc(ban));
+    }
+
+    /**
      * Find unpaid invoice by table.
      *
      * @param tableId tableId
@@ -684,5 +707,4 @@ public class SalesServiceImpl implements SalesService {
                 .orElse(null);
     }
 }
-
 

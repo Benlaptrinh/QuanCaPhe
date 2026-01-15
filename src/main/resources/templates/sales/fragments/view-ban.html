@@ -3,14 +3,40 @@
   <div class="modal-card modal-card--medium">
     <h3 th:text="'Xem bàn ' + ${banId}">Xem bàn</h3>
 
-    <div th:if="${empty}">
-      <p class="modal-hint">Bàn trống</p>
+    <div th:if="${hoaDon == null and reserved}">
+      <p class="modal-hint">Bàn đã đặt</p>
+      <div th:if="${reservation != null}">
+        <table class="modal-table">
+          <tbody>
+            <tr>
+              <th>Khách</th>
+              <td th:text="${reservation.tenKhach != null ? reservation.tenKhach : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Số điện thoại</th>
+              <td th:text="${reservation.sdt != null ? reservation.sdt : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Giờ đến</th>
+              <td th:text="${reservation.ngayGioDat != null ? #temporals.format(reservation.ngayGioDat, 'dd/MM/yyyy HH:mm') : ''}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="modal-hint" th:if="${reservation == null}">Chưa có thông tin đặt bàn</p>
       <div class="modal-actions">
         <button type="button" class="btn btn-sm btn-secondary" onclick="closeModal()">Đóng</button>
       </div>
     </div>
 
-    <div th:if="${!empty}">
+    <div th:if="${hoaDon == null and !reserved}">
+      <p class="modal-hint">Chưa gọi món</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm btn-secondary" onclick="closeModal()">Đóng</button>
+      </div>
+    </div>
+
+    <div th:if="${hoaDon != null}">
       <div>
         <table class="modal-table">
           <thead>
@@ -55,4 +81,3 @@
     </div>
   </div>
 </div>
-
