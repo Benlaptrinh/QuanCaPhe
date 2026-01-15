@@ -605,15 +605,7 @@ public class AdminPagesController {
     public String budget(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                          Model model, Authentication auth) {
-        model.addAttribute("username", usernameFromAuth(auth));
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/budget");
-        if (from != null && to != null) {
-            model.addAttribute("thuChiList", nganSachService.xemThuChi(from, to));
-        }
-        model.addAttribute("chiTieuForm", new ChiTieuForm());
-        model.addAttribute("activeMenu", "budget");
-        return "layout/base";
+        return renderBudgetPage(model, auth, from, to, new ChiTieuForm());
     }
 
     /**
@@ -625,12 +617,42 @@ public class AdminPagesController {
      * @return result
      */
     @PostMapping("/budget/expense")
-    public String themChi(@ModelAttribute ChiTieuForm form,
-                          Principal principal, RedirectAttributes ra) {
+    public String themChi(@Valid @ModelAttribute("chiTieuForm") ChiTieuForm form,
+                          BindingResult bindingResult,
+                          Principal principal,
+                          Model model,
+                          Authentication auth,
+                          RedirectAttributes ra) {
+        if (bindingResult.hasErrors()) {
+            return renderBudgetPage(model, auth, null, null, form);
+        }
         String username = principal == null ? null : principal.getName();
-        nganSachService.themChiTieu(form, username);
-        ra.addFlashAttribute("success", "Thêm chi tiêu thành công");
-        return "redirect:/admin/budget";
+        try {
+            nganSachService.themChiTieu(form, username);
+            ra.addFlashAttribute("success", "Thêm chi tiêu thành công");
+            return "redirect:/admin/budget";
+        } catch (IllegalArgumentException ex) {
+            bindingResult.reject("invalid", ex.getMessage());
+            return renderBudgetPage(model, auth, null, null, form);
+        }
+    }
+
+    private String renderBudgetPage(Model model,
+                                    Authentication auth,
+                                    LocalDate from,
+                                    LocalDate to,
+                                    ChiTieuForm form) {
+        model.addAttribute("username", usernameFromAuth(auth));
+        model.addAttribute("sidebarFragment", sidebar);
+        model.addAttribute("contentFragment", "admin/budget");
+        model.addAttribute("from", from);
+        model.addAttribute("to", to);
+        if (from != null && to != null) {
+            model.addAttribute("thuChiList", nganSachService.xemThuChi(from, to));
+        }
+        model.addAttribute("chiTieuForm", form);
+        model.addAttribute("activeMenu", "budget");
+        return "layout/base";
     }
 
     /**

@@ -488,6 +488,14 @@ a:hover {
     gap: 12px;
 }
 
+.budget-filter {
+    align-items: flex-end;
+}
+
+.budget-filter-row {
+    grid-template-columns: repeat(2, minmax(200px, 1fr));
+}
+
 .form-group input,
 .form-group textarea,
 .form-group select {

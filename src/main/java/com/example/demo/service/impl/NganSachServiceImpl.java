@@ -113,18 +113,26 @@ public class NganSachServiceImpl implements NganSachService {
      */
     @Override
     public void themChiTieu(ChiTieuForm form, String username) {
+        if (form == null) {
+            throw new IllegalArgumentException("Dữ liệu không hợp lệ");
+        }
         if (form.getTenKhoanChi() == null || form.getTenKhoanChi().isBlank()) {
             throw new IllegalArgumentException("Khoản chi bắt buộc");
+        }
+        if (form.getNgayChi() == null) {
+            throw new IllegalArgumentException("Ngày chi bắt buộc");
+        }
+        if (form.getSoTien() == null || form.getSoTien().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Số tiền phải lớn hơn 0");
         }
         TaiKhoan tk = taiKhoanRepo.findByTenDangNhap(username).orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
 
         ChiTieu ct = new ChiTieu();
         ct.setTenKhoanChi(form.getTenKhoanChi());
         ct.setSoTien(form.getSoTien());
-        ct.setNgayChi(form.getNgayChi() != null ? form.getNgayChi() : LocalDate.now());
+        ct.setNgayChi(form.getNgayChi());
         ct.setTaiKhoan(tk);
 
         chiTieuRepo.save(ct);
     }
 }
-
