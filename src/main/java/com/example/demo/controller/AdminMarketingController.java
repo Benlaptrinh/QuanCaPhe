@@ -1,13 +1,21 @@
 package com.example.demo.controller;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+
 import com.example.demo.dto.KhuyenMaiForm;
+import com.example.demo.entity.KhuyenMai;
 import com.example.demo.service.KhuyenMaiService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -40,20 +48,25 @@ public class AdminMarketingController {
     }
 
     /**
+     * Show list + form.
+     *
+     * @param model model
+     * @return result
+     */
+    @GetMapping
+    public String list(@RequestParam(defaultValue = "1") int page, Model model) {
+        return renderMarketingPage(model, page, new KhuyenMaiForm(), false);
+    }
+
+    /**
      * Show add form.
      *
      * @param model model
      * @return result
      */
     @GetMapping("/add")
-    public String showAddForm(Model model) {
-        if (!model.containsAttribute("khuyenMaiForm")) {
-            model.addAttribute("khuyenMaiForm", new KhuyenMaiForm());
-        }
-        model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
-        model.addAttribute("contentFragment", "admin/marketing/add");
-        model.addAttribute("activeMenu", "marketing");
-        return "layout/base";
+    public String showAddForm() {
+        return "redirect:/admin/marketing";
     }
 
     /**
@@ -65,18 +78,22 @@ public class AdminMarketingController {
      * @return result
      */
     @PostMapping("/add")
-    public String addKhuyenMai(KhuyenMaiForm khuyenMaiForm, RedirectAttributes redirectAttributes, Model model) {
+    public String addKhuyenMai(@Valid KhuyenMaiForm khuyenMaiForm,
+                               BindingResult bindingResult,
+                               @RequestParam(defaultValue = "1") int page,
+                               RedirectAttributes redirectAttributes,
+                               Model model) {
+        validateDates(khuyenMaiForm.getNgayBatDau(), khuyenMaiForm.getNgayKetThuc(), bindingResult);
+        if (bindingResult.hasErrors()) {
+            return renderMarketingPage(model, page, khuyenMaiForm, false);
+        }
         try {
             khuyenMaiService.createKhuyenMai(khuyenMaiForm);
             redirectAttributes.addFlashAttribute("success", "Thêm khuyến mãi thành công");
             return "redirect:/admin/marketing";
         } catch (IllegalArgumentException ex) {
-            model.addAttribute("error", ex.getMessage());
-            model.addAttribute("khuyenMaiForm", khuyenMaiForm);
-            model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
-            model.addAttribute("contentFragment", "admin/marketing/add");
-            model.addAttribute("activeMenu", "marketing");
-            return "layout/base";
+            applyMarketingError(bindingResult, ex.getMessage());
+            return renderMarketingPage(model, page, khuyenMaiForm, false);
         }
     }
 
@@ -89,15 +106,14 @@ public class AdminMarketingController {
      * @return result
      */
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
+    public String showEditForm(@PathVariable Long id,
+                               @RequestParam(defaultValue = "1") int page,
+                               Model model,
+                               RedirectAttributes ra) {
         try {
             KhuyenMaiForm form = khuyenMaiService.getFormById(id);
-            model.addAttribute("khuyenMaiForm", form);
-            model.addAttribute("khuyenMaiId", id);
-            model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
-            model.addAttribute("contentFragment", "admin/marketing/edit");
-            model.addAttribute("activeMenu", "marketing");
-            return "layout/base";
+            form.setId(id);
+            return renderMarketingPage(model, page, form, true);
         } catch (IllegalArgumentException ex) {
             ra.addFlashAttribute("error", ex.getMessage());
             return "redirect:/admin/marketing";
@@ -113,23 +129,26 @@ public class AdminMarketingController {
      * @param model model
      * @return result
      */
-    @PostMapping("/edit/{id}")
-    public String updateKhuyenMai(@PathVariable Long id,
-                                  KhuyenMaiForm khuyenMaiForm,
+    @PostMapping("/edit")
+    public String updateKhuyenMai(@Valid KhuyenMaiForm khuyenMaiForm,
+                                  BindingResult bindingResult,
+                                  @RequestParam(defaultValue = "1") int page,
                                   RedirectAttributes redirectAttributes,
                                   Model model) {
+        if (khuyenMaiForm.getId() == null) {
+            bindingResult.reject("invalid", "Thiếu mã khuyến mãi");
+        }
+        validateDates(khuyenMaiForm.getNgayBatDau(), khuyenMaiForm.getNgayKetThuc(), bindingResult);
+        if (bindingResult.hasErrors()) {
+            return renderMarketingPage(model, page, khuyenMaiForm, true);
+        }
         try {
-            khuyenMaiService.updateKhuyenMai(id, khuyenMaiForm);
+            khuyenMaiService.updateKhuyenMai(khuyenMaiForm.getId(), khuyenMaiForm);
             redirectAttributes.addFlashAttribute("success", "Cập nhật khuyến mãi thành công");
             return "redirect:/admin/marketing";
         } catch (IllegalArgumentException ex) {
-            model.addAttribute("error", ex.getMessage());
-            model.addAttribute("khuyenMaiForm", khuyenMaiForm);
-            model.addAttribute("khuyenMaiId", id);
-            model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
-            model.addAttribute("contentFragment", "admin/marketing/edit");
-            model.addAttribute("activeMenu", "marketing");
-            return "layout/base";
+            applyMarketingError(bindingResult, ex.getMessage());
+            return renderMarketingPage(model, page, khuyenMaiForm, true);
         }
     }
 
@@ -150,5 +169,58 @@ public class AdminMarketingController {
         }
         return "redirect:/admin/marketing";
     }
-}
 
+    private String renderMarketingPage(Model model,
+                                       int page,
+                                       KhuyenMaiForm form,
+                                       boolean editMode) {
+        int pageSize = 5;
+        List<KhuyenMai> allItems = khuyenMaiService.getAllKhuyenMai();
+        int totalItems = allItems.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int currentPage = Math.min(Math.max(page, 1), totalPages);
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<KhuyenMai> pageItems = totalItems == 0 ? Collections.emptyList() : allItems.subList(fromIndex, toIndex);
+
+        model.addAttribute("khuyenMais", pageItems);
+        model.addAttribute("khuyenMaiForm", form);
+        model.addAttribute("editMode", editMode);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
+        model.addAttribute("contentFragment", "admin/marketing/list");
+        model.addAttribute("activeMenu", "marketing");
+        return "layout/base";
+    }
+
+    private void validateDates(LocalDate start, LocalDate end, BindingResult bindingResult) {
+        if (start != null && end != null && start.isAfter(end)) {
+            bindingResult.rejectValue("ngayKetThuc", "invalid", "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu");
+        }
+    }
+
+    private void applyMarketingError(BindingResult bindingResult, String message) {
+        if (message == null || message.isBlank()) {
+            return;
+        }
+        String lower = message.toLowerCase();
+        if (lower.contains("tên")) {
+            bindingResult.rejectValue("tenKhuyenMai", "invalid", message);
+            return;
+        }
+        if (lower.contains("tỷ lệ") || lower.contains("giảm")) {
+            bindingResult.rejectValue("giaTriGiam", "invalid", message);
+            return;
+        }
+        if (lower.contains("ngày")) {
+            bindingResult.rejectValue("ngayKetThuc", "invalid", message);
+            return;
+        }
+        bindingResult.reject("invalid", message);
+    }
+}

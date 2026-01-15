@@ -130,20 +130,49 @@ public class HangHoaServiceImpl implements HangHoaService {
      */
     @Transactional
     public void nhapHang(HangHoaNhapForm form, NhanVien nhanVien) {
+        if (form.getTenHangHoa() == null || form.getTenHangHoa().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên hàng hóa bắt buộc");
+        }
+        String tenHangHoa = normalizeTenHangHoa(form.getTenHangHoa());
         if (form.getSoLuong() == null || form.getSoLuong() <= 0) {
             throw new IllegalArgumentException("Số lượng phải > 0");
         }
-
-        HangHoa hangHoa = hangHoaRepo.findByTenHangHoa(form.getTenHangHoa()).orElse(null);
+        if (form.getDonGia() == null || form.getDonGia().compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Đơn giá phải lớn hơn hoặc bằng 0");
+        }
+        String donViMoi = normalizeDonVi(form.getDonViMoi());
+        if ((donViMoi == null || donViMoi.isEmpty()) && form.getDonViTinhId() == null) {
+            throw new IllegalArgumentException("Đơn vị bắt buộc");
+        }
+        if (form.getNgayNhap() == null) {
+            throw new IllegalArgumentException("Ngày nhập bắt buộc");
+        }
+        if (form.getNgayNhap().toLocalDate().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("Ngày nhập không được trước hôm nay");
+        }
 
         DonViTinh donVi = null;
-        if (form.getDonViTinhId() != null) {
+        if (donViMoi != null && !donViMoi.isEmpty()) {
+            donVi = donViTinhRepo.findByTenDonViIgnoreCase(donViMoi).orElse(null);
+            if (donVi == null) {
+                DonViTinh newDonVi = new DonViTinh();
+                newDonVi.setTenDonVi(donViMoi);
+                donVi = donViTinhRepo.save(newDonVi);
+            }
+        } else {
             donVi = donViTinhRepo.findById(form.getDonViTinhId()).orElse(null);
+            if (donVi == null) {
+                throw new IllegalArgumentException("Đơn vị không hợp lệ");
+            }
         }
+
+        HangHoa hangHoa = hangHoaRepo
+                .findByTenHangHoaIgnoreCaseAndDonViTinh_MaDonViTinh(tenHangHoa, donVi.getMaDonViTinh())
+                .orElse(null);
 
         if (hangHoa == null) {
             hangHoa = new HangHoa();
-            hangHoa.setTenHangHoa(form.getTenHangHoa());
+            hangHoa.setTenHangHoa(tenHangHoa);
             hangHoa.setSoLuong(form.getSoLuong());
             hangHoa.setDonGia(form.getDonGia());
             hangHoa.setDonViTinh(donVi);
@@ -182,8 +211,17 @@ public class HangHoaServiceImpl implements HangHoaService {
      */
     @Transactional
     public void xuatHang(Long hangHoaId, Integer soLuong, LocalDateTime ngayXuat, NhanVien nhanVien) {
+        if (hangHoaId == null) {
+            throw new IllegalArgumentException("Hàng hóa bắt buộc");
+        }
         if (soLuong == null || soLuong <= 0) {
             throw new IllegalArgumentException("Số lượng xuất phải > 0");
+        }
+        if (ngayXuat == null) {
+            throw new IllegalArgumentException("Ngày xuất bắt buộc");
+        }
+        if (ngayXuat.toLocalDate().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("Ngày xuất không được trước hôm nay");
         }
         HangHoa hh = hangHoaRepo.findById(hangHoaId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hàng hóa"));
@@ -225,8 +263,27 @@ public class HangHoaServiceImpl implements HangHoaService {
             dvt = donViTinhRepo.findById(form.getDonViTinhId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn vị"));
         }
+        if (dvt == null) {
+            throw new IllegalArgumentException("Đơn vị bắt buộc");
+        }
 
-        hh.setTenHangHoa(form.getTenHangHoa());
+        if (hh.getDonViTinh() != null
+                && hh.getDonViTinh().getMaDonViTinh() != null
+                && !hh.getDonViTinh().getMaDonViTinh().equals(dvt.getMaDonViTinh())) {
+            throw new IllegalArgumentException("Không thể đổi đơn vị. Hãy tạo mặt hàng mới");
+        }
+
+        String tenHangHoa = normalizeTenHangHoa(form.getTenHangHoa());
+        boolean duplicate = hangHoaRepo.existsByTenHangHoaIgnoreCaseAndDonViTinh_MaDonViTinhAndMaHangHoaNot(
+                tenHangHoa,
+                dvt.getMaDonViTinh(),
+                hh.getMaHangHoa()
+        );
+        if (duplicate) {
+            throw new IllegalArgumentException("Đã tồn tại hàng hóa cùng tên và đơn vị");
+        }
+
+        hh.setTenHangHoa(tenHangHoa);
         hh.setSoLuong(form.getSoLuong());
         hh.setDonGia(form.getDonGia());
         hh.setDonViTinh(dvt);
@@ -259,6 +316,26 @@ public class HangHoaServiceImpl implements HangHoaService {
 
         hangHoaRepo.delete(hh);
     }
+
+    private String normalizeTenHangHoa(String tenHangHoa) {
+        if (tenHangHoa == null) {
+            return null;
+        }
+        String trimmed = tenHangHoa.trim();
+        if (trimmed.isEmpty()) {
+            return trimmed;
+        }
+        return trimmed.replaceAll("\\s+", " ");
+    }
+
+    private String normalizeDonVi(String donVi) {
+        if (donVi == null) {
+            return null;
+        }
+        String trimmed = donVi.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        return trimmed.replaceAll("\\s+", " ");
+    }
 }
-
-
