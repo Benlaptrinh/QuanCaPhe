@@ -176,6 +176,10 @@ public class AdminMarketingController {
                                        boolean editMode) {
         int pageSize = 5;
         List<KhuyenMai> allItems = khuyenMaiService.getAllKhuyenMai();
+        allItems.sort(java.util.Comparator.comparing(
+                km -> km.getTenKhuyenMai() == null ? "" : km.getTenKhuyenMai(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
         int totalItems = allItems.size();
         int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
         if (totalPages < 1) {

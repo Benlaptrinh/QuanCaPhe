@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.example.demo.controller.base.BaseController;
@@ -63,14 +65,36 @@ public class AdminEmployeesController extends BaseController {
      * @return result
      */
     @GetMapping
-    public String list(@RequestParam(value = "q", required = false) String q, Model model, Authentication auth) {
+    public String list(@RequestParam(value = "q", required = false) String q,
+                       @RequestParam(defaultValue = "1") int page,
+                       Model model,
+                       Authentication auth) {
         List<NhanVien> list;
         if (q != null && !q.isBlank()) {
             list = nhanVienService.findByHoTenContaining(q);
         } else {
             list = nhanVienService.findAll();
         }
-        model.addAttribute("nhanViens", list);
+        list.sort(Comparator.comparing(
+                nv -> nv.getHoTen() == null ? "" : nv.getHoTen(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        int pageSize = 5;
+        int totalItems = list.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int currentPage = Math.min(Math.max(page, 1), totalPages);
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<NhanVien> pageItems = totalItems == 0 ? Collections.emptyList() : list.subList(fromIndex, toIndex);
+
+        model.addAttribute("nhanViens", pageItems);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("q", q);
         setupAdminLayout(model, "admin/employees_list", auth);
         return "layout/base";
     }

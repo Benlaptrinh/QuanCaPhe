@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.example.demo.entity.ChucVu;
@@ -62,8 +64,27 @@ public class AdminUserController {
      * @return result
      */
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("users", taiKhoanService.findAll());
+    public String list(@RequestParam(defaultValue = "1") int page, Model model) {
+        List<TaiKhoan> users = taiKhoanService.findAll();
+        users.sort(Comparator.comparing(
+                tk -> tk.getTenDangNhap() == null ? "" : tk.getTenDangNhap(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        int pageSize = 5;
+        int totalItems = users.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int currentPage = Math.min(Math.max(page, 1), totalPages);
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<TaiKhoan> pageItems = totalItems == 0 ? Collections.emptyList() : users.subList(fromIndex, toIndex);
+
+        model.addAttribute("users", pageItems);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", pageSize);
         return "admin/users/list";
     }
 
@@ -211,4 +232,3 @@ public class AdminUserController {
         return "redirect:/admin/users";
     }
 }
-

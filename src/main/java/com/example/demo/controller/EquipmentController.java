@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Optional;
 
 import com.example.demo.dto.ThietBiForm;
@@ -144,10 +146,29 @@ public class EquipmentController {
     }
 
     private String renderEquipmentPage(Model model, Authentication auth) {
+        int pageSize = 5;
+        int currentPage = 1;
+        java.util.List<ThietBi> allItems = thietBiService.findAll();
+        allItems.sort(Comparator.comparing(
+                tb -> tb.getTenThietBi() == null ? "" : tb.getTenThietBi(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        int totalItems = allItems.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        java.util.List<ThietBi> pageItems = totalItems == 0 ? Collections.emptyList() : allItems.subList(fromIndex, toIndex);
+
         model.addAttribute("username", auth == null ? "anonymous" : auth.getName());
         model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
         model.addAttribute("contentFragment", "admin/equipment");
-        model.addAttribute("items", thietBiService.findAll());
+        model.addAttribute("items", pageItems);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", pageSize);
         model.addAttribute("minDate", LocalDate.now().toString());
         return "layout/base";
     }

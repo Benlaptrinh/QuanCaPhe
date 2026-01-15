@@ -31,6 +31,19 @@
         </tr>
         </tbody>
     </table>
+    <div class="pagination">
+        <a class="btn btn-sm"
+           th:href="@{/admin/users(page=${page - 1})}"
+           th:classappend="${page <= 1 ? ' btn-disabled' : ''}">
+            Trước
+        </a>
+        <span class="pagination-info" th:text="'Trang ' + ${page} + ' / ' + ${totalPages}"></span>
+        <a class="btn btn-sm"
+           th:href="@{/admin/users(page=${page + 1})}"
+           th:classappend="${page >= totalPages ? ' btn-disabled' : ''}">
+            Sau
+        </a>
+    </div>
 </div>
 </body>
 </html>

@@ -140,7 +140,12 @@ public class SalesServiceImpl implements SalesService {
      */
     @Override
     public List<ThucDon> findMenuItems() {
-        return thucDonRepository.findAll();
+        List<ThucDon> items = thucDonRepository.findAll();
+        items.sort(java.util.Comparator.comparing(
+                item -> item.getTenMon() == null ? "" : item.getTenMon(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        return items;
     }
 
     /**
@@ -707,4 +712,3 @@ public class SalesServiceImpl implements SalesService {
                 .orElse(null);
     }
 }
-

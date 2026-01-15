@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -128,11 +129,32 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/equipment")
-    public String equipment(Model model, Authentication auth) {
+    public String equipment(@RequestParam(defaultValue = "1") int page,
+                            Model model,
+                            Authentication auth) {
+        int pageSize = 5;
+        List<ThietBi> allItems = thietBiService.findAll();
+        allItems.sort(Comparator.comparing(
+                tb -> tb.getTenThietBi() == null ? "" : tb.getTenThietBi(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        int totalItems = allItems.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int currentPage = Math.min(Math.max(page, 1), totalPages);
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<ThietBi> pageItems = totalItems == 0 ? Collections.emptyList() : allItems.subList(fromIndex, toIndex);
+
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/equipment");
-        model.addAttribute("items", thietBiService.findAll());
+        model.addAttribute("items", pageItems);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", pageSize);
         
         if (!model.containsAttribute("thietBi")) {
             model.addAttribute("thietBi", new ThietBiForm());
@@ -320,6 +342,10 @@ public class AdminPagesController {
                                        EditHangHoaForm editForm) {
         int pageSize = 3;
         List<HangHoaKhoDTO> allItems = hangHoaService.searchHangHoa(keyword);
+        allItems.sort(Comparator.comparing(
+                item -> item.getTenHangHoa() == null ? "" : item.getTenHangHoa(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
         int totalItems = allItems.size();
         int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
         if (totalPages < 1) {
@@ -548,6 +574,10 @@ public class AdminPagesController {
                                   boolean editMode) {
         int pageSize = 5;
         List<ThucDon> allItems = thucDonService.searchByTenMon(keyword);
+        allItems.sort(Comparator.comparing(
+                item -> item.getTenMon() == null ? "" : item.getTenMon(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
         int totalItems = allItems.size();
         int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
         if (totalPages < 1) {
