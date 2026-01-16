@@ -589,14 +589,19 @@ public class SalesServiceImpl implements SalesService {
             }
         }
 
-        
-        fromHd.setTongTien(fromTotal);
-        hoaDonRepository.save(fromHd);
+        boolean fromEmpty = fromHd.getChiTietHoaDons() == null || fromHd.getChiTietHoaDons().isEmpty();
+        if (fromEmpty) {
+            hoaDonRepository.delete(fromHd);
+            fromBan.setTinhTrang(TinhTrangBan.TRONG);
+            banRepository.save(fromBan);
+        } else {
+            fromHd.setTongTien(fromTotal);
+            hoaDonRepository.save(fromHd);
+        }
 
         toHd.setTongTien(toTotal);
         hoaDonRepository.save(toHd);
 
-        
         toBan.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
         banRepository.save(toBan);
     }
