@@ -12,6 +12,8 @@
             method="post"
             novalidate>
 
+        <input type="hidden" name="page" th:value="${page}" />
+        <input type="hidden" name="keyword" th:value="${keyword}" />
         <input type="hidden" th:field="*{maThietBi}" />
 
         <div class="form-group">
@@ -49,7 +51,7 @@
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Lưu</button>
           <a th:if="${thietBi.maThietBi != null}"
-             th:href="@{/admin/equipment}"
+             th:href="@{/admin/equipment(page=${page}, keyword=${keyword})}"
              class="btn btn-cancel">
             Hủy
           </a>
@@ -85,7 +87,7 @@
           <td class="text-right" th:text="${#numbers.formatDecimal(item.tongGia,0,'POINT',0,'COMMA')}"></td>
           <td class="action-buttons">
             <a class="btn btn-sm btn-edit"
-               th:href="@{/admin/equipment/{id}/edit(id=${item.maThietBi})}">
+               th:href="@{/admin/equipment/{id}/edit(id=${item.maThietBi}, page=${page}, keyword=${keyword})}">
               Sửa
             </a>
             <form th:action="@{/admin/equipment/{id}/delete(id=${item.maThietBi})}"

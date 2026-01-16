@@ -57,6 +57,8 @@
       <div class="form-box" th:if="${editMode}">
         <h2 style="margin:0 0 10px;">Chỉnh sửa hàng hóa</h2>
         <form th:action="@{/admin/warehouse/edit}" th:object="${editForm}" method="post" novalidate>
+          <input type="hidden" name="page" th:value="${page}" />
+          <input type="hidden" name="keyword" th:value="${keyword}" />
           <input type="hidden" th:field="*{id}" />
           <div class="form-group">
             <label>Tên hàng</label>
@@ -92,7 +94,7 @@
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Lưu</button>
-            <a th:href="@{/admin/warehouse}" class="btn btn-cancel">Hủy</a>
+            <a th:href="@{/admin/warehouse(page=${page}, keyword=${keyword})}" class="btn btn-cancel">Hủy</a>
           </div>
         </form>
       </div>
@@ -163,7 +165,7 @@
             ? #temporals.format(item.ngayXuatGanNhat,'HH:mm dd/MM/yyyy')
             : '-'}"></td>
           <td class="action-buttons">
-            <a th:href="@{/admin/warehouse/edit/{id}(id=${item.maHangHoa})}" class="btn btn-sm btn-warning">Sửa</a>
+            <a th:href="@{/admin/warehouse/edit/{id}(id=${item.maHangHoa}, page=${page}, keyword=${keyword})}" class="btn btn-sm btn-warning">Sửa</a>
             <a th:href="@{/admin/warehouse/delete/{id}(id=${item.maHangHoa})}"
                class="btn btn-sm btn-danger"
                onclick="return confirm('Bạn có chắc muốn xóa hàng hóa này?')">

@@ -302,10 +302,19 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/warehouse/edit/{id}")
-    public String warehouseEditForm(@PathVariable Long id, Model model, Authentication auth, RedirectAttributes ra) {
+    public String warehouseEditForm(@PathVariable Long id,
+                                    @RequestParam(required = false) String keyword,
+                                    @RequestParam(defaultValue = "1") int page,
+                                    Model model,
+                                    Authentication auth,
+                                    RedirectAttributes ra) {
         HangHoa hh = hangHoaRepository.findById(id).orElse(null);
         if (hh == null) {
             ra.addFlashAttribute("error", "Không tìm thấy hàng hóa");
+            ra.addAttribute("page", page);
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                ra.addAttribute("keyword", keyword.trim());
+            }
             return "redirect:/admin/warehouse";
         }
         EditHangHoaForm form = new EditHangHoaForm();
@@ -317,7 +326,7 @@ public class AdminPagesController {
             form.setDonViTinhId(hh.getDonViTinh().getMaDonViTinh());
         }
         model.addAttribute("editForm", form);
-        return renderWarehousePage(model, auth, null, 1, new HangHoaNhapForm(), new XuatHangForm(), form);
+        return renderWarehousePage(model, auth, keyword, page, new HangHoaNhapForm(), new XuatHangForm(), form);
     }
 
     /**
@@ -330,19 +339,25 @@ public class AdminPagesController {
     @PostMapping("/warehouse/edit")
     public String warehouseEditSubmit(@Valid @ModelAttribute("editForm") EditHangHoaForm form,
                                       BindingResult bindingResult,
+                                      @RequestParam(required = false) String keyword,
+                                      @RequestParam(defaultValue = "1") int page,
                                       Model model,
                                       Authentication auth,
                                       RedirectAttributes ra) {
         if (bindingResult.hasErrors()) {
-            return renderWarehousePage(model, auth, null, 1, new HangHoaNhapForm(), new XuatHangForm(), form);
+            return renderWarehousePage(model, auth, keyword, page, new HangHoaNhapForm(), new XuatHangForm(), form);
         }
         try {
             hangHoaService.updateHangHoa(form);
             ra.addFlashAttribute("success", "Cập nhật hàng hóa thành công");
+            ra.addAttribute("page", page);
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                ra.addAttribute("keyword", keyword.trim());
+            }
             return "redirect:/admin/warehouse";
         } catch (RuntimeException ex) {
             model.addAttribute("error", ex.getMessage());
-            return renderWarehousePage(model, auth, null, 1, new HangHoaNhapForm(), new XuatHangForm(), form);
+            return renderWarehousePage(model, auth, keyword, page, new HangHoaNhapForm(), new XuatHangForm(), form);
         }
     }
 
