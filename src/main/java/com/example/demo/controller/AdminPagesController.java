@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +15,7 @@ import com.example.demo.dto.ChiTieuForm;
 import com.example.demo.dto.EditHangHoaForm;
 import com.example.demo.dto.HangHoaKhoDTO;
 import com.example.demo.dto.HangHoaNhapForm;
+import com.example.demo.dto.ThuChiDTO;
 import com.example.demo.dto.ThucDonForm;
 import com.example.demo.dto.ThietBiForm;
 import com.example.demo.dto.XuatHangForm;
@@ -678,7 +681,42 @@ public class AdminPagesController {
         model.addAttribute("from", from);
         model.addAttribute("to", to);
         if (from != null && to != null) {
-            model.addAttribute("thuChiList", nganSachService.xemThuChi(from, to));
+            List<ThuChiDTO> thuChiList = nganSachService.xemThuChi(from, to);
+            model.addAttribute("thuChiList", thuChiList);
+            BigDecimal totalThu = BigDecimal.ZERO;
+            BigDecimal totalChi = BigDecimal.ZERO;
+            LocalDate maxThuDay = null;
+            LocalDate maxChiDay = null;
+            BigDecimal maxThu = BigDecimal.ZERO;
+            BigDecimal maxChi = BigDecimal.ZERO;
+            for (ThuChiDTO row : thuChiList) {
+                BigDecimal thu = row.getThu() == null ? BigDecimal.ZERO : row.getThu();
+                BigDecimal chi = row.getChi() == null ? BigDecimal.ZERO : row.getChi();
+                totalThu = totalThu.add(thu);
+                totalChi = totalChi.add(chi);
+                if (thu.compareTo(maxThu) > 0) {
+                    maxThu = thu;
+                    maxThuDay = row.getNgay();
+                }
+                if (chi.compareTo(maxChi) > 0) {
+                    maxChi = chi;
+                    maxChiDay = row.getNgay();
+                }
+            }
+            BigDecimal netAmount = totalThu.subtract(totalChi);
+            BigDecimal chiThuRatio = null;
+            if (totalThu.compareTo(BigDecimal.ZERO) > 0) {
+                chiThuRatio = totalChi.multiply(new BigDecimal("100"))
+                        .divide(totalThu, 2, RoundingMode.HALF_UP);
+            }
+            model.addAttribute("totalThu", totalThu);
+            model.addAttribute("totalChi", totalChi);
+            model.addAttribute("netAmount", netAmount);
+            model.addAttribute("chiThuRatio", chiThuRatio);
+            model.addAttribute("maxThuDay", maxThuDay);
+            model.addAttribute("maxChiDay", maxChiDay);
+            model.addAttribute("maxThu", maxThu);
+            model.addAttribute("maxChi", maxChi);
         }
         model.addAttribute("chiTieuForm", form);
         model.addAttribute("activeMenu", "budget");

@@ -12,9 +12,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.example.demo.entity.Ban;
+import com.example.demo.entity.ChiTietDatBan;
 import com.example.demo.entity.ChiTietHoaDon;
 import com.example.demo.entity.HoaDon;
-import com.example.demo.enums.TinhTrangBan;
 import com.example.demo.service.SalesService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,12 +83,10 @@ public class SalesController {
         model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
         model.addAttribute("tableId", id);
         boolean reserved = false;
-        if (hoaDonOpt.isEmpty()) {
-            Optional<Ban> banOpt = salesService.findTableById(id);
-            reserved = banOpt.isPresent() && banOpt.get().getTinhTrang() == TinhTrangBan.DA_DAT;
-            if (reserved) {
-                salesService.findLatestReservation(id).ifPresent(res -> model.addAttribute("reservation", res));
-            }
+        Optional<ChiTietDatBan> reservationOpt = salesService.findLatestReservation(id);
+        if (reservationOpt.isPresent()) {
+            reserved = true;
+            model.addAttribute("reservation", reservationOpt.get());
         }
         model.addAttribute("reserved", reserved);
         return "sales/view-ban";
@@ -328,13 +326,12 @@ public class SalesController {
         Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
         model.addAttribute("banId", id);
         boolean reserved = false;
-        if (hdOpt.isEmpty()) {
-            Optional<Ban> banOpt = salesService.findTableById(id);
-            reserved = banOpt.isPresent() && banOpt.get().getTinhTrang() == TinhTrangBan.DA_DAT;
-            if (reserved) {
-                salesService.findLatestReservation(id).ifPresent(res -> model.addAttribute("reservation", res));
-            }
-        } else {
+        Optional<ChiTietDatBan> reservationOpt = salesService.findLatestReservation(id);
+        if (reservationOpt.isPresent()) {
+            reserved = true;
+            model.addAttribute("reservation", reservationOpt.get());
+        }
+        if (hdOpt.isPresent()) {
             HoaDon hd = hdOpt.get();
             model.addAttribute("hoaDon", hd);
             model.addAttribute("details", hd.getChiTietHoaDons());
@@ -353,10 +350,8 @@ public class SalesController {
     @GetMapping("/ban/{id}/reserve")
     public String reserveBanFragment(@PathVariable("id") Long id, Model model) {
         model.addAttribute("banId", id);
-        LocalDateTime now = LocalDateTime.now();
-        String min = now.truncatedTo(ChronoUnit.MINUTES).toString().replace(":", "%3A");
-        LocalDateTime startOfToday = now.toLocalDate().atStartOfDay();
-        String minFormatted = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(startOfToday);
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        String minFormatted = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(now);
         model.addAttribute("minDate", minFormatted);
         return "sales/fragments/reserve :: content";
     }
@@ -404,8 +399,9 @@ public class SalesController {
             } else {
                 try {
                     ngayGio = LocalDateTime.parse(ngayGioStr);
-                    if (ngayGio.toLocalDate().isBefore(LocalDateTime.now().toLocalDate())) {
-                        fieldErrors.put("ngayGio", "Ngày giờ đến không được trước hôm nay");
+                    LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+                    if (ngayGio.isBefore(now)) {
+                        fieldErrors.put("ngayGio", "Ngày giờ đến không được trước thời điểm hiện tại");
                     }
                 } catch (DateTimeParseException ex) {
                     fieldErrors.put("ngayGio", "Ngày giờ đến không hợp lệ");
@@ -422,6 +418,16 @@ public class SalesController {
 
             salesService.reserveTable(id, ten, phone, ngayGio);
             return "OK";
+        } catch (IllegalArgumentException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("Giờ đến")) {
+                return "ERROR_FIELDS:ngayGio=" + ex.getMessage();
+            }
+            return "ERROR:" + ex.getMessage();
+        } catch (IllegalStateException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("khung giờ")) {
+                return "ERROR_FIELDS:ngayGio=" + ex.getMessage();
+            }
+            return "ERROR:" + ex.getMessage();
         } catch (Exception e) {
             return "ERROR:" + e.getMessage();
         }

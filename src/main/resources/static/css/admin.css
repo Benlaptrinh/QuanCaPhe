@@ -505,6 +505,48 @@ a:hover {
     visibility: hidden;
 }
 
+.budget-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 10px 0 6px;
+}
+
+.budget-summary-card {
+    border: 1px solid var(--border);
+    background: #f8f5ec;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: grid;
+    gap: 6px;
+}
+
+.budget-summary-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+.budget-summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.budget-summary-value.is-negative {
+    color: #b91c1c;
+}
+
+.budget-summary-extra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
 .form-group input,
 .form-group textarea,
 .form-group select {

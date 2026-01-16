@@ -37,6 +37,25 @@
     </div>
 
     <div th:if="${hoaDon != null}">
+      <div th:if="${reservation != null}">
+        <p class="modal-hint">Khách đặt trước</p>
+        <table class="modal-table">
+          <tbody>
+            <tr>
+              <th>Khách</th>
+              <td th:text="${reservation.tenKhach != null ? reservation.tenKhach : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Số điện thoại</th>
+              <td th:text="${reservation.sdt != null ? reservation.sdt : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Giờ đến</th>
+              <td th:text="${reservation.ngayGioDat != null ? #temporals.format(reservation.ngayGioDat, 'dd/MM/yyyy HH:mm') : ''}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div>
         <table class="modal-table">
           <thead>

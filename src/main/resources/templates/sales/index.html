@@ -86,7 +86,7 @@
           }
         }
         if (btnReserve) {
-          btnReserve.disabled = !isEmpty;
+          btnReserve.disabled = isServing;
           if (!btnReserve.onclick) {
             btnReserve.onclick = function(){ openReserveBan(); };
           }
@@ -386,6 +386,49 @@
           });
       }
 
+      function openViewBanById(id){
+        if(!id){ return; }
+        selectBan(id);
+        openViewBan();
+      }
+
+      function submitMenuForm(event){
+        event.preventDefault();
+        var form = event.target;
+        var action = form.getAttribute('action') || form.action;
+        var id = null;
+        if (action) {
+          var match = action.match(/\/sales\/(\d+)\/menu/);
+          if (match && match[1]) {
+            id = match[1];
+          }
+        }
+        if (!id) {
+          var selected = document.getElementById('selectedBanId');
+          id = selected ? selected.value : null;
+        }
+        var formData = new URLSearchParams(new FormData(form));
+        fetch(action, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/x-www-form-urlencoded'},
+          body: formData.toString()
+        }).then(function(resp){
+          if(!resp.ok){ throw new Error('Lưu thực đơn không thành công'); }
+          return resp.text();
+        }).then(function(){
+          closeModal();
+          if (id) {
+            openViewBanById(id);
+          } else {
+            location.reload();
+          }
+        }).catch(function(err){
+          alert(err.message || 'Lưu thực đơn không thành công');
+        });
+        return false;
+      }
+
       function clearReserveErrors(){
         var ids = ['reserve-error-tenKhach', 'reserve-error-sdt', 'reserve-error-ngayGio'];
         ids.forEach(function(id){
@@ -428,10 +471,10 @@
           hasError = true;
         } else {
           var selected = new Date(ngayGio);
-          var today = new Date();
-          today.setHours(0, 0, 0, 0);
-          if(selected.getTime() < today.getTime()){
-            setReserveError('ngayGio', 'Ngày giờ đến không được trước hôm nay');
+          var now = new Date();
+          now.setSeconds(0, 0);
+          if(selected.getTime() < now.getTime()){
+            setReserveError('ngayGio', 'Ngày giờ đến không được trước thời điểm hiện tại');
             hasError = true;
           }
         }

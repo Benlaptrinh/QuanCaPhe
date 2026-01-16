@@ -5,6 +5,25 @@
     <h1>Xem bàn: <span th:text="${tableId}">ID</span></h1>
     <div th:if="${hoaDon != null}">
       <h3>Hóa đơn chưa thanh toán</h3>
+      <div th:if="${reservation != null}">
+        <p>Khách đặt trước</p>
+        <table border="1" style="width:70%">
+          <tbody>
+            <tr>
+              <th>Khách</th>
+              <td th:text="${reservation.tenKhach != null ? reservation.tenKhach : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Số điện thoại</th>
+              <td th:text="${reservation.sdt != null ? reservation.sdt : 'Chưa có'}">Chưa có</td>
+            </tr>
+            <tr>
+              <th>Giờ đến</th>
+              <td th:text="${reservation.ngayGioDat != null ? #temporals.format(reservation.ngayGioDat, 'dd/MM/yyyy HH:mm') : ''}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <table border="1" style="width:70%">
         <thead>
           <tr><th>Tên món</th><th>Số lượng</th><th>Giá</th><th>Thành tiền</th></tr>

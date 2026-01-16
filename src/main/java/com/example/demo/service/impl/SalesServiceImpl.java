@@ -118,8 +118,15 @@ public class SalesServiceImpl implements SalesService {
      */
     @Override
     public Optional<ChiTietDatBan> findLatestReservation(Long banId) {
+        LocalDateTime now = LocalDateTime.now().minusMinutes(1);
         return banRepository.findById(banId)
-                .flatMap(ban -> chiTietDatBanRepository.findTopByBanOrderById_NgayGioDatDesc(ban));
+                .flatMap(ban -> {
+                    Optional<ChiTietDatBan> upcoming = chiTietDatBanRepository.findTopByBanAndId_NgayGioDatAfterOrderById_NgayGioDatAsc(ban, now);
+                    if (upcoming.isPresent()) {
+                        return upcoming;
+                    }
+                    return chiTietDatBanRepository.findTopByBanOrderById_NgayGioDatDesc(ban);
+                });
     }
 
     /**
@@ -229,8 +236,14 @@ public class SalesServiceImpl implements SalesService {
         if (ban.getTinhTrang() == TinhTrangBan.DANG_SU_DUNG) {
             throw new IllegalStateException("Bàn đang phục vụ, không thể đặt");
         }
-        if (ban.getTinhTrang() == TinhTrangBan.DA_DAT) {
-            throw new IllegalStateException("Bàn đã được đặt trước");
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        if (ngayGioDat.isBefore(now)) {
+            throw new IllegalArgumentException("Giờ đến không được trước thời điểm hiện tại");
+        }
+        LocalDateTime windowStart = ngayGioDat.minusHours(1);
+        LocalDateTime windowEnd = ngayGioDat.plusHours(1);
+        if (chiTietDatBanRepository.existsOverlappingReservation(ban, windowStart, windowEnd)) {
+            throw new IllegalStateException("Bàn đã có khách đặt trong khung giờ 1 tiếng này");
         }
         ChiTietDatBan d = new ChiTietDatBan();
         d.setBan(ban);
@@ -382,8 +395,35 @@ public class SalesServiceImpl implements SalesService {
         hd.setBan(toBan);
         hoaDonRepository.save(hd);
 
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime windowStart = now.minusHours(1);
+        LocalDateTime windowEnd = now.plusHours(1);
+        List<ChiTietDatBan> reservationsToMove = chiTietDatBanRepository.findByBanAndId_NgayGioDatBetween(fromBan, windowStart, windowEnd);
+        if (!reservationsToMove.isEmpty()) {
+            for (ChiTietDatBan res : reservationsToMove) {
+                LocalDateTime time = res.getNgayGioDat();
+                if (time != null) {
+                    LocalDateTime overlapStart = time.minusHours(1);
+                    LocalDateTime overlapEnd = time.plusHours(1);
+                    if (chiTietDatBanRepository.existsOverlappingReservation(toBan, overlapStart, overlapEnd)) {
+                        throw new IllegalStateException("Bàn đích đã có khách đặt trong khung giờ này");
+                    }
+                }
+            }
+            for (ChiTietDatBan res : reservationsToMove) {
+                ChiTietDatBan moved = new ChiTietDatBan();
+                moved.setBan(toBan);
+                moved.setTenKhach(res.getTenKhach());
+                moved.setSdt(res.getSdt());
+                moved.setNhanVien(res.getNhanVien());
+                moved.setNgayGioDat(res.getNgayGioDat());
+                chiTietDatBanRepository.save(moved);
+            }
+            chiTietDatBanRepository.deleteAll(reservationsToMove);
+        }
+
         
-        fromBan.setTinhTrang(TinhTrangBan.TRONG);
+        fromBan.setTinhTrang(chiTietDatBanRepository.existsByBan(fromBan) ? TinhTrangBan.DA_DAT : TinhTrangBan.TRONG);
         toBan.setTinhTrang(TinhTrangBan.DANG_SU_DUNG);
         banRepository.save(fromBan);
         banRepository.save(toBan);
