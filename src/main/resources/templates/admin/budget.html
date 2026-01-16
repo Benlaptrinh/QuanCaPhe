@@ -17,10 +17,13 @@
           <label>Đến ngày</label>
           <input type="date" name="to" th:value="${#dates.format(to,'yyyy-MM-dd')}" />
         </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-primary btn-sm" type="submit">Xem</button>
-        <a th:href="@{/admin/budget}" class="btn btn-sm btn-cancel">Reset</a>
+        <div class="form-group budget-filter-actions">
+          <label class="budget-filter-label" aria-hidden="true">&nbsp;</label>
+          <div class="form-actions form-actions--equal">
+            <button class="btn btn-primary btn-sm" type="submit">Xem</button>
+            <a th:href="@{/admin/budget}" class="btn btn-sm btn-cancel">Reset</a>
+          </div>
+        </div>
       </div>
     </form>
 
@@ -64,7 +67,7 @@
             <div class="field-error" th:if="${#fields.hasErrors('soTien')}" th:errors="*{soTien}"></div>
           </div>
         </div>
-        <div class="form-actions">
+        <div class="form-actions form-actions--equal">
           <button class="btn btn-primary btn-sm" type="submit">Lưu</button>
           <a th:href="@{/admin/budget}" class="btn btn-sm btn-cancel">Hủy</a>
         </div>

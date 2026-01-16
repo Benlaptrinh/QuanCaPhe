@@ -20,7 +20,7 @@
                oninput="this.value = this.value.replace(/\\D/g, '');"/>
         <div class="field-error" th:if="${#fields.hasErrors('soDienThoai')}" th:errors="*{soDienThoai}"></div>
       </div>
-      <div class="form-actions">
+      <div class="form-actions form-actions--equal">
         <button class="btn btn-primary" type="submit">Lưu</button>
         <a class="btn btn-secondary" th:href="@{/profile}">Hủy</a>
       </div>

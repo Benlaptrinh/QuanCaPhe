@@ -493,7 +493,16 @@ a:hover {
 }
 
 .budget-filter-row {
-    grid-template-columns: repeat(2, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, minmax(200px, 1fr)) auto;
+    align-items: start;
+}
+
+.budget-filter-actions {
+    margin-bottom: 0;
+}
+
+.budget-filter-label {
+    visibility: hidden;
 }
 
 .form-group input,
@@ -528,6 +537,14 @@ a:hover {
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.form-actions--equal .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 110px;
+    margin-bottom: 0;
 }
 
 .pagination {
