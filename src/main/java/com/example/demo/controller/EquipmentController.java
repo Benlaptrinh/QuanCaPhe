@@ -169,6 +169,7 @@ public class EquipmentController {
         model.addAttribute("page", currentPage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("pageSize", pageSize);
+        model.addAttribute("keyword", null);
         model.addAttribute("minDate", LocalDate.now().toString());
         return "layout/base";
     }

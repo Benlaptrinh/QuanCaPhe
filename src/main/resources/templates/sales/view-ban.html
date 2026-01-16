@@ -32,12 +32,12 @@
           <tr th:each="ct : ${hoaDon.chiTietHoaDons}">
             <td th:text="${ct.thucDon.tenMon}">Mon</td>
             <td th:text="${ct.soLuong}">1</td>
-            <td th:text="${ct.giaTaiThoiDiemBan}">0</td>
-            <td th:text="${ct.thanhTien}">0</td>
+            <td th:text="${#numbers.formatDecimal(ct.giaTaiThoiDiemBan,0,'POINT',0,'COMMA')}">0</td>
+            <td th:text="${#numbers.formatDecimal(ct.thanhTien,0,'POINT',0,'COMMA')}">0</td>
           </tr>
         </tbody>
       </table>
-      <p>Tổng: <span th:text="${hoaDon.tongTien}">0</span></p>
+      <p>Tổng: <span th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'POINT',0,'COMMA')}">0</span></p>
       <a th:href="@{|/sales/${tableId}/menu|}">Chọn món</a>
       <a th:href="@{|/sales/${tableId}/payment|}">Thanh toán</a>
     </div>

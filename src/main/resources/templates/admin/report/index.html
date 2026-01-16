@@ -18,7 +18,7 @@
           <input type="radio" th:field="*{type}" value="STAFF"> Nhân viên
         </label>
       </fieldset>
-      <div class="report-dates">
+      <div class="report-dates" id="reportDates" th:classappend="${filter.type == 'STAFF' ? ' is-hidden' : ''}">
         <label class="report-date">
           <span>Từ ngày:</span>
           <input type="date" th:field="*{fromDate}" required>
@@ -114,22 +114,6 @@
       <div class="report-chart report-chart--compact" th:if="${staffReport != null and !staffReport.isEmpty()}">
         <canvas id="staffChart"></canvas>
       </div>
-      <table class="data-table report-table report-table--compact"
-             th:if="${staffReport != null and !staffReport.isEmpty()}">
-      <thead>
-        <tr>
-          <th>Trạng thái</th>
-          <th>Số lượng</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr th:each="r : ${staffReport}">
-          <td th:text="${r.trangThai}"></td>
-          <td th:text="${r.soLuong}"></td>
-        </tr>
-      </tbody>
-      </table>
-
       <p class="report-empty" th:if="${staffReport == null or staffReport.isEmpty()}">
         Chưa có dữ liệu nhân viên
       </p>
@@ -256,6 +240,30 @@
         buildFinanceChart();
         buildSalesChart();
         buildStaffChart();
+        var datesWrap = document.getElementById('reportDates');
+        var dateInputs = datesWrap ? datesWrap.querySelectorAll('input[type="date"]') : [];
+        function toggleDatesVisibility() {
+          var staffRadio = document.querySelector('input[name="type"][value="STAFF"]');
+          var isStaff = staffRadio && staffRadio.checked;
+          if (!datesWrap) return;
+          if (isStaff) {
+            datesWrap.classList.add('is-hidden');
+            dateInputs.forEach(function(input){
+              input.disabled = true;
+              input.required = false;
+            });
+          } else {
+            datesWrap.classList.remove('is-hidden');
+            dateInputs.forEach(function(input){
+              input.disabled = false;
+              input.required = true;
+            });
+          }
+        }
+        document.querySelectorAll('input[name="type"]').forEach(function(radio){
+          radio.addEventListener('change', toggleDatesVisibility);
+        });
+        toggleDatesVisibility();
       });
       /*]]>*/
     </script>

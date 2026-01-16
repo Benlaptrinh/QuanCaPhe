@@ -22,6 +22,11 @@
   <p>Mã hóa đơn: <span th:text="${hoaDon.maHoaDon}">#</span></p>
   <p>Ngày: <span th:text="${hoaDon.ngayThanhToan}">-</span></p>
   <p>Nhân viên: <span th:text="${hoaDon.nhanVien != null ? hoaDon.nhanVien.hoTen : '---'}">---</span></p>
+  <div th:if="${reservation != null}">
+    <p>Khách đặt trước: <span th:text="${reservation.tenKhach != null ? reservation.tenKhach : '---'}">---</span></p>
+    <p>Số điện thoại: <span th:text="${reservation.sdt != null ? reservation.sdt : '---'}">---</span></p>
+    <p>Giờ đến: <span th:text="${reservation.ngayGioDat != null ? #temporals.format(reservation.ngayGioDat, 'dd/MM/yyyy HH:mm') : '---'}">---</span></p>
+  </div>
 
   <table>
     <thead>
@@ -36,17 +41,15 @@
       <tr th:each="ct : ${details}">
         <td th:text="${ct.thucDon.tenMon}">Món</td>
         <td style="text-align:center" th:text="${ct.soLuong}">0</td>
-        <td style="text-align:right" th:text="${ct.giaTaiThoiDiemBan}">0</td>
-        <td style="text-align:right" th:text="${ct.thanhTien}">0</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(ct.giaTaiThoiDiemBan,0,'POINT',0,'COMMA')}">0</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(ct.thanhTien,0,'POINT',0,'COMMA')}">0</td>
       </tr>
     </tbody>
   </table>
 
-  <h3 style="text-align:right">Tổng tiền: <span th:text="${hoaDon.tongTien}">0</span></h3>
+  <h3 style="text-align:right">Tổng tiền: <span th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'POINT',0,'COMMA')}">0</span></h3>
   <div style="text-align:center; margin-top:12px;">
     <button type="button" onclick="window.close()">Đóng</button>
   </div>
 </body>
 </html>
-
-

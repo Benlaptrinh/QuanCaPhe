@@ -35,6 +35,28 @@
 
     <script th:inline="javascript">
       /*<![CDATA[*/
+      function stripToDigits(value){
+        return (value || '').toString().replace(/\D/g, '');
+      }
+
+      function formatVnCurrency(value){
+        var digits = stripToDigits(value);
+        if(!digits) return '';
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+
+      function setupTienKhachInput(){
+        var input = document.getElementById('tienKhach');
+        if(!input) return;
+        input.value = formatVnCurrency(input.value);
+        input.addEventListener('input', function(){
+          input.value = formatVnCurrency(input.value);
+        });
+        input.addEventListener('blur', function(){
+          input.value = formatVnCurrency(input.value);
+        });
+      }
+
       function selectBan(id){
         var sel = document.getElementById('selectedBanId');
         if(sel) sel.value = id;
@@ -126,6 +148,7 @@
             }
             modal.innerHTML = html;
             modal.parentElement.style.display = 'flex';
+            setupTienKhachInput();
           });
       }
 
@@ -360,7 +383,7 @@
       }
 
       function submitPayment(banId){
-        var tien = document.getElementById('tienKhach').value || '';
+        var tien = stripToDigits(document.getElementById('tienKhach').value || '');
         var print = document.getElementById('printInvoice') && document.getElementById('printInvoice').checked;
         fetch('/sales/' + banId + '/payment', {
           method: 'POST',

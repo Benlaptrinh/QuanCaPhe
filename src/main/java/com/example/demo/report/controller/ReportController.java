@@ -143,31 +143,42 @@ public class ReportController {
             Model model,
             Authentication auth
     ) {
+        String type = filter.getType();
         String error = null;
-        if (filter.getFromDate() == null || filter.getToDate() == null) {
-            error = "Vui lòng chọn đầy đủ ngày";
-        } else if (filter.getFromDate().isAfter(filter.getToDate())) {
-            error = "Từ ngày không được sau đến ngày";
+        List<ReportRowDTO> reportData = List.of();
+        List<SalesByDayRowDTO> salesByDay = List.of();
+        List<StaffReportRowDTO> staffReport = List.of();
+
+        if ("STAFF".equals(type)) {
+            if (filter.getFromDate() == null || filter.getToDate() == null) {
+                LocalDate now = LocalDate.now();
+                filter.setFromDate(now.withDayOfMonth(1));
+                filter.setToDate(now);
+            }
+            staffReport = staffReportService.getStaffSummary();
+        } else {
+            if (filter.getFromDate() == null || filter.getToDate() == null) {
+                error = "Vui lòng chọn đầy đủ ngày";
+            } else if (filter.getFromDate().isAfter(filter.getToDate())) {
+                error = "Từ ngày không được sau đến ngày";
+            }
+
+            if (error == null) {
+                if ("SALES".equals(type)) {
+                    salesByDay = salesReportService.getSalesByDay(filter.getFromDate(), filter.getToDate());
+                } else {
+                    reportData = financeReportService.getFinanceReport(filter.getFromDate(), filter.getToDate());
+                }
+            }
         }
 
         if (error != null) {
             model.addAttribute("error", error);
-            List<ReportRowDTO> reportData = List.of();
-            List<SalesByDayRowDTO> salesByDay = List.of();
-            List<StaffReportRowDTO> staffReport = List.of();
-            model.addAttribute("reportData", reportData);
-            model.addAttribute("salesByDay", salesByDay);
-            model.addAttribute("staffReport", staffReport);
-            addChartData(model, reportData, salesByDay, staffReport);
-        } else {
-            List<ReportRowDTO> reportData = financeReportService.getFinanceReport(filter.getFromDate(), filter.getToDate());
-            List<SalesByDayRowDTO> salesByDay = salesReportService.getSalesByDay(filter.getFromDate(), filter.getToDate());
-            List<StaffReportRowDTO> staffReport = staffReportService.getStaffSummary();
-            model.addAttribute("reportData", reportData);
-            model.addAttribute("salesByDay", salesByDay);
-            model.addAttribute("staffReport", staffReport);
-            addChartData(model, reportData, salesByDay, staffReport);
         }
+        model.addAttribute("reportData", reportData);
+        model.addAttribute("salesByDay", salesByDay);
+        model.addAttribute("staffReport", staffReport);
+        addChartData(model, reportData, salesByDay, staffReport);
 
         model.addAttribute("filter", filter);
         model.addAttribute("username", usernameFromAuth(auth));
@@ -177,4 +188,3 @@ public class ReportController {
         return "layout/base";
     }
 }
-

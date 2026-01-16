@@ -14,6 +14,7 @@
             method="post"
             novalidate>
         <input type="hidden" name="page" th:value="${page}" />
+        <input type="hidden" name="keyword" th:value="${keyword}" />
         <input type="hidden" th:if="${editMode}" th:field="*{id}" />
 
         <div class="form-group">
@@ -47,6 +48,14 @@
       </form>
     </div>
 
+    <div class="action-bar">
+      <form th:action="@{/admin/marketing}" method="get" class="search-form">
+        <input type="text" name="keyword" placeholder="Nhập tên khuyến mãi..." th:value="${keyword}" />
+        <button class="btn btn-sm">Tìm kiếm</button>
+        <a th:href="@{/admin/marketing}" class="btn btn-sm btn-cancel">Reset</a>
+      </form>
+    </div>
+
     <table class="data-table table-actions">
       <thead>
         <tr>
@@ -64,7 +73,7 @@
           <td th:text="${km.ngayKetThuc}"></td>
           <td class="text-right" th:text="${#numbers.formatDecimal(km.giaTriGiam, 0, 'POINT', 0, 'COMMA')} + '%'"></td>
           <td class="action-buttons">
-            <a th:href="@{/admin/marketing/edit/{id}(id=${km.maKhuyenMai}, page=${page})}" class="btn btn-sm btn-edit">Sửa</a>
+            <a th:href="@{/admin/marketing/edit/{id}(id=${km.maKhuyenMai}, page=${page}, keyword=${keyword})}" class="btn btn-sm btn-edit">Sửa</a>
             <a th:href="@{/admin/marketing/delete/{id}(id=${km.maKhuyenMai})}"
                class="btn btn-sm btn-delete"
                onclick="return confirm('Bạn có chắc muốn xóa khuyến mãi này hay không?')">Xóa</a>
@@ -79,13 +88,13 @@
 
     <div class="pagination">
       <a class="btn btn-sm"
-         th:href="@{/admin/marketing(page=${page - 1})}"
+         th:href="@{/admin/marketing(page=${page - 1}, keyword=${keyword})}"
          th:classappend="${page <= 1 ? ' btn-disabled' : ''}">
         Trước
       </a>
       <span class="pagination-info" th:text="'Trang ' + ${page} + ' / ' + ${totalPages}"></span>
       <a class="btn btn-sm"
-         th:href="@{/admin/marketing(page=${page + 1})}"
+         th:href="@{/admin/marketing(page=${page + 1}, keyword=${keyword})}"
          th:classappend="${page >= totalPages ? ' btn-disabled' : ''}">
         Sau
       </a>

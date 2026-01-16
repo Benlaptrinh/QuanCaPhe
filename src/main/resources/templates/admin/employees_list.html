@@ -15,6 +15,7 @@
       <form th:action="@{/admin/employees}" method="get" class="search-form">
         <input type="text" name="q" placeholder="Tìm theo họ tên" th:value="${param.q}" />
         <button type="submit" class="btn btn-sm">Tìm</button>
+        <a th:href="@{/admin/employees}" class="btn btn-sm btn-cancel">Reset</a>
       </form>
     </div>
 

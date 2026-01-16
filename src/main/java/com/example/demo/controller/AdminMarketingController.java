@@ -54,8 +54,10 @@ public class AdminMarketingController {
      * @return result
      */
     @GetMapping
-    public String list(@RequestParam(defaultValue = "1") int page, Model model) {
-        return renderMarketingPage(model, page, new KhuyenMaiForm(), false);
+    public String list(@RequestParam(defaultValue = "1") int page,
+                       @RequestParam(required = false) String keyword,
+                       Model model) {
+        return renderMarketingPage(model, page, keyword, new KhuyenMaiForm(), false);
     }
 
     /**
@@ -81,11 +83,12 @@ public class AdminMarketingController {
     public String addKhuyenMai(@Valid KhuyenMaiForm khuyenMaiForm,
                                BindingResult bindingResult,
                                @RequestParam(defaultValue = "1") int page,
+                               @RequestParam(required = false) String keyword,
                                RedirectAttributes redirectAttributes,
                                Model model) {
         validateDates(khuyenMaiForm.getNgayBatDau(), khuyenMaiForm.getNgayKetThuc(), bindingResult);
         if (bindingResult.hasErrors()) {
-            return renderMarketingPage(model, page, khuyenMaiForm, false);
+            return renderMarketingPage(model, page, keyword, khuyenMaiForm, false);
         }
         try {
             khuyenMaiService.createKhuyenMai(khuyenMaiForm);
@@ -93,7 +96,7 @@ public class AdminMarketingController {
             return "redirect:/admin/marketing";
         } catch (IllegalArgumentException ex) {
             applyMarketingError(bindingResult, ex.getMessage());
-            return renderMarketingPage(model, page, khuyenMaiForm, false);
+            return renderMarketingPage(model, page, keyword, khuyenMaiForm, false);
         }
     }
 
@@ -108,12 +111,13 @@ public class AdminMarketingController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id,
                                @RequestParam(defaultValue = "1") int page,
+                               @RequestParam(required = false) String keyword,
                                Model model,
                                RedirectAttributes ra) {
         try {
             KhuyenMaiForm form = khuyenMaiService.getFormById(id);
             form.setId(id);
-            return renderMarketingPage(model, page, form, true);
+            return renderMarketingPage(model, page, keyword, form, true);
         } catch (IllegalArgumentException ex) {
             ra.addFlashAttribute("error", ex.getMessage());
             return "redirect:/admin/marketing";
@@ -133,6 +137,7 @@ public class AdminMarketingController {
     public String updateKhuyenMai(@Valid KhuyenMaiForm khuyenMaiForm,
                                   BindingResult bindingResult,
                                   @RequestParam(defaultValue = "1") int page,
+                                  @RequestParam(required = false) String keyword,
                                   RedirectAttributes redirectAttributes,
                                   Model model) {
         if (khuyenMaiForm.getId() == null) {
@@ -140,7 +145,7 @@ public class AdminMarketingController {
         }
         validateDates(khuyenMaiForm.getNgayBatDau(), khuyenMaiForm.getNgayKetThuc(), bindingResult);
         if (bindingResult.hasErrors()) {
-            return renderMarketingPage(model, page, khuyenMaiForm, true);
+            return renderMarketingPage(model, page, keyword, khuyenMaiForm, true);
         }
         try {
             khuyenMaiService.updateKhuyenMai(khuyenMaiForm.getId(), khuyenMaiForm);
@@ -148,7 +153,7 @@ public class AdminMarketingController {
             return "redirect:/admin/marketing";
         } catch (IllegalArgumentException ex) {
             applyMarketingError(bindingResult, ex.getMessage());
-            return renderMarketingPage(model, page, khuyenMaiForm, true);
+            return renderMarketingPage(model, page, keyword, khuyenMaiForm, true);
         }
     }
 
@@ -172,10 +177,19 @@ public class AdminMarketingController {
 
     private String renderMarketingPage(Model model,
                                        int page,
+                                       String keyword,
                                        KhuyenMaiForm form,
                                        boolean editMode) {
         int pageSize = 5;
+        String trimmedKeyword = keyword == null ? null : keyword.trim();
         List<KhuyenMai> allItems = khuyenMaiService.getAllKhuyenMai();
+        if (trimmedKeyword != null && !trimmedKeyword.isEmpty()) {
+            String lower = trimmedKeyword.toLowerCase();
+            allItems.removeIf(km -> {
+                String name = km.getTenKhuyenMai();
+                return name == null || !name.toLowerCase().contains(lower);
+            });
+        }
         allItems.sort(java.util.Comparator.comparing(
                 km -> km.getTenKhuyenMai() == null ? "" : km.getTenKhuyenMai(),
                 String.CASE_INSENSITIVE_ORDER
@@ -196,6 +210,7 @@ public class AdminMarketingController {
         model.addAttribute("page", currentPage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("pageSize", pageSize);
+        model.addAttribute("keyword", trimmedKeyword);
         model.addAttribute("sidebarFragment", "fragments/sidebar-admin");
         model.addAttribute("contentFragment", "admin/marketing/list");
         model.addAttribute("activeMenu", "marketing");

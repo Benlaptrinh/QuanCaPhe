@@ -672,6 +672,10 @@ a:hover {
     gap: 12px;
 }
 
+.report-dates.is-hidden {
+    display: none;
+}
+
 .report-date {
     display: flex;
     align-items: center;

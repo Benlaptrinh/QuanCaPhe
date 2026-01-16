@@ -57,6 +57,14 @@
       </form>
     </div>
 
+    <div class="action-bar">
+      <form th:action="@{/admin/equipment}" method="get" class="search-form">
+        <input type="text" name="keyword" placeholder="Tìm theo tên thiết bị..." th:value="${keyword}" />
+        <button class="btn btn-sm">Tìm kiếm</button>
+        <a th:href="@{/admin/equipment}" class="btn btn-sm btn-cancel">Reset</a>
+      </form>
+    </div>
+
     <table class="data-table table-actions">
       <thead>
         <tr>
@@ -92,13 +100,13 @@
 
     <div class="pagination">
       <a class="btn btn-sm"
-         th:href="@{/admin/equipment(page=${page - 1})}"
+         th:href="@{/admin/equipment(page=${page - 1}, keyword=${keyword})}"
          th:classappend="${page <= 1 ? ' btn-disabled' : ''}">
         Trước
       </a>
       <span class="pagination-info" th:text="'Trang ' + ${page} + ' / ' + ${totalPages}"></span>
       <a class="btn btn-sm"
-         th:href="@{/admin/equipment(page=${page + 1})}"
+         th:href="@{/admin/equipment(page=${page + 1}, keyword=${keyword})}"
          th:classappend="${page >= totalPages ? ' btn-disabled' : ''}">
         Sau
       </a>

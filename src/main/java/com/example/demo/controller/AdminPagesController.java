@@ -133,10 +133,19 @@ public class AdminPagesController {
      */
     @GetMapping("/equipment")
     public String equipment(@RequestParam(defaultValue = "1") int page,
+                            @RequestParam(required = false) String keyword,
                             Model model,
                             Authentication auth) {
         int pageSize = 5;
+        String trimmedKeyword = keyword == null ? null : keyword.trim();
         List<ThietBi> allItems = thietBiService.findAll();
+        if (trimmedKeyword != null && !trimmedKeyword.isEmpty()) {
+            String lower = trimmedKeyword.toLowerCase();
+            allItems.removeIf(item -> {
+                String name = item.getTenThietBi();
+                return name == null || !name.toLowerCase().contains(lower);
+            });
+        }
         allItems.sort(Comparator.comparing(
                 tb -> tb.getTenThietBi() == null ? "" : tb.getTenThietBi(),
                 String.CASE_INSENSITIVE_ORDER
@@ -158,6 +167,7 @@ public class AdminPagesController {
         model.addAttribute("page", currentPage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("pageSize", pageSize);
+        model.addAttribute("keyword", trimmedKeyword);
         
         if (!model.containsAttribute("thietBi")) {
             model.addAttribute("thietBi", new ThietBiForm());
