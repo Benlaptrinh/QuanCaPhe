@@ -4,37 +4,42 @@
   <div th:fragment="content" class="content-wrapper">
     <h1>Quản lý thiết bị</h1>
 
-    <a class="btn btn-primary" th:href="@{/admin/equipment}">
-      + Thêm thiết bị
-    </a>
-
     <div class="form-box">
       <h2 th:text="${thietBi.maThietBi} != null ? 'Chỉnh sửa thiết bị' : 'Thêm thiết bị'"></h2>
 
       <form th:action="${thietBi.maThietBi} != null ? @{/admin/equipment/{id}(id=${thietBi.maThietBi})} : @{/admin/equipment}"
             th:object="${thietBi}"
-            method="post">
+            method="post"
+            novalidate>
 
+        <input type="hidden" name="page" th:value="${page}" />
+        <input type="hidden" name="keyword" th:value="${keyword}" />
         <input type="hidden" th:field="*{maThietBi}" />
 
         <div class="form-group">
           <label for="tenThietBi">Tên thiết bị</label>
-          <input id="tenThietBi" type="text" th:field="*{tenThietBi}" required />
+          <input id="tenThietBi" type="text" th:field="*{tenThietBi}" />
+          <div class="field-error" th:if="${#fields.hasErrors('tenThietBi')}" th:errors="*{tenThietBi}"></div>
         </div>
 
         <div class="form-group">
           <label for="ngayMua">Ngày mua</label>
-          <input id="ngayMua" type="date" th:field="*{ngayMua}" required />
+          <input id="ngayMua" type="date" th:field="*{ngayMua}" th:attr="min=${minDate}" />
+          <div class="field-error" th:if="${#fields.hasErrors('ngayMua')}" th:errors="*{ngayMua}"></div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label for="soLuong">Số lượng</label>
-            <input id="soLuong" type="number" min="1" th:field="*{soLuong}" required />
+            <input id="soLuong" type="number" min="1" max="10" th:field="*{soLuong}" />
+            <div class="field-error" th:if="${#fields.hasErrors('soLuong')}" th:errors="*{soLuong}"></div>
           </div>
           <div class="form-group">
-            <label for="donGiaMua">Đơn giá mua</label>
-            <input id="donGiaMua" type="number" min="0" step="0.01" th:field="*{donGiaMua}" required />
+            <label for="donGiaMuaDisplay">Đơn giá mua</label>
+            <input id="donGiaMua" type="hidden" th:field="*{donGiaMua}" />
+            <input id="donGiaMuaDisplay" type="text" inputmode="numeric"
+                   th:value="${thietBi.donGiaMua != null ? #numbers.formatDecimal(thietBi.donGiaMua,0,'POINT',0,'COMMA') : ''}" />
+            <div class="field-error" th:if="${#fields.hasErrors('donGiaMua')}" th:errors="*{donGiaMua}"></div>
           </div>
         </div>
 
@@ -46,11 +51,19 @@
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Lưu</button>
           <a th:if="${thietBi.maThietBi != null}"
-             th:href="@{/admin/equipment}"
+             th:href="@{/admin/equipment(page=${page}, keyword=${keyword})}"
              class="btn btn-cancel">
             Hủy
           </a>
         </div>
+      </form>
+    </div>
+
+    <div class="action-bar">
+      <form th:action="@{/admin/equipment}" method="get" class="search-form">
+        <input type="text" name="keyword" placeholder="Tìm theo tên thiết bị..." th:value="${keyword}" />
+        <button class="btn btn-sm">Tìm kiếm</button>
+        <a th:href="@{/admin/equipment}" class="btn btn-sm btn-cancel">Reset</a>
       </form>
     </div>
 
@@ -70,11 +83,11 @@
           <td th:text="${item.tenThietBi}"></td>
           <td th:text="${#temporals.format(item.ngayMua,'dd/MM/yyyy')}"></td>
           <td th:text="${item.soLuong}"></td>
-          <td class="text-right" th:text="${#numbers.formatDecimal(item.donGiaMua,0,'COMMA',2,'POINT')}"></td>
-          <td class="text-right" th:text="${#numbers.formatDecimal(item.tongGia,0,'COMMA',2,'POINT')}"></td>
+          <td class="text-right" th:text="${#numbers.formatDecimal(item.donGiaMua,0,'POINT',0,'COMMA')}"></td>
+          <td class="text-right" th:text="${#numbers.formatDecimal(item.tongGia,0,'POINT',0,'COMMA')}"></td>
           <td class="action-buttons">
             <a class="btn btn-sm btn-edit"
-               th:href="@{/admin/equipment/{id}/edit(id=${item.maThietBi})}">
+               th:href="@{/admin/equipment/{id}/edit(id=${item.maThietBi}, page=${page}, keyword=${keyword})}">
               Sửa
             </a>
             <form th:action="@{/admin/equipment/{id}/delete(id=${item.maThietBi})}"
@@ -86,6 +99,48 @@
         </tr>
       </tbody>
     </table>
+
+    <div class="pagination">
+      <a class="btn btn-sm"
+         th:href="@{/admin/equipment(page=${page - 1}, keyword=${keyword})}"
+         th:classappend="${page <= 1 ? ' btn-disabled' : ''}">
+        Trước
+      </a>
+      <span class="pagination-info" th:text="'Trang ' + ${page} + ' / ' + ${totalPages}"></span>
+      <a class="btn btn-sm"
+         th:href="@{/admin/equipment(page=${page + 1}, keyword=${keyword})}"
+         th:classappend="${page >= totalPages ? ' btn-disabled' : ''}">
+        Sau
+      </a>
+    </div>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      function formatVndNumber(value) {
+        var digits = value.replace(/\D/g, '');
+        if (!digits) return '';
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+
+      function syncDonGiaMua() {
+        var display = document.getElementById('donGiaMuaDisplay');
+        var hidden = document.getElementById('donGiaMua');
+        if (!display || !hidden) return;
+        var digits = display.value.replace(/\D/g, '');
+        hidden.value = digits;
+        display.value = formatVndNumber(digits);
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){
+        var display = document.getElementById('donGiaMuaDisplay');
+        if (!display) return;
+        display.value = formatVndNumber(display.value || '');
+        display.addEventListener('input', syncDonGiaMua);
+        display.addEventListener('blur', syncDonGiaMua);
+        syncDonGiaMua();
+      });
+      /*]]>*/
+    </script>
   </div>
 </body>
 </html>

@@ -12,20 +12,17 @@
 
     <div class="table-grid">
       <div th:each="b : ${tables}" class="table-card table-free" th:attr="data-id=${b.maBan}"
-           th:classappend="${b.tinhTrang.name() == 'TRONG' ? '' : (b.tinhTrang.name() == 'DANG_SU_DUNG' ? ' table-busy' : ' table-reserved')}"
-           th:title="${b.tinhTrang}">
+           th:classappend="${b.tinhTrang.name() == 'TRONG' ? '' : (b.tinhTrang.name() == 'DANG_SU_DUNG' ? ' table-busy' : ' table-reserved')}">
         <div th:text="${b.tenBan}">Bàn</div>
-        <div th:text="${b.tinhTrang}">TRONG</div>
       </div>
     </div>
 
     <input type="hidden" id="selectedBanId" name="banId" />
 
-    <div class="action-bar" style="margin-top:16px;">
+    <div class="action-bar sales-action-bar" style="margin-top:16px;">
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button id="btnView" type="button" class="btn btn-sm" onclick="openViewBan()" disabled>Xem bàn</button>
         <button id="btnMenu" type="button" class="btn btn-sm" onclick="openMenuModal()" disabled>Chọn thực đơn</button>
-        <button id="btnPayment" type="button" class="btn btn-sm btn-primary" onclick="openPaymentModal()" disabled>Thanh toán</button>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button id="btnMove" type="button" class="btn btn-sm" disabled>Chuyển</button>
@@ -38,6 +35,28 @@
 
     <script th:inline="javascript">
       /*<![CDATA[*/
+      function stripToDigits(value){
+        return (value || '').toString().replace(/\D/g, '');
+      }
+
+      function formatVnCurrency(value){
+        var digits = stripToDigits(value);
+        if(!digits) return '';
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+
+      function setupTienKhachInput(){
+        var input = document.getElementById('tienKhach');
+        if(!input) return;
+        input.value = formatVnCurrency(input.value);
+        input.addEventListener('input', function(){
+          input.value = formatVnCurrency(input.value);
+        });
+        input.addEventListener('blur', function(){
+          input.value = formatVnCurrency(input.value);
+        });
+      }
+
       function selectBan(id){
         var sel = document.getElementById('selectedBanId');
         if(sel) sel.value = id;
@@ -50,7 +69,6 @@
         // enable action buttons when a table is selected
         var btnView = document.getElementById('btnView');
         var btnMenu = document.getElementById('btnMenu');
-        var btnPayment = document.getElementById('btnPayment');
         var btnReserve = document.getElementById('btnReserve');
         var btnMove = document.getElementById('btnMove');
         var btnMerge = document.getElementById('btnMerge');
@@ -58,13 +76,12 @@
         var btnCancel = document.getElementById('btnCancel');
         if(btnView) btnView.disabled = false;
         if(btnMenu) btnMenu.disabled = false;
-        if(btnPayment) btnPayment.disabled = false;
         if(btnReserve) btnReserve.disabled = false;
 
         var selectedTableEl = document.querySelector('.table-card[data-id=\"' + id + '\"]');
         var isServing = selectedTableEl && selectedTableEl.classList.contains('table-busy');
         var isReserved = selectedTableEl && selectedTableEl.classList.contains('table-reserved');
-        var isEmpty = selectedTableEl && selectedTableEl.classList.contains('table-free');
+        var isEmpty = selectedTableEl && !isServing && !isReserved;
         if (btnMove) {
           btnMove.disabled = !isServing;
           if (!btnMove.onclick) {
@@ -91,7 +108,7 @@
           }
         }
         if (btnReserve) {
-          btnReserve.disabled = !isEmpty;
+          btnReserve.disabled = isServing;
           if (!btnReserve.onclick) {
             btnReserve.onclick = function(){ openReserveBan(); };
           }
@@ -102,10 +119,8 @@
         document.querySelectorAll('.table-card').forEach(function(el){
           el.addEventListener('click', function(){ selectBan(this.getAttribute('data-id')); });
         });
-        // initialize buttons disabled
         document.getElementById('btnView').disabled = true;
         document.getElementById('btnMenu').disabled = true;
-        document.getElementById('btnPayment').disabled = true;
         document.getElementById('btnMove').disabled = true;
         document.getElementById('btnMerge').disabled = true;
         document.getElementById('btnSplit').disabled = true;
@@ -133,6 +148,7 @@
             }
             modal.innerHTML = html;
             modal.parentElement.style.display = 'flex';
+            setupTienKhachInput();
           });
       }
 
@@ -367,7 +383,7 @@
       }
 
       function submitPayment(banId){
-        var tien = document.getElementById('tienKhach').value || '';
+        var tien = stripToDigits(document.getElementById('tienKhach').value || '');
         var print = document.getElementById('printInvoice') && document.getElementById('printInvoice').checked;
         fetch('/sales/' + banId + '/payment', {
           method: 'POST',
@@ -393,11 +409,101 @@
           });
       }
 
+      function openViewBanById(id){
+        if(!id){ return; }
+        selectBan(id);
+        openViewBan();
+      }
+
+      function submitMenuForm(event){
+        event.preventDefault();
+        var form = event.target;
+        var action = form.getAttribute('action') || form.action;
+        var id = null;
+        if (action) {
+          var match = action.match(/\/sales\/(\d+)\/menu/);
+          if (match && match[1]) {
+            id = match[1];
+          }
+        }
+        if (!id) {
+          var selected = document.getElementById('selectedBanId');
+          id = selected ? selected.value : null;
+        }
+        var formData = new URLSearchParams(new FormData(form));
+        fetch(action, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type':'application/x-www-form-urlencoded'},
+          body: formData.toString()
+        }).then(function(resp){
+          if(!resp.ok){ throw new Error('Lưu thực đơn không thành công'); }
+          return resp.text();
+        }).then(function(){
+          closeModal();
+          if (id) {
+            openViewBanById(id);
+          } else {
+            location.reload();
+          }
+        }).catch(function(err){
+          alert(err.message || 'Lưu thực đơn không thành công');
+        });
+        return false;
+      }
+
+      function clearReserveErrors(){
+        var ids = ['reserve-error-tenKhach', 'reserve-error-sdt', 'reserve-error-ngayGio'];
+        ids.forEach(function(id){
+          var el = document.getElementById(id);
+          if(el) el.textContent = '';
+        });
+      }
+
+      function setReserveError(field, message){
+        var el = document.getElementById('reserve-error-' + field);
+        if(el) el.textContent = message;
+      }
+
       function submitReserve(){
+        clearReserveErrors();
         var id = document.getElementById('selectedBanId').value;
-        var ten = document.getElementById('tenKhach').value;
-        var sdt = document.getElementById('sdt').value;
-        var ngayGio = document.getElementById('ngayGio').value;
+        var tenEl = document.getElementById('tenKhach');
+        var sdtEl = document.getElementById('sdt');
+        var ngayGioEl = document.getElementById('ngayGio');
+        var ten = tenEl ? tenEl.value.trim() : '';
+        var sdt = sdtEl ? sdtEl.value.trim() : '';
+        var ngayGio = ngayGioEl ? ngayGioEl.value : '';
+        var hasError = false;
+
+        if(!ten){
+          setReserveError('tenKhach', 'Tên khách bắt buộc');
+          hasError = true;
+        }
+
+        if(!sdt){
+          setReserveError('sdt', 'Số điện thoại bắt buộc');
+          hasError = true;
+        } else if(!/^\d{9,15}$/.test(sdt)) {
+          setReserveError('sdt', 'Số điện thoại chỉ được nhập số (9-15 chữ số)');
+          hasError = true;
+        }
+
+        if(!ngayGio){
+          setReserveError('ngayGio', 'Ngày giờ đến bắt buộc');
+          hasError = true;
+        } else {
+          var selected = new Date(ngayGio);
+          var now = new Date();
+          now.setSeconds(0, 0);
+          if(selected.getTime() < now.getTime()){
+            setReserveError('ngayGio', 'Ngày giờ đến không được trước thời điểm hiện tại');
+            hasError = true;
+          }
+        }
+
+        if(hasError) return;
+
         fetch('/sales/ban/' + id + '/reserve', {
           method: 'POST',
           credentials: 'same-origin',
@@ -409,9 +515,21 @@
               alert('Đặt bàn thành công');
               closeModal();
               location.reload();
-            } else {
-              alert('Lỗi: ' + txt);
+              return;
             }
+            if(txt.startsWith('ERROR_FIELDS:')) {
+              var payload = txt.substring('ERROR_FIELDS:'.length);
+              payload.split('|').forEach(function(pair){
+                var idx = pair.indexOf('=');
+                if(idx > 0) {
+                  var field = pair.substring(0, idx);
+                  var message = pair.substring(idx + 1);
+                  setReserveError(field, message);
+                }
+              });
+              return;
+            }
+            alert('Lỗi: ' + txt);
           });
       }
 
@@ -424,4 +542,3 @@
   </div>
 </body>
 </html>
-

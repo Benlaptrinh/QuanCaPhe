@@ -1,15 +1,25 @@
 package com.example.demo.controller;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 import com.example.demo.dto.ChiTieuForm;
 import com.example.demo.dto.EditHangHoaForm;
+import com.example.demo.dto.HangHoaKhoDTO;
 import com.example.demo.dto.HangHoaNhapForm;
+import com.example.demo.dto.ThuChiDTO;
+import com.example.demo.dto.ThucDonForm;
+import com.example.demo.dto.ThietBiForm;
 import com.example.demo.dto.XuatHangForm;
+import jakarta.validation.Valid;
 import com.example.demo.entity.HangHoa;
 import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
@@ -19,7 +29,6 @@ import com.example.demo.repository.DonViTinhRepository;
 import com.example.demo.repository.HangHoaRepository;
 import com.example.demo.repository.TaiKhoanRepository;
 import com.example.demo.service.HangHoaService;
-import com.example.demo.service.KhuyenMaiService;
 import com.example.demo.service.NganSachService;
 import com.example.demo.service.NhanVienService;
 import com.example.demo.service.SalesService;
@@ -29,6 +38,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,7 +74,6 @@ public class AdminPagesController {
     private final HangHoaRepository hangHoaRepository;
     private final ThucDonService thucDonService;
     private final NganSachService nganSachService;
-    private final KhuyenMaiService khuyenMaiService;
     private String sidebar = "fragments/sidebar-admin";
 
     /**
@@ -78,14 +87,12 @@ public class AdminPagesController {
      * @param taiKhoanRepository taiKhoanRepository
      * @param hangHoaRepository hangHoaRepository
      * @param thucDonService thucDonService
-     * @param khuyenMaiService khuyenMaiService
      * @param nganSachService nganSachService
      */
     public AdminPagesController(SalesService salesService, ThietBiService thietBiService, HangHoaService hangHoaService,
                                 DonViTinhRepository donViTinhRepository, NhanVienService nhanVienService,
                                 TaiKhoanRepository taiKhoanRepository, HangHoaRepository hangHoaRepository,
-                                ThucDonService thucDonService, KhuyenMaiService khuyenMaiService,
-                                NganSachService nganSachService) {
+                                ThucDonService thucDonService, NganSachService nganSachService) {
         this.salesService = salesService;
         this.thietBiService = thietBiService;
         this.hangHoaService = hangHoaService;
@@ -94,7 +101,6 @@ public class AdminPagesController {
         this.taiKhoanRepository = taiKhoanRepository;
         this.hangHoaRepository = hangHoaRepository;
         this.thucDonService = thucDonService;
-        this.khuyenMaiService = khuyenMaiService;
         this.nganSachService = nganSachService;
     }
 
@@ -126,15 +132,47 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/equipment")
-    public String equipment(Model model, Authentication auth) {
+    public String equipment(@RequestParam(defaultValue = "1") int page,
+                            @RequestParam(required = false) String keyword,
+                            Model model,
+                            Authentication auth) {
+        int pageSize = 5;
+        String trimmedKeyword = keyword == null ? null : keyword.trim();
+        List<ThietBi> allItems = thietBiService.findAll();
+        if (trimmedKeyword != null && !trimmedKeyword.isEmpty()) {
+            String lower = trimmedKeyword.toLowerCase();
+            allItems.removeIf(item -> {
+                String name = item.getTenThietBi();
+                return name == null || !name.toLowerCase().contains(lower);
+            });
+        }
+        allItems.sort(Comparator.comparing(
+                tb -> tb.getTenThietBi() == null ? "" : tb.getTenThietBi(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        int totalItems = allItems.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int currentPage = Math.min(Math.max(page, 1), totalPages);
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<ThietBi> pageItems = totalItems == 0 ? Collections.emptyList() : allItems.subList(fromIndex, toIndex);
+
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
         model.addAttribute("contentFragment", "admin/equipment");
-        model.addAttribute("items", thietBiService.findAll());
+        model.addAttribute("items", pageItems);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("keyword", trimmedKeyword);
         
         if (!model.containsAttribute("thietBi")) {
-            model.addAttribute("thietBi", new ThietBi());
+            model.addAttribute("thietBi", new ThietBiForm());
         }
+        model.addAttribute("minDate", LocalDate.now().format(DateTimeFormatter.ISO_DATE));
         return "layout/base";
     }
 
@@ -147,18 +185,11 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/warehouse")
-    public String warehouse(@RequestParam(required = false) String keyword, Model model, Authentication auth) {
-        model.addAttribute("username", usernameFromAuth(auth));
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/kho/list");
-        model.addAttribute("items", hangHoaService.searchHangHoa(keyword));
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("form", new HangHoaNhapForm());
-        model.addAttribute("donViTinhs", donViTinhRepository.findAll());
-        model.addAttribute("activeMenu", "warehouse");
-        model.addAttribute("xuatForm", new XuatHangForm());
-        model.addAttribute("hangHoas", hangHoaService.getDanhSachKho());
-        return "layout/base";
+    public String warehouse(@RequestParam(required = false) String keyword,
+                            @RequestParam(defaultValue = "1") int page,
+                            Model model,
+                            Authentication auth) {
+        return renderWarehousePage(model, auth, keyword, page, new HangHoaNhapForm(), new XuatHangForm(), null);
     }
 
     /**
@@ -176,6 +207,8 @@ public class AdminPagesController {
         model.addAttribute("form", new HangHoaNhapForm());
         model.addAttribute("donViTinhs", donViTinhRepository.findAll());
         model.addAttribute("activeMenu", "warehouse");
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        model.addAttribute("minDate", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(startOfToday));
         return "layout/base";
     }
 
@@ -188,8 +221,21 @@ public class AdminPagesController {
      * @return result
      */
     @PostMapping("/warehouse/create")
-    public String warehouseCreateSubmit(@ModelAttribute("form") HangHoaNhapForm form,
-                                        Principal principal, RedirectAttributes ra) {
+    public String warehouseCreateSubmit(@Valid @ModelAttribute("form") HangHoaNhapForm form,
+                                        BindingResult bindingResult,
+                                        Principal principal,
+                                        Model model,
+                                        Authentication auth,
+                                        RedirectAttributes ra) {
+        String donViMoi = normalizeDonVi(form.getDonViMoi());
+        form.setDonViMoi(donViMoi);
+        if ((donViMoi == null || donViMoi.isEmpty()) && form.getDonViTinhId() == null) {
+            bindingResult.rejectValue("donViTinhId", "invalid", "Đơn vị bắt buộc");
+        }
+        validateWarehouseDate(form.getNgayNhap(), bindingResult, "ngayNhap", "Ngày nhập không được trước hôm nay");
+        if (bindingResult.hasErrors()) {
+            return renderWarehousePage(model, auth, null, 1, form, new XuatHangForm(), null);
+        }
         String username = principal == null ? null : principal.getName();
         NhanVien nv = null;
         if (username != null) {
@@ -199,9 +245,14 @@ public class AdminPagesController {
             }
         }
 
-        hangHoaService.nhapHang(form, nv);
-        ra.addFlashAttribute("success", "Nhập hàng thành công");
-        return "redirect:/admin/warehouse";
+        try {
+            hangHoaService.nhapHang(form, nv);
+            ra.addFlashAttribute("success", "Nhập hàng thành công");
+            return "redirect:/admin/warehouse";
+        } catch (RuntimeException ex) {
+            model.addAttribute("error", ex.getMessage());
+            return renderWarehousePage(model, auth, null, 1, form, new XuatHangForm(), null);
+        }
     }
 
     /**
@@ -213,8 +264,16 @@ public class AdminPagesController {
      * @return result
      */
     @PostMapping("/warehouse/export")
-    public String warehouseExportSubmit(@ModelAttribute("xuatForm") XuatHangForm xuatForm,
-                                        Principal principal, RedirectAttributes ra) {
+    public String warehouseExportSubmit(@Valid @ModelAttribute("xuatForm") XuatHangForm xuatForm,
+                                        BindingResult bindingResult,
+                                        Principal principal,
+                                        Model model,
+                                        Authentication auth,
+                                        RedirectAttributes ra) {
+        validateWarehouseDate(xuatForm.getNgayXuat(), bindingResult, "ngayXuat", "Ngày xuất không được trước hôm nay");
+        if (bindingResult.hasErrors()) {
+            return renderWarehousePage(model, auth, null, 1, new HangHoaNhapForm(), xuatForm, null);
+        }
         String username = principal == null ? null : principal.getName();
         NhanVien nv = null;
         if (username != null) {
@@ -224,9 +283,14 @@ public class AdminPagesController {
             }
         }
 
-        hangHoaService.xuatHang(xuatForm.getHangHoaId(), xuatForm.getSoLuong(), xuatForm.getNgayXuat(), nv);
-        ra.addFlashAttribute("success", "Xuất hàng thành công");
-        return "redirect:/admin/warehouse";
+        try {
+            hangHoaService.xuatHang(xuatForm.getHangHoaId(), xuatForm.getSoLuong(), xuatForm.getNgayXuat(), nv);
+            ra.addFlashAttribute("success", "Xuất hàng thành công");
+            return "redirect:/admin/warehouse";
+        } catch (RuntimeException ex) {
+            model.addAttribute("error", ex.getMessage());
+            return renderWarehousePage(model, auth, null, 1, new HangHoaNhapForm(), xuatForm, null);
+        }
     }
 
     /**
@@ -238,10 +302,19 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/warehouse/edit/{id}")
-    public String warehouseEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
+    public String warehouseEditForm(@PathVariable Long id,
+                                    @RequestParam(required = false) String keyword,
+                                    @RequestParam(defaultValue = "1") int page,
+                                    Model model,
+                                    Authentication auth,
+                                    RedirectAttributes ra) {
         HangHoa hh = hangHoaRepository.findById(id).orElse(null);
         if (hh == null) {
             ra.addFlashAttribute("error", "Không tìm thấy hàng hóa");
+            ra.addAttribute("page", page);
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                ra.addAttribute("keyword", keyword.trim());
+            }
             return "redirect:/admin/warehouse";
         }
         EditHangHoaForm form = new EditHangHoaForm();
@@ -253,11 +326,7 @@ public class AdminPagesController {
             form.setDonViTinhId(hh.getDonViTinh().getMaDonViTinh());
         }
         model.addAttribute("editForm", form);
-        model.addAttribute("donViTinhs", donViTinhRepository.findAll());
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/kho/edit");
-        model.addAttribute("activeMenu", "warehouse");
-        return "layout/base";
+        return renderWarehousePage(model, auth, keyword, page, new HangHoaNhapForm(), new XuatHangForm(), form);
     }
 
     /**
@@ -268,11 +337,95 @@ public class AdminPagesController {
      * @return result
      */
     @PostMapping("/warehouse/edit")
-    public String warehouseEditSubmit(@ModelAttribute("editForm") EditHangHoaForm form,
+    public String warehouseEditSubmit(@Valid @ModelAttribute("editForm") EditHangHoaForm form,
+                                      BindingResult bindingResult,
+                                      @RequestParam(required = false) String keyword,
+                                      @RequestParam(defaultValue = "1") int page,
+                                      Model model,
+                                      Authentication auth,
                                       RedirectAttributes ra) {
-        hangHoaService.updateHangHoa(form);
-        ra.addFlashAttribute("success", "Cập nhật hàng hóa thành công");
-        return "redirect:/admin/warehouse";
+        if (bindingResult.hasErrors()) {
+            return renderWarehousePage(model, auth, keyword, page, new HangHoaNhapForm(), new XuatHangForm(), form);
+        }
+        try {
+            hangHoaService.updateHangHoa(form);
+            ra.addFlashAttribute("success", "Cập nhật hàng hóa thành công");
+            ra.addAttribute("page", page);
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                ra.addAttribute("keyword", keyword.trim());
+            }
+            return "redirect:/admin/warehouse";
+        } catch (RuntimeException ex) {
+            model.addAttribute("error", ex.getMessage());
+            return renderWarehousePage(model, auth, keyword, page, new HangHoaNhapForm(), new XuatHangForm(), form);
+        }
+    }
+
+    private String renderWarehousePage(Model model,
+                                       Authentication auth,
+                                       String keyword,
+                                       int page,
+                                       HangHoaNhapForm form,
+                                       XuatHangForm xuatForm,
+                                       EditHangHoaForm editForm) {
+        int pageSize = 3;
+        List<HangHoaKhoDTO> allItems = hangHoaService.searchHangHoa(keyword);
+        allItems.sort(Comparator.comparing(
+                item -> item.getTenHangHoa() == null ? "" : item.getTenHangHoa(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        int totalItems = allItems.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int currentPage = Math.min(Math.max(page, 1), totalPages);
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<HangHoaKhoDTO> pageItems = totalItems == 0 ? Collections.emptyList() : allItems.subList(fromIndex, toIndex);
+
+        model.addAttribute("username", usernameFromAuth(auth));
+        model.addAttribute("sidebarFragment", sidebar);
+        model.addAttribute("contentFragment", "admin/kho/list");
+        model.addAttribute("items", pageItems);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("form", form);
+        model.addAttribute("donViTinhs", donViTinhRepository.findAll());
+        model.addAttribute("activeMenu", "warehouse");
+        model.addAttribute("xuatForm", xuatForm);
+        model.addAttribute("hangHoas", hangHoaService.getDanhSachKho());
+        model.addAttribute("editForm", editForm);
+        model.addAttribute("editMode", editForm != null);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", totalItems);
+        model.addAttribute("pageSize", pageSize);
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        model.addAttribute("minDate", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(startOfToday));
+        return "layout/base";
+    }
+
+    private void validateWarehouseDate(LocalDateTime date,
+                                       BindingResult bindingResult,
+                                       String field,
+                                       String message) {
+        if (date == null) {
+            return;
+        }
+        if (date.toLocalDate().isBefore(LocalDate.now())) {
+            bindingResult.rejectValue(field, "invalid", message);
+        }
+    }
+
+    private String normalizeDonVi(String donVi) {
+        if (donVi == null) {
+            return null;
+        }
+        String trimmed = donVi.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        return trimmed.replaceAll("\\s+", " ");
     }
 
     /**
@@ -301,12 +454,11 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/menu")
-    public String menu(Model model, Authentication auth) {
-        model.addAttribute("username", usernameFromAuth(auth));
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/menu");
-        model.addAttribute("menuList", thucDonService.findAll());
-        return "layout/base";
+    public String menu(@RequestParam(required = false) String keyword,
+                       @RequestParam(defaultValue = "1") int page,
+                       Model model,
+                       Authentication auth) {
+        return renderMenuPage(model, auth, keyword, page, new ThucDonForm(), false);
     }
 
     /**
@@ -319,18 +471,10 @@ public class AdminPagesController {
      */
     @GetMapping("/menu/search")
     public String menuSearch(@RequestParam(required = false) String keyword,
-                              Model model, Authentication auth) {
-        model.addAttribute("username", usernameFromAuth(auth));
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/menu");
-        List<ThucDon> list = thucDonService.searchByTenMon(keyword);
-        if (list.isEmpty()) {
-            model.addAttribute("error", "Không có trong cơ sở dữ liệu");
-        }
-        model.addAttribute("menuList", list);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("activeMenu", "menu");
-        return "layout/base";
+                             @RequestParam(defaultValue = "1") int page,
+                             Model model,
+                             Authentication auth) {
+        return renderMenuPage(model, auth, keyword, page, new ThucDonForm(), false);
     }
 
     /**
@@ -341,12 +485,8 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/menu/create")
-    public String menuCreateForm(Model model, Authentication auth) {
-        model.addAttribute("username", usernameFromAuth(auth));
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/menu/create");
-        model.addAttribute("activeMenu", "menu");
-        return "layout/base";
+    public String menuCreateForm() {
+        return "redirect:/admin/menu";
     }
 
     /**
@@ -358,16 +498,23 @@ public class AdminPagesController {
      * @return result
      */
     @PostMapping("/menu/create")
-    public String menuCreateSubmit(@RequestParam String tenMon,
-                                   @RequestParam BigDecimal giaTien,
+    public String menuCreateSubmit(@Valid @ModelAttribute("menuForm") ThucDonForm form,
+                                   BindingResult bindingResult,
+                                   @RequestParam(required = false) String keyword,
+                                   @RequestParam(defaultValue = "1") int page,
+                                   Model model,
+                                   Authentication auth,
                                    RedirectAttributes redirect) {
+        if (bindingResult.hasErrors()) {
+            return renderMenuPage(model, auth, keyword, page, form, false);
+        }
         try {
-            thucDonService.create(tenMon, giaTien);
+            thucDonService.create(form.getTenMon(), form.getGiaTien());
             redirect.addFlashAttribute("success", "Thêm món thành công");
             return "redirect:/admin/menu";
         } catch (IllegalArgumentException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
-            return "redirect:/admin/menu/create";
+            applyMenuError(bindingResult, e.getMessage());
+            return renderMenuPage(model, auth, keyword, page, form, false);
         }
     }
 
@@ -380,17 +527,20 @@ public class AdminPagesController {
      * @return result
      */
     @GetMapping("/menu/edit/{id}")
-    public String menuEditForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
+    public String menuEditForm(@PathVariable Long id,
+                               @RequestParam(required = false) String keyword,
+                               @RequestParam(defaultValue = "1") int page,
+                               Model model,
+                               Authentication auth,
+                               RedirectAttributes ra) {
         Optional<ThucDon> opt = thucDonService.findById(id);
         if (opt.isEmpty()) {
             ra.addFlashAttribute("error", "Không tìm thấy món");
             return "redirect:/admin/menu";
         }
-        model.addAttribute("menu", opt.get());
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/menu/edit");
-        model.addAttribute("activeMenu", "menu");
-        return "layout/base";
+        ThucDon thucDon = opt.get();
+        ThucDonForm form = new ThucDonForm(thucDon.getMaThucDon(), thucDon.getTenMon(), thucDon.getGiaHienTai());
+        return renderMenuPage(model, auth, keyword, page, form, true);
     }
 
     /**
@@ -403,17 +553,26 @@ public class AdminPagesController {
      * @return result
      */
     @PostMapping("/menu/edit")
-    public String menuEditSubmit(@RequestParam Long id,
-                                 @RequestParam String tenMon,
-                                 @RequestParam BigDecimal giaTien,
+    public String menuEditSubmit(@Valid @ModelAttribute("menuForm") ThucDonForm form,
+                                 BindingResult bindingResult,
+                                 @RequestParam(required = false) String keyword,
+                                 @RequestParam(defaultValue = "1") int page,
+                                 Model model,
+                                 Authentication auth,
                                  RedirectAttributes redirect) {
+        if (form.getId() == null) {
+            bindingResult.reject("invalid", "Thiếu mã món");
+        }
+        if (bindingResult.hasErrors()) {
+            return renderMenuPage(model, auth, keyword, page, form, true);
+        }
         try {
-            thucDonService.update(id, tenMon, giaTien);
+            thucDonService.update(form.getId(), form.getTenMon(), form.getGiaTien());
             redirect.addFlashAttribute("success", "Cập nhật thành công");
             return "redirect:/admin/menu";
         } catch (IllegalArgumentException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
-            return "redirect:/admin/menu/edit/" + id;
+            applyMenuError(bindingResult, e.getMessage());
+            return renderMenuPage(model, auth, keyword, page, form, true);
         }
     }
 
@@ -435,21 +594,60 @@ public class AdminPagesController {
         return "redirect:/admin/menu";
     }
 
-    /**
-     * Marketing.
-     *
-     * @param model model
-     * @param auth auth
-     * @return result
-     */
-    @GetMapping("/marketing")
-    public String marketing(Model model, Authentication auth) {
+    private String renderMenuPage(Model model,
+                                  Authentication auth,
+                                  String keyword,
+                                  int page,
+                                  ThucDonForm form,
+                                  boolean editMode) {
+        int pageSize = 5;
+        List<ThucDon> allItems = thucDonService.searchByTenMon(keyword);
+        allItems.sort(Comparator.comparing(
+                item -> item.getTenMon() == null ? "" : item.getTenMon(),
+                String.CASE_INSENSITIVE_ORDER
+        ));
+        int totalItems = allItems.size();
+        int totalPages = (int) Math.ceil(totalItems / (double) pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        int currentPage = Math.min(Math.max(page, 1), totalPages);
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<ThucDon> pageItems = totalItems == 0 ? Collections.emptyList() : allItems.subList(fromIndex, toIndex);
+
         model.addAttribute("username", usernameFromAuth(auth));
         model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/marketing/list");
-        model.addAttribute("khuyenMais", khuyenMaiService.getAllKhuyenMai());
-        model.addAttribute("activeMenu", "marketing");
+        model.addAttribute("contentFragment", "admin/menu");
+        model.addAttribute("menuList", pageItems);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("menuForm", form);
+        model.addAttribute("editMode", editMode);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", totalItems);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("activeMenu", "menu");
+        if (keyword != null && !keyword.trim().isEmpty() && totalItems == 0) {
+            model.addAttribute("error", "Không có trong cơ sở dữ liệu");
+        }
         return "layout/base";
+    }
+
+    private void applyMenuError(BindingResult bindingResult, String message) {
+        if (message == null || message.isBlank()) {
+            return;
+        }
+        String lower = message.toLowerCase();
+        if (lower.contains("tên món")) {
+            bindingResult.rejectValue("tenMon", "invalid", message);
+            return;
+        }
+        if (lower.contains("giá")) {
+            bindingResult.rejectValue("giaTien", "invalid", message);
+            return;
+        }
+        bindingResult.reject("invalid", message);
     }
 
     /**
@@ -465,15 +663,7 @@ public class AdminPagesController {
     public String budget(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                          Model model, Authentication auth) {
-        model.addAttribute("username", usernameFromAuth(auth));
-        model.addAttribute("sidebarFragment", sidebar);
-        model.addAttribute("contentFragment", "admin/budget");
-        if (from != null && to != null) {
-            model.addAttribute("thuChiList", nganSachService.xemThuChi(from, to));
-        }
-        model.addAttribute("chiTieuForm", new ChiTieuForm());
-        model.addAttribute("activeMenu", "budget");
-        return "layout/base";
+        return renderBudgetPage(model, auth, from, to, new ChiTieuForm());
     }
 
     /**
@@ -485,12 +675,77 @@ public class AdminPagesController {
      * @return result
      */
     @PostMapping("/budget/expense")
-    public String themChi(@ModelAttribute ChiTieuForm form,
-                          Principal principal, RedirectAttributes ra) {
+    public String themChi(@Valid @ModelAttribute("chiTieuForm") ChiTieuForm form,
+                          BindingResult bindingResult,
+                          Principal principal,
+                          Model model,
+                          Authentication auth,
+                          RedirectAttributes ra) {
+        if (bindingResult.hasErrors()) {
+            return renderBudgetPage(model, auth, null, null, form);
+        }
         String username = principal == null ? null : principal.getName();
-        nganSachService.themChiTieu(form, username);
-        ra.addFlashAttribute("success", "Thêm chi tiêu thành công");
-        return "redirect:/admin/budget";
+        try {
+            nganSachService.themChiTieu(form, username);
+            ra.addFlashAttribute("success", "Thêm chi tiêu thành công");
+            return "redirect:/admin/budget";
+        } catch (IllegalArgumentException ex) {
+            bindingResult.reject("invalid", ex.getMessage());
+            return renderBudgetPage(model, auth, null, null, form);
+        }
+    }
+
+    private String renderBudgetPage(Model model,
+                                    Authentication auth,
+                                    LocalDate from,
+                                    LocalDate to,
+                                    ChiTieuForm form) {
+        model.addAttribute("username", usernameFromAuth(auth));
+        model.addAttribute("sidebarFragment", sidebar);
+        model.addAttribute("contentFragment", "admin/budget");
+        model.addAttribute("from", from);
+        model.addAttribute("to", to);
+        if (from != null && to != null) {
+            List<ThuChiDTO> thuChiList = nganSachService.xemThuChi(from, to);
+            model.addAttribute("thuChiList", thuChiList);
+            BigDecimal totalThu = BigDecimal.ZERO;
+            BigDecimal totalChi = BigDecimal.ZERO;
+            LocalDate maxThuDay = null;
+            LocalDate maxChiDay = null;
+            BigDecimal maxThu = BigDecimal.ZERO;
+            BigDecimal maxChi = BigDecimal.ZERO;
+            for (ThuChiDTO row : thuChiList) {
+                BigDecimal thu = row.getThu() == null ? BigDecimal.ZERO : row.getThu();
+                BigDecimal chi = row.getChi() == null ? BigDecimal.ZERO : row.getChi();
+                totalThu = totalThu.add(thu);
+                totalChi = totalChi.add(chi);
+                if (thu.compareTo(maxThu) > 0) {
+                    maxThu = thu;
+                    maxThuDay = row.getNgay();
+                }
+                if (chi.compareTo(maxChi) > 0) {
+                    maxChi = chi;
+                    maxChiDay = row.getNgay();
+                }
+            }
+            BigDecimal netAmount = totalThu.subtract(totalChi);
+            BigDecimal chiThuRatio = null;
+            if (totalThu.compareTo(BigDecimal.ZERO) > 0) {
+                chiThuRatio = totalChi.multiply(new BigDecimal("100"))
+                        .divide(totalThu, 2, RoundingMode.HALF_UP);
+            }
+            model.addAttribute("totalThu", totalThu);
+            model.addAttribute("totalChi", totalChi);
+            model.addAttribute("netAmount", netAmount);
+            model.addAttribute("chiThuRatio", chiThuRatio);
+            model.addAttribute("maxThuDay", maxThuDay);
+            model.addAttribute("maxChiDay", maxChiDay);
+            model.addAttribute("maxThu", maxThu);
+            model.addAttribute("maxChi", maxChi);
+        }
+        model.addAttribute("chiTieuForm", form);
+        model.addAttribute("activeMenu", "budget");
+        return "layout/base";
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.example.demo.security;
 
+import com.example.demo.entity.NhanVien;
 import com.example.demo.entity.TaiKhoan;
+import com.example.demo.repository.NhanVienRepository;
 import com.example.demo.repository.TaiKhoanRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,14 +27,17 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final TaiKhoanRepository taiKhoanRepository;
+    private final NhanVienRepository nhanVienRepository;
 
     /**
      * Creates CustomUserDetailsService.
      *
      * @param taiKhoanRepository taiKhoanRepository
      */
-    public CustomUserDetailsService(TaiKhoanRepository taiKhoanRepository) {
+    public CustomUserDetailsService(TaiKhoanRepository taiKhoanRepository,
+                                    NhanVienRepository nhanVienRepository) {
         this.taiKhoanRepository = taiKhoanRepository;
+        this.nhanVienRepository = nhanVienRepository;
     }
 
     /**
@@ -46,8 +51,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         TaiKhoan tk = taiKhoanRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        return new CustomUserDetails(tk);
+        boolean nhanVienEnabled = nhanVienRepository.findByTaiKhoan_MaTaiKhoan(tk.getMaTaiKhoan())
+                .map(NhanVien::getEnabled)
+                .orElse(true);
+        return new CustomUserDetails(tk, nhanVienEnabled);
     }
 }
-
-

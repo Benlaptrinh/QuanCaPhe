@@ -6,27 +6,47 @@
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
     <div class="form-box">
-      <form th:action="@{|/admin/employees/${nhanVien.maNhanVien}/edit|}" method="post">
+      <form th:action="@{|/admin/employees/${employeeId}/edit|}" method="post" th:object="${form}" novalidate>
 
         <div class="form-section">
           <h3>Thông tin cá nhân</h3>
           <div class="form-group">
             <label>Họ tên</label>
-            <input type="text" name="hoTen" th:value="${nhanVien.hoTen}" required/>
+            <input type="text" th:field="*{hoTen}" maxlength="100"/>
+            <div class="field-error" th:if="${#fields.hasErrors('hoTen')}" th:errors="*{hoTen}"></div>
           </div>
           <div class="form-group">
             <label>Địa chỉ</label>
-            <input type="text" name="diaChi" th:value="${nhanVien.diaChi}"/>
+            <input type="text" th:field="*{diaChi}" maxlength="10"/>
+            <div class="field-error" th:if="${#fields.hasErrors('diaChi')}" th:errors="*{diaChi}"></div>
           </div>
           <div class="form-group">
-            <label>Chức vụ</label>
-            <select name="chucVuId">
-              <option th:each="c : ${chucVus}" th:value="${c.maChucVu}" th:selected="${nhanVien.chucVu != null and nhanVien.chucVu.maChucVu == c.maChucVu}" th:text="${c.tenChucVu}"></option>
+            <label>Vai trò</label>
+            <select th:field="*{role}">
+              <option value="NHANVIEN">NHANVIEN</option>
+              <option value="ADMIN">ADMIN</option>
             </select>
+            <div class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
           </div>
           <div class="form-group">
             <label>Số điện thoại</label>
-            <input type="text" name="soDienThoai" th:value="${nhanVien.soDienThoai}"/>
+            <input type="text" th:field="*{soDienThoai}" inputmode="numeric" maxlength="15"
+                   oninput="this.value = this.value.replace(/\\D/g, '');"/>
+            <div class="field-error" th:if="${#fields.hasErrors('soDienThoai')}" th:errors="*{soDienThoai}"></div>
+          </div>
+          <div class="form-group">
+            <label>Trạng thái</label>
+            <div class="radio-group">
+              <label>
+                <input type="radio" th:field="*{enabled}" value="true"/>
+                Hoạt động
+              </label>
+              <label>
+                <input type="radio" th:field="*{enabled}" value="false"/>
+                Không hoạt động
+              </label>
+            </div>
+            <div class="field-error" th:if="${#fields.hasErrors('enabled')}" th:errors="*{enabled}"></div>
           </div>
         </div>
 
@@ -34,22 +54,17 @@
           <h3>Tài khoản (tùy chọn)</h3>
           <div class="form-group">
             <label>Username</label>
-            <input type="text" name="tenDangNhap" th:value="${nhanVien.taiKhoan != null ? nhanVien.taiKhoan.tenDangNhap : ''}"/>
-          </div>
-          <div class="form-group">
-            <label>Role</label>
-            <select name="role">
-              <option value="NHANVIEN" th:selected="${nhanVien.taiKhoan!=null and nhanVien.taiKhoan.quyenHan!=null and nhanVien.taiKhoan.quyenHan.name()=='NHANVIEN'}">NHANVIEN</option>
-              <option value="ADMIN" th:selected="${nhanVien.taiKhoan!=null and nhanVien.taiKhoan.quyenHan!=null and nhanVien.taiKhoan.quyenHan.name()=='ADMIN'}">ADMIN</option>
-            </select>
+            <input type="text" th:field="*{tenDangNhap}"/>
+            <div class="field-error" th:if="${#fields.hasErrors('tenDangNhap')}" th:errors="*{tenDangNhap}"></div>
           </div>
           <div class="form-group">
             <label>Mật khẩu mới</label>
-            <input type="password" name="matKhau"/>
+            <input type="password" th:field="*{matKhau}"/>
+            <div class="field-error" th:if="${#fields.hasErrors('matKhau')}" th:errors="*{matKhau}"></div>
           </div>
         </div>
 
-        <div class="form-actions">
+        <div class="form-actions form-actions--equal">
           <button type="submit" class="btn btn-primary">Lưu</button>
           <a th:href="@{/admin/employees}" class="btn btn-cancel">Hủy</a>
         </div>
@@ -58,4 +73,3 @@
   </div>
 </body>
 </html>
-

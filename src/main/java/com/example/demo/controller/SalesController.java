@@ -4,16 +4,18 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import com.example.demo.entity.Ban;
+import com.example.demo.entity.ChiTietDatBan;
 import com.example.demo.entity.ChiTietHoaDon;
 import com.example.demo.entity.HoaDon;
 import com.example.demo.service.SalesService;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -77,8 +79,16 @@ public class SalesController {
      */
     @GetMapping("/ban/{id}")
     public String viewBan(@PathVariable Long id, Model model) {
-        model.addAttribute("hoaDon", salesService.findUnpaidInvoiceByTable(id).orElse(null));
+        Optional<HoaDon> hoaDonOpt = salesService.findUnpaidInvoiceByTable(id);
+        model.addAttribute("hoaDon", hoaDonOpt.orElse(null));
         model.addAttribute("tableId", id);
+        boolean reserved = false;
+        Optional<ChiTietDatBan> reservationOpt = salesService.findLatestReservation(id);
+        if (reservationOpt.isPresent()) {
+            reserved = true;
+            model.addAttribute("reservation", reservationOpt.get());
+        }
+        model.addAttribute("reserved", reserved);
         return "sales/view-ban";
     }
 
@@ -315,14 +325,18 @@ public class SalesController {
     public String viewBanFragment(@PathVariable("id") Long id, Model model) {
         Optional<HoaDon> hdOpt = salesService.findUnpaidInvoiceByTable(id);
         model.addAttribute("banId", id);
-        if (hdOpt.isEmpty()) {
-            model.addAttribute("empty", true);
-        } else {
-            model.addAttribute("empty", false);
+        boolean reserved = false;
+        Optional<ChiTietDatBan> reservationOpt = salesService.findLatestReservation(id);
+        if (reservationOpt.isPresent()) {
+            reserved = true;
+            model.addAttribute("reservation", reservationOpt.get());
+        }
+        if (hdOpt.isPresent()) {
             HoaDon hd = hdOpt.get();
             model.addAttribute("hoaDon", hd);
             model.addAttribute("details", hd.getChiTietHoaDons());
         }
+        model.addAttribute("reserved", reserved);
         return "sales/fragments/view-ban :: content";
     }
 
@@ -336,8 +350,7 @@ public class SalesController {
     @GetMapping("/ban/{id}/reserve")
     public String reserveBanFragment(@PathVariable("id") Long id, Model model) {
         model.addAttribute("banId", id);
-        LocalDateTime now = LocalDateTime.now();
-        String min = now.truncatedTo(ChronoUnit.MINUTES).toString().replace(":", "%3A");
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         String minFormatted = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm").format(now);
         model.addAttribute("minDate", minFormatted);
         return "sales/fragments/reserve :: content";
@@ -366,10 +379,55 @@ public class SalesController {
     public String reserveBanSubmit(@PathVariable("id") Long id,
                                    @RequestParam("tenKhach") String tenKhach,
                                    @RequestParam("sdt") String sdt,
-                                   @RequestParam("ngayGio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime ngayGio) {
+                                   @RequestParam(value = "ngayGio", required = false) String ngayGioStr) {
         try {
-            salesService.reserveTable(id, tenKhach, sdt, ngayGio);
+            Map<String, String> fieldErrors = new LinkedHashMap<>();
+            String ten = tenKhach == null ? "" : tenKhach.trim();
+            String phone = sdt == null ? "" : sdt.trim();
+            LocalDateTime ngayGio = null;
+
+            if (ten.isEmpty()) {
+                fieldErrors.put("tenKhach", "Tên khách bắt buộc");
+            }
+            if (phone.isEmpty()) {
+                fieldErrors.put("sdt", "Số điện thoại bắt buộc");
+            } else if (!phone.matches("\\d{9,15}")) {
+                fieldErrors.put("sdt", "Số điện thoại chỉ được nhập số (9-15 chữ số)");
+            }
+            if (ngayGioStr == null || ngayGioStr.trim().isEmpty()) {
+                fieldErrors.put("ngayGio", "Ngày giờ đến bắt buộc");
+            } else {
+                try {
+                    ngayGio = LocalDateTime.parse(ngayGioStr);
+                    LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+                    if (ngayGio.isBefore(now)) {
+                        fieldErrors.put("ngayGio", "Ngày giờ đến không được trước thời điểm hiện tại");
+                    }
+                } catch (DateTimeParseException ex) {
+                    fieldErrors.put("ngayGio", "Ngày giờ đến không hợp lệ");
+                }
+            }
+
+            if (!fieldErrors.isEmpty()) {
+                String message = fieldErrors.entrySet().stream()
+                        .map(entry -> entry.getKey() + "=" + entry.getValue())
+                        .reduce((a, b) -> a + "|" + b)
+                        .orElse("");
+                return "ERROR_FIELDS:" + message;
+            }
+
+            salesService.reserveTable(id, ten, phone, ngayGio);
             return "OK";
+        } catch (IllegalArgumentException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("Giờ đến")) {
+                return "ERROR_FIELDS:ngayGio=" + ex.getMessage();
+            }
+            return "ERROR:" + ex.getMessage();
+        } catch (IllegalStateException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("khung giờ")) {
+                return "ERROR_FIELDS:ngayGio=" + ex.getMessage();
+            }
+            return "ERROR:" + ex.getMessage();
         } catch (Exception e) {
             return "ERROR:" + e.getMessage();
         }
@@ -633,4 +691,3 @@ public class SalesController {
         }
     }
 }
-

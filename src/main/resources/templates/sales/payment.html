@@ -4,7 +4,7 @@
   <div th:fragment="content">
     <h1>Thanh toán - Bàn <span th:text="${tableId}"></span></h1>
     <div th:if="${hoaDon != null}">
-      <p>Tổng: <span th:text="${hoaDon.tongTien}">0</span></p>
+      <p>Tổng: <span th:text="${#numbers.formatDecimal(hoaDon.tongTien,0,'POINT',0,'COMMA')}">0</span></p>
       <form th:action="@{/sales/thanh-toan/{banId}(banId=${tableId})}" method="post">
         <div>
           <label>Tiền khách đưa</label>
@@ -25,5 +25,4 @@
   </div>
 </body>
 </html>
-
 

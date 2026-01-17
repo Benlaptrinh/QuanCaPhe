@@ -42,7 +42,7 @@ public class ChiTietHoaDon {
 
     @EmbeddedId
     @EqualsAndHashCode.Include
-    private com.example.demo.entity.id.ChiTietHoaDonId id;
+    private com.example.demo.entity.id.ChiTietHoaDonId id = new com.example.demo.entity.id.ChiTietHoaDonId();
 
     @MapsId("maHoaDon")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -69,6 +69,16 @@ public class ChiTietHoaDon {
         this.id.setMaHoaDon(this.hoaDon != null ? this.hoaDon.getMaHoaDon() : null);
         this.id.setMaThucDon(this.thucDon != null ? this.thucDon.getMaThucDon() : null);
     }
+
+    public void setHoaDon(HoaDon hoaDon) {
+        this.hoaDon = hoaDon;
+        if (this.id == null) this.id = new com.example.demo.entity.id.ChiTietHoaDonId();
+        this.id.setMaHoaDon(hoaDon != null ? hoaDon.getMaHoaDon() : null);
+    }
+
+    public void setThucDon(ThucDon thucDon) {
+        this.thucDon = thucDon;
+        if (this.id == null) this.id = new com.example.demo.entity.id.ChiTietHoaDonId();
+        this.id.setMaThucDon(thucDon != null ? thucDon.getMaThucDon() : null);
+    }
 }
-
-
